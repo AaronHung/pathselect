@@ -351,16 +351,15 @@ def write_report(ctx, recs, orders, seeds, args) -> None:
                                             for s, t in zip(short, tasks)) + "。",
               "", "### 表 2：三個軸（3 seeds mean ± std）", "",
               "| task | n | A1 accuracy forgetting (pp) | A2 Jaccard | "
-              "A2 quota KL | A3 ΣU 學完 T_i | A3 ΣU 學完 T_4 | A3 retention |",
-              "|---|---|---|---|---|---|---|---|"]
+              "A2 quota KL | A3 ΣU 學完 T_i | A3 ΣU 學完 T_4 |",
+              "|---|---|---|---|---|---|---|"]
         per_seed = {sd: axes_for(rs, tasks, sd) for sd in seeds}
         for t in tasks:
             g = lambda k: [per_seed[sd][t][k] for sd in seeds if t in per_seed[sd]]
             L.append(f"| {t} | {n_test[t]} | {ms(g('A1_acc_forgetting'), '{:+.2f}')} | "
                      f"{ms(g('A2_jaccard'))} | {ms(g('A2_quota_kl'))} | "
                      f"{ms(g('A3_utility_at_learn'), '{:.1f}')} | "
-                     f"{ms(g('A3_utility_at_end'), '{:.1f}')} | "
-                     f"{ms(g('A3_retention'))} |")
+                     f"{ms(g('A3_utility_at_end'), '{:.1f}')} |")
         L += ["",
               "- **A1** = acc(T_i | 學完 T_i) − acc(T_i | 學完 T_4)，正值代表退步。",
               "- **A2 Jaccard** = 同一批 slide 在兩個時點選到的 patch 集合重疊度；"
@@ -369,10 +368,36 @@ def write_report(ctx, recs, orders, seeds, args) -> None:
               "Laplace 平滑；0 = 分佈沒變。",
               "- **A3** ΣU 是該 task 全部 test slide 的 utility 加總。"
               "U 沿選取順序累加 counterfactual gain；frozen head 不隨訓練改變，"
-              "所以 U 只取決於選了哪些 patch。retention = ΣU(學完 T_4) / ΣU(學完 T_i)："
-              "1.0 = 效用完全保留，0 = 新選的東西完全沒用，**負值 = 新選的東西是反效果**"
-              "（把證據推向錯誤類別，比什麼都不看還糟）。",
-              "", "### T4 學完後，各 task 的 group 配額分佈", "",
+              "所以 U 只取決於選了哪些 patch。ΣU > 0 代表選到的證據把預測推向正確"
+              "類別；**ΣU < 0 代表反效果 —— 比什麼都不看（均勻分佈）還糟**。",
+              "",
+              "#### 附註 A3：retention 比值", "",
+              "retention = ΣU(學完 T_4) / ΣU(學完 T_i)。**分子變號時比值讀不出方向**"
+              "（−2.25 與 −0.31 都只是「反效果」，大小不代表嚴重度排序），所以主表"
+              "改列原始 ΣU 兩欄，比值只放在這裡備查。", "",
+              "| task | retention |", "|---|---|"]
+        for t in tasks:
+            g = lambda k: [per_seed[sd][t][k] for sd in seeds if t in per_seed[sd]]
+            L.append(f"| {t} | {ms(g('A3_retention'))} |")
+        L += ["",
+              "#### 附註 A2：Jaccard 的隨機重疊參照值", "",
+              "從 n 個 patch 隨機抽兩次 K 個，期望 Jaccard = (K/n) / (2 − K/n)。"
+              f"K = {args.budget}，n 取該 task 每張 test slide 的實際 patch 數後平均。"
+              "**低於參照值代表兩個時點選到的 patch 比隨機抽兩次還不重疊。**", "",
+              "| task | 平均 n（patch/slide） | 隨機參照 Jaccard | 實測 Jaccard | |",
+              "|---|---|---|---|---|"]
+        for i, t in enumerate(tasks):
+            if i == len(tasks) - 1:
+                continue
+            npx = [ctx.get(t, "test", k)[0].Z.shape[0]
+                   for k in range(ctx.n_slides(t, "test"))]
+            ref = statistics.mean([(min(args.budget, n) / n)
+                                   / (2 - min(args.budget, n) / n) for n in npx])
+            obs = statistics.mean(
+                [per_seed[sd][t]["A2_jaccard"] for sd in seeds if t in per_seed[sd]])
+            L.append(f"| {t} | {statistics.mean(npx):.0f} | {ref:.5f} | {obs:.5f} | "
+                     f"{'**低於**參照' if obs < ref else '高於參照'} |")
+        L += ["", "### T4 學完後，各 task 的 group 配額分佈", "",
               "| task | 時點 | " + " | ".join(TISSUE_GROUP_NAMES) + " |",
               "|---" * (len(TISSUE_GROUP_NAMES) + 2) + "|"]
         for i, t in enumerate(tasks):
