@@ -11,8 +11,9 @@ r_old 是 group 層分數向量，長度為 J。
 """
 from __future__ import annotations
 
+import random
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Protocol
 
 import torch
 
@@ -46,19 +47,63 @@ class SelectionMemoryEntry:
             raise ValueError("e_t 不得為空")
 
 
-class SelectionMemory:
-    """有界的 entry 儲存（FIFO）。本輪只提供結構與容量保證，不做任何 CL 邏輯。"""
+class ReplacementPolicy(Protocol):
+    """汰換策略介面 —— 可替換，主線用 reservoir sampling。"""
 
-    def __init__(self, capacity: int = MEMORY_CAPACITY):
+    def offer(self, entries: list, entry, capacity: int, n_seen: int) -> None:
+        ...
+
+
+class ReservoirSampling:
+    """標準 reservoir sampling：任何時刻 M 都是「至今所有 entry」的均勻樣本。
+
+    未滿就直接放；滿了之後以機率 capacity / n_seen 取代一個隨機位置。
+    """
+
+    def __init__(self, seed: int = 0):
+        self.rng = random.Random(seed)
+
+    def offer(self, entries, entry, capacity, n_seen) -> None:
+        if len(entries) < capacity:
+            entries.append(entry)
+            return
+        j = self.rng.randrange(n_seen)
+        if j < capacity:
+            entries[j] = entry
+
+
+class FIFO:
+    """對照用的汰換策略：永遠留最新的。"""
+
+    def offer(self, entries, entry, capacity, n_seen) -> None:
+        entries.append(entry)
+        if len(entries) > capacity:
+            entries.pop(0)
+
+
+class SelectionMemory:
+    """有界的 entry 儲存。汰換策略可替換，預設 reservoir sampling。"""
+
+    def __init__(self, capacity: int = MEMORY_CAPACITY,
+                 policy: Optional[ReplacementPolicy] = None):
         if capacity <= 0 or capacity > MEMORY_CAPACITY:
             raise ValueError(f"capacity 必須在 1..{MEMORY_CAPACITY}，got {capacity}")
         self.capacity = capacity
+        self.policy = policy or ReservoirSampling()
+        self.n_seen = 0
         self._entries: list[SelectionMemoryEntry] = []
 
     def add(self, entry: SelectionMemoryEntry) -> None:
-        self._entries.append(entry)
-        if len(self._entries) > self.capacity:
-            self._entries.pop(0)
+        self.n_seen += 1
+        self.policy.offer(self._entries, entry, self.capacity, self.n_seen)
+        if len(self._entries) > self.capacity:      # 任何策略都不得越界
+            raise RuntimeError(f"|M| 超過上限 {self.capacity}")
+
+    def sample(self, k: int, rng: Optional[random.Random] = None) -> list:
+        """取 k 筆做 replay；k 大於現有數量時全給。"""
+        if k >= len(self._entries):
+            return list(self._entries)
+        return (rng or random.Random(0)).sample(self._entries, k)
 
     def __len__(self) -> int:
         return len(self._entries)
@@ -74,6 +119,7 @@ class SelectionMemory:
 
     def clear(self) -> None:
         self._entries.clear()
+        self.n_seen = 0
 
 
 def make_entry(tau: str, slide_id: str, state, r_old: torch.Tensor,
@@ -90,3 +136,30 @@ def make_entry(tau: str, slide_id: str, state, r_old: torch.Tensor,
         cand_idx=cand_idx.detach().cpu(),
         s_old=s_all.detach().cpu().index_select(0, cand_idx.detach().cpu()),
         u_old=u.detach().cpu().reshape(-1))
+
+
+def reload_features(entry: SelectionMemoryEntry, cfg: dict) -> tuple:
+    """依 slide_id + index 從特徵檔重載候選 patch。entry 本身不存 feature。
+
+    回傳 (Z_full [n, D], Z_cand [len(cand_idx), D], label)。
+    label 也是重載來的（來自表格），不佔 entry 欄位 —— CONTRACT-3 的欄位是凍結的。
+    """
+    from .evaluate import read_slide, slide_dataset
+
+    task_pos = list(cfg["tasks"]).index(entry.tau)
+    ds, shift = slide_dataset(cfg, entry.tau, task_pos, "train")
+    by_sid = {str(s): i for i, s in enumerate(ds.sids)}
+    if entry.slide_id not in by_sid:
+        raise KeyError(f"slide_id {entry.slide_id} 不在 {entry.tau} 的 train split")
+    rec = read_slide(ds, shift, by_sid[entry.slide_id])
+    return rec.Z, rec.Z.index_select(0, entry.cand_idx.to(torch.long)), rec.label
+
+
+def selected_from_entry(entry: SelectionMemoryEntry, k: int) -> tuple:
+    """entry 沒有直接記錄「選了誰」，但 s_old 足以還原：候選中分數最高的 k 個。
+
+    回傳 (原 slide 的 index [k], 在 cand_idx 中的位置 [k])。
+    """
+    k = min(k, entry.s_old.numel())
+    pos = torch.topk(entry.s_old, k).indices
+    return entry.cand_idx.index_select(0, pos), pos

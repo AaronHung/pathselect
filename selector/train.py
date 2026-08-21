@@ -28,15 +28,21 @@ if str(REPO_ROOT) not in sys.path:
 
 from selector.grouping import assign_groups, tissue_text_features       # noqa: E402
 from selector.model import GroupSelector, PatchSelector                 # noqa: E402
+from selector.continual import (continual_loss, differentiable_utility,  # noqa: E402
+                                l_eq, l_kd, l_util)
+from selector.memory import (SelectionMemory, make_entry,               # noqa: E402
+                             reload_features, selected_from_entry)
 from selector.priors import MAINLINE_PRIOR, semantic_prior              # noqa: E402
+from selector.utility import (CANDIDATE_SIZE, counterfactual_gain,      # noqa: E402
+                              top_candidates)
 from selector.rounds import (DEFAULT_BUDGET, DEFAULT_CHUNK,            # noqa: E402
                              DEFAULT_GROUP_GRAD, GROUP_GRAD_MODES, run_rounds)
 from selector.task_query import TaskQueryBank                           # noqa: E402
 from selector.text_encoder import build_f_txt, load_config              # noqa: E402
 
 MODES = ("per_task", "joint")
-#: 本輪接上的 loss 項。L_util / L_CL 之後再開。
-ENABLED_TERMS = ("L_diag", "L_sem")
+#: within-task 已接上的 loss 項。CL 層的三項在 selector/continual.py。
+ENABLED_TERMS = ("L_diag", "L_sem", "L_util")
 EPS = 1e-12
 
 
@@ -84,20 +90,25 @@ def l_sem(patch_score: torch.Tensor, prior: torch.Tensor,
 
 def evidence_loss(logits, label, patch_score, prior, *,
                   beta_s: float = 0.1, beta_u: float = 0.1,
-                  util: torch.Tensor | None = None) -> tuple[torch.Tensor, dict]:
+                  utility: torch.Tensor | None = None,
+                  cand_idx: torch.Tensor | None = None
+                  ) -> tuple[torch.Tensor, dict]:
     """L_evidence = L_diag + beta_s * L_sem + beta_u * L_util。
 
-    util 為 None（本輪的情況）時 L_util 不接上，beta_u 只是先佔位。
+    utility: [len(cand_idx)] 每個候選 patch 的 counterfactual gain。
+             None 或 beta_u == 0 時 L_util **完全不計算也不相加**，
+             結果與未接上該項時位元相同。
     """
     d = l_diag(logits, label)
     sem = l_sem(patch_score, prior)
     total = d + beta_s * sem
     parts = {"L_diag": float(d.detach()), "L_sem": float(sem.detach()),
              "L_util": None}
-    if util is not None:
-        u = util.mean()
-        total = total + beta_u * u
-        parts["L_util"] = float(u.detach())
+    if utility is not None and beta_u != 0.0:
+        s_c = patch_score if cand_idx is None else patch_score.index_select(0, cand_idx)
+        u_term = l_util(s_c, utility)
+        total = total + beta_u * u_term
+        parts["L_util"] = float(u_term.detach())
     return total, parts
 
 
@@ -108,7 +119,8 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
                chunk=DEFAULT_CHUNK, prior_kind=MAINLINE_PRIOR,
                beta_s=0.1, beta_u=0.1, n_candidate_classes=None,
                group_grad=DEFAULT_GROUP_GRAD, use_query=True, use_state=True,
-               hierarchy=True, weighting="softmax"):
+               hierarchy=True, weighting="softmax",
+               candidate_size=CANDIDATE_SIZE):
     """跑完一張 slide 的 chunked loop 並回傳 (loss, parts, result)。"""
     if grouping is None:
         if tissue is None:
@@ -132,9 +144,25 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
     prior = semantic_prior(Z, f_txt, kind=prior_kind,
                            n_candidate_classes=n_candidate_classes or f_txt.shape[0],
                            logit_scale=logit_scale)
+
+    # S4-4：counterfactual gain 當監督訊號。候選集合與 evidence 都取「最後一輪的
+    # 狀態」—— s_last 就是在那個狀態下產生的，兩者用同一個狀態才自洽。
+    utility = cand_idx = None
+    if beta_u != 0.0:
+        st = result.state
+        cand_idx = top_candidates(s_last.detach(), st.available_mask, candidate_size)
+        if cand_idx.numel() > 0:
+            utility = counterfactual_gain(
+                st.evidence_sum(), st.n_selected, Z.index_select(0, cand_idx),
+                f_txt, logit_scale, label)
+        else:
+            cand_idx = None
+
     loss, parts = evidence_loss(logits, label, s_last, prior,
-                                beta_s=beta_s, beta_u=beta_u)
+                                beta_s=beta_s, beta_u=beta_u,
+                                utility=utility, cand_idx=cand_idx)
     parts["n_selected"] = int(result.selected.numel())
+    parts["n_candidates"] = int(cand_idx.numel()) if cand_idx is not None else 0
     return loss, parts, result
 
 
@@ -239,3 +267,89 @@ def run_epochs(args, label_str, tasks, slides_for, queries, f_txt, logit_scale,
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# ── CL 層的組合（S4-2 / S4-3）───────────────────────────────────────────────
+# continual.py 只放純 loss 數學（好單測）；把模型前向、記憶體重載串起來的
+# orchestration 放這裡。
+
+def fill_memory(memory: SelectionMemory, models, task: str, cfg, f_txt, logit_scale,
+                tissue, *, budget=DEFAULT_BUDGET, chunk=DEFAULT_CHUNK,
+                q_tau=None, spec=None, max_slides: int = 0,
+                candidate_size=CANDIDATE_SIZE) -> int:
+    """學完一個 task 後，把該 task 的代表性樣本寫進 Selection Memory。
+
+    entry 不含 patch feature，只留 slide_id + cand_idx，之後用 reload_features 重載。
+    汰換由 memory.policy 決定（主線 reservoir sampling）。回傳新增筆數。
+    """
+    from selector.evaluate import read_slide, slide_dataset
+    from selector.grouping import assign_groups
+
+    f_g, f_p = models
+    spec = spec or {}
+    q = q_tau if q_tau is not None else torch.zeros(512)
+    ds, shift = slide_dataset(cfg, task, list(cfg["tasks"]).index(task), "train")
+    n = len(ds) if max_slides <= 0 else min(max_slides, len(ds))
+    added = 0
+    with torch.no_grad():
+        for i in range(n):
+            rec = read_slide(ds, shift, i)
+            grp = assign_groups(rec.Z, tissue)
+            res = run_rounds(rec.Z, grp, q, f_g, f_p, budget=budget, chunk=chunk,
+                             candidate_size=candidate_size, **spec)
+            last = res.records[-1]
+            cand = last.cand_idx
+            if cand.numel() == 0:
+                continue
+            u = counterfactual_gain(res.state.evidence_sum(), res.state.n_selected,
+                                    rec.Z.index_select(0, cand), f_txt, logit_scale,
+                                    rec.label)
+            memory.add(make_entry(task, rec.sid, res.state, last.r, cand,
+                                  last.s.detach(), u))
+            added += 1
+    return added
+
+
+def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
+                    budget=DEFAULT_BUDGET, chunk=DEFAULT_CHUNK, q_tau=None,
+                    spec=None, use_kd=True, use_eq=True, use_replay=True,
+                    eq_mode="hinge"):
+    """對一筆記憶體 entry 算出 (L_KD, L_eq, L_replay)；關掉的項回傳 None。
+
+    L_replay 就是 L_diag 跑在從 M 取回的舊樣本上 —— replay 是資料機制，
+    這一項沒有任何特殊之處。
+    """
+    from selector.grouping import assign_groups
+
+    f_g, f_p = models
+    spec = spec or {}
+    q = q_tau if q_tau is not None else torch.zeros(512)
+    Z, _Z_cand, label = reload_features(entry, cfg)
+    grp = assign_groups(Z, tissue)
+    res = run_rounds(Z, grp, q, f_g, f_p, budget=budget, chunk=chunk, **spec)
+    last = res.records[-1]
+    ste = sum(r.ste_mask for r in res.records)
+
+    kd = eq = replay = None
+    if use_kd:
+        cand = entry.cand_idx.to(torch.long)
+        kd = l_kd(entry.r_old.to(last.r.dtype), last.r,
+                  entry.s_old.to(last.s.dtype), last.s.index_select(0, cand))
+    if use_eq:
+        _idx, pos = selected_from_entry(entry, budget)
+        u_old = float(entry.u_old.index_select(0, pos).sum())
+        logits_uniform = frozen_head(Z, last.s, ste, f_txt, logit_scale,
+                                     weighting="uniform")
+        eq = l_eq(differentiable_utility(logits_uniform, label), u_old, mode=eq_mode)
+    if use_replay:
+        replay = l_diag(frozen_head(Z, last.s, ste, f_txt, logit_scale), label)
+    return kd, eq, replay
+
+
+def total_loss(l_evidence, kd=None, eq=None, replay=None, *,
+               lambda_kd=1.0, lambda_eq=1.0, lambda_replay=1.0):
+    """L_total = L_evidence + L_continual。三項全關時位元等同 L_evidence。"""
+    cont, parts = continual_loss(kd, eq, replay, lambda_kd=lambda_kd,
+                                 lambda_eq=lambda_eq, lambda_replay=lambda_replay,
+                                 dtype=l_evidence.dtype)
+    return l_evidence + cont, parts

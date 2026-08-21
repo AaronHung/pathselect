@@ -14,8 +14,8 @@ from selector.priors import semantic_prior
 D, C = 512, 8
 
 
-def test_only_diag_and_sem_are_wired_this_round():
-    assert ENABLED_TERMS == ("L_diag", "L_sem")
+def test_enabled_within_task_terms():
+    assert ENABLED_TERMS == ("L_diag", "L_sem", "L_util")
 
 
 def test_frozen_head_equals_conch_classify_with_softmax_weights():
@@ -69,15 +69,30 @@ def test_evidence_loss_composition():
         float(l_diag(logits, 3)) + 0.1 * float(l_sem(s, prior)), rel=1e-6)
 
 
-def test_beta_u_only_takes_effect_when_util_is_supplied():
+def test_beta_u_zero_is_bit_identical_to_not_wiring_l_util():
+    """S4-4：beta_u=0 時與現況位元相同。"""
     torch.manual_seed(0)
     logits = torch.randn(1, C)
     s = torch.randn(40)
     prior = torch.rand(40)
-    a, _ = evidence_loss(logits, 1, s, prior, beta_u=0.1)
-    b, parts = evidence_loss(logits, 1, s, prior, beta_u=0.1, util=torch.ones(40))
-    assert float(b) - float(a) == pytest.approx(0.1, rel=1e-5)
-    assert parts["L_util"] == 1.0
+    u = torch.randn(40)
+    base, p0 = evidence_loss(logits, 1, s, prior, beta_u=0.0, utility=u)
+    none_, p1 = evidence_loss(logits, 1, s, prior, beta_u=0.1, utility=None)
+    assert torch.equal(base, none_)
+    assert p0["L_util"] is None and p1["L_util"] is None
+
+
+def test_l_util_is_added_when_beta_u_non_zero():
+    from selector.continual import l_util
+    torch.manual_seed(0)
+    logits = torch.randn(1, C)
+    s = torch.randn(40)
+    prior = torch.rand(40)
+    u = torch.randn(40)
+    a, _ = evidence_loss(logits, 1, s, prior, beta_u=0.0, utility=u)
+    b, parts = evidence_loss(logits, 1, s, prior, beta_u=0.1, utility=u)
+    assert float(b) == pytest.approx(float(a) + 0.1 * float(l_util(s, u)), rel=1e-6)
+    assert parts["L_util"] == pytest.approx(float(l_util(s, u)), rel=1e-6)
 
 
 def test_gradient_reaches_the_patch_selector():
