@@ -87,3 +87,25 @@ def counterfactual_gain_loop(evidence_sum, n_selected, X_cand, f_txt,
                         dim=-1)
         out.append(l_now.reshape(()) - loss_fn(logit_scale * (e @ f_txt.t()), label).reshape(()))
     return torch.stack(out)
+
+
+@torch.no_grad()
+def sequential_utility_total(Z: torch.Tensor, selected_idx: torch.Tensor,
+                            f_txt: torch.Tensor, logit_scale, label: int) -> float:
+    """U(S)：沿**選取順序**累加 counterfactual gain。
+
+    每一步的 evidence 是「到目前為止選到的 patch 的等權和」，加入下一個 patch 的
+    gain 就是 loss 的下降量。整條加總會 telescope 成 loss(空證據) − loss(最終證據)，
+    因此只取決於選了哪些 patch，與 selector 的參數無關。
+
+    ⚠️ 這**不等於**「從空證據出發、各自獨立算單 patch gain 再加總」——
+    後者會重複計算彼此的貢獻。A3 utility retention 用的是本函式的定義。
+    """
+    S = torch.zeros(Z.shape[1], dtype=Z.dtype, device=Z.device)
+    total, n = 0.0, 0
+    for i in selected_idx.reshape(-1).tolist():
+        x = Z[i].reshape(1, -1)
+        total += float(counterfactual_gain(S, n, x, f_txt, logit_scale, label)[0])
+        S = S + Z[i]
+        n += 1
+    return total

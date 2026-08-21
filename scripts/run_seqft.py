@@ -43,7 +43,7 @@ from selector.rounds import run_rounds                                   # noqa:
 from selector.task_query import encode_task_query                        # noqa: E402
 from selector.text_encoder import build_f_txt, load_config               # noqa: E402
 from selector.train import evidence_loss, frozen_head                    # noqa: E402
-from selector.utility import counterfactual_gain                         # noqa: E402
+from selector.utility import sequential_utility_total                    # noqa: E402
 
 OUT_DIR = REPO_ROOT / "outputs" / "exp2" / "seqft"
 #: L3b：shared selector、無 q_tau、無 state、無 hierarchy
@@ -96,18 +96,9 @@ class Ctx:
 
 # ── utility ─────────────────────────────────────────────────────────────────
 
-@torch.no_grad()
 def utility_total(ctx, Z, selected_idx, label) -> float:
-    """沿選取順序累加 counterfactual gain。frozen head 固定，故只取決於選了誰。"""
-    S = torch.zeros(Z.shape[1], dtype=Z.dtype, device=Z.device)
-    total, n = 0.0, 0
-    for i in selected_idx.tolist():
-        x = Z[i].reshape(1, -1)
-        u = counterfactual_gain(S, n, x, ctx.f_txt, ctx.logit_scale, label)
-        total += float(u[0])
-        S = S + Z[i]
-        n += 1
-    return total
+    """沿選取順序累加 counterfactual gain（共用定義見 selector.utility）。"""
+    return sequential_utility_total(Z, selected_idx, ctx.f_txt, ctx.logit_scale, label)
 
 
 # ── train / eval ────────────────────────────────────────────────────────────

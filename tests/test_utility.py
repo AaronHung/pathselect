@@ -5,7 +5,7 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from selector.utility import (CANDIDATE_SIZE, counterfactual_gain,
+from selector.utility import (CANDIDATE_SIZE, counterfactual_gain, _ce,
                               counterfactual_gain_loop, current_logits,
                               top_candidates)
 
@@ -79,3 +79,56 @@ def test_candidate_set_is_256_and_respects_availability():
 def test_no_candidates_returns_empty():
     idx = top_candidates(torch.randn(10), torch.zeros(10, dtype=torch.bool))
     assert idx.numel() == 0
+
+
+def test_sequential_total_is_not_the_sum_of_independent_gains():
+    """兩種「utility 總和」不是同一件事 —— 這個混淆真的發生過。
+
+    sequential：evidence 隨選取順序累積，加總會 telescope 成
+                loss(空證據) − loss(最終證據)。
+    獨立加總：  每個 patch 都從空證據算起，彼此的貢獻被重複計算。
+    """
+    from selector.utility import sequential_utility_total
+
+    torch.manual_seed(0)
+    Z = F.normalize(torch.randn(50, D, dtype=torch.float64), dim=-1)
+    f = F.normalize(torch.randn(C, D, dtype=torch.float64), dim=-1)
+    idx = torch.arange(8)
+    ls, label = 56.3477, 3
+
+    seq = sequential_utility_total(Z, idx, f, ls, label)
+    indep = float(counterfactual_gain(torch.zeros(D, dtype=Z.dtype), 0,
+                                      Z.index_select(0, idx), f, ls, label).sum())
+    assert abs(seq - indep) > 1e-6, (seq, indep)
+
+
+def test_sequential_total_telescopes_to_the_loss_reduction():
+    """U(S) = loss(空證據) − loss(最終等權證據)。"""
+    import math
+
+    from selector.utility import sequential_utility_total
+
+    torch.manual_seed(1)
+    Z = F.normalize(torch.randn(40, D, dtype=torch.float64), dim=-1)
+    f = F.normalize(torch.randn(C, D, dtype=torch.float64), dim=-1)
+    idx = torch.arange(8)
+    ls, label = 56.3477, 5
+
+    got = sequential_utility_total(Z, idx, f, ls, label)
+    e = F.normalize(Z.index_select(0, idx).mean(0).reshape(1, -1), dim=-1)
+    final = _ce(ls * (e @ f.t()), label).reshape(())
+    want = math.log(C) - float(final)
+    assert got == pytest.approx(want, abs=1e-9)
+
+
+def test_sequential_total_is_order_independent():
+    """telescoping 的直接推論：換順序不改總和（浮點誤差內）。"""
+    from selector.utility import sequential_utility_total
+
+    torch.manual_seed(2)
+    Z = F.normalize(torch.randn(40, D, dtype=torch.float64), dim=-1)
+    f = F.normalize(torch.randn(C, D, dtype=torch.float64), dim=-1)
+    ls, label = 56.3477, 2
+    a = sequential_utility_total(Z, torch.tensor([3, 1, 7, 9]), f, ls, label)
+    b = sequential_utility_total(Z, torch.tensor([9, 7, 1, 3]), f, ls, label)
+    assert a == pytest.approx(b, abs=1e-9)
