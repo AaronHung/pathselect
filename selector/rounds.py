@@ -1,6 +1,7 @@
 """CONTRACT-1 — chunked sequential loop。
 
-B = 64、chunk c = 8、共 B / c = 8 rounds。每一輪：
+操作點 B = 8、chunk c = 1，共 B / c = 8 rounds（PI 裁定 A；原契約的 B=64/c=8
+在 Exp 0 的 K 曲線出來後改成這個，rounds 數不變）。每一輪：
 
   1. F_g 依 [g_j ; q_tau ; e_t ; B_tilde_t] 給每個 group 一個 r_j
   2. r_j → 非空 group 上 softmax → 乘 c → largest-remainder，得 b_j，sum(b_j) = c
@@ -26,8 +27,11 @@ from .model import GroupSelector, PatchSelector, straight_through_topk, topk_ind
 from .state import EvidenceState
 from .utility import CANDIDATE_SIZE, top_candidates
 
-DEFAULT_BUDGET = 64
-DEFAULT_CHUNK = 8
+#: 操作點（PI 裁定 A）。configs/pathselect.yaml 才是權威來源，這裡是模組層 fallback。
+#: B=8 是 Exp 0 完整 K 曲線的峰值（不是飽和點）；c=1 讓 e_t 的槓桿最大。
+#: B / c 皆為 CLI 參數；B=8 時 c=8 即為 one-shot。
+DEFAULT_BUDGET = 8
+DEFAULT_CHUNK = 1
 
 #: F_g 的梯度路徑。
 #:
@@ -76,10 +80,21 @@ def run_rounds(Z: torch.Tensor, grouping: Grouping, q_tau: torch.Tensor,
                temperature: float = 1.0,
                candidate_size: int = CANDIDATE_SIZE,
                group_grad: str = DEFAULT_GROUP_GRAD,
+               use_query: bool = True, use_state: bool = True,
+               hierarchy: bool = True,
                state: EvidenceState | None = None) -> RoundsResult:
     """跑完 ceil(budget / chunk) 輪，回傳完整 trace。
 
     group_grad 見 GROUP_GRAD_MODES —— 預設 "ste_allocation"，F_g 從 L_diag 收梯度。
+
+    消融階梯的三個開關（關掉的輸入區塊填零，架構與參數量不變）：
+      use_query   q_tau 是否進入輸入（L3 關、L4+ 開）
+      use_state   e_t / B_tilde_t 是否進入輸入（L6 才開）
+      hierarchy   True = Group → Patch 兩層配額（L5+）；
+                  False = flat，直接在全部候選上取 top-c（L3 / L4）
+
+    use_state=False 時 r 與 s 在輪與輪之間是常數，只算一次再重用 —— 這是純粹的
+    計算重用，數值與逐輪重算完全相同（同一組輸入、同一個網路）。
     """
     if chunk <= 0:
         raise ValueError(f"chunk must be positive, got {chunk}")
@@ -90,16 +105,28 @@ def run_rounds(Z: torch.Tensor, grouping: Grouping, q_tau: torch.Tensor,
                        state=state)
 
     n_rounds = -(-budget // chunk)          # ceil
+    cached: tuple[torch.Tensor, torch.Tensor] | None = None
     for t in range(n_rounds):
         if state.B_t <= 0 or int(state.available_mask.sum()) == 0:
             break
         state_feat = state.feature()
-        r = f_group.score(grouping.prototypes, q_tau, state_feat)          # [J]
-        s = f_patch.score(Z, q_tau, state_feat)                            # [n]
+        if cached is not None:
+            r, s = cached
+        else:
+            r = f_group.score(grouping.prototypes, q_tau, state_feat,
+                              use_query=use_query, use_state=use_state)     # [J]
+            s = f_patch.score(Z, q_tau, state_feat,
+                              use_query=use_query, use_state=use_state)     # [n]
+            if not use_state:
+                cached = (r, s)      # 無狀態時分數逐輪不變，重用即可
 
         cap = group_capacity(grouping, state.available_mask)
         c_this = min(chunk, state.B_t)
-        b = allocate(r, c_this, grouping.mask, cap)                        # [J]
+        if hierarchy:
+            b = allocate(r, c_this, grouping.mask, cap)                    # [J]
+        else:
+            # flat：不分組，直接在全部候選上取 top-c；b 僅供紀錄
+            b = torch.zeros_like(cap)
 
         a_soft = None
         if group_grad == "ste_allocation":
@@ -111,7 +138,16 @@ def run_rounds(Z: torch.Tensor, grouping: Grouping, q_tau: torch.Tensor,
                     0, idx_a, torch.softmax(r.index_select(0, idx_a), dim=0))
 
         picks, ste = [], torch.zeros_like(s)
-        for j in range(grouping.num_groups):
+        if not hierarchy:
+            flat_idx = topk_indices(s, c_this, mask=state.available_mask)
+            picks.append(flat_idx)
+            ste = ste + straight_through_topk(s, c_this, temperature=temperature,
+                                              mask=state.available_mask)
+            onehot = torch.zeros_like(cap)
+            for j in grouping.assignment.index_select(0, flat_idx).tolist():
+                onehot[j] += 1
+            b = onehot
+        for j in (range(grouping.num_groups) if hierarchy else ()):
             k = int(b[j])
             if k <= 0:
                 continue

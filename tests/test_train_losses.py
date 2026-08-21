@@ -92,7 +92,8 @@ def test_gradient_reaches_the_patch_selector():
     loss, parts, res = train_step(Z, 3, q, f, torch.tensor(56.3477), fg, fp,
                                   grouping=assign_groups(Z, t))
     loss.backward()
-    assert parts["n_selected"] == 64
+    from selector.rounds import DEFAULT_BUDGET
+    assert parts["n_selected"] == DEFAULT_BUDGET
     assert float(fp.mlp[0].weight.grad.norm()) > 0
 
 
@@ -103,3 +104,35 @@ def test_prior_used_by_train_step_sees_the_full_class_space():
     f = F.normalize(torch.randn(C, D), dim=-1)
     p = semantic_prior(Z, f, n_candidate_classes=C, logit_scale=56.3477)
     assert p.shape == (120,)
+
+
+def test_frozen_head_uniform_is_selection_only_mean_pooling():
+    """PI 裁定 B：uniform 權重 = selection-only，等權平均已選 patch。"""
+    torch.manual_seed(0)
+    Z = F.normalize(torch.randn(100, D), dim=-1)
+    f = F.normalize(torch.randn(C, D), dim=-1)
+    s = torch.randn(100)
+    mask = straight_through_topk(s, 8).detach()
+    idx = mask.nonzero().reshape(-1)
+
+    got = frozen_head(Z, s, mask, f, 56.3477, weighting="uniform")
+    want = conch_classify(Z.index_select(0, idx), None, f, 56.3477)
+    assert torch.allclose(got, want, atol=1e-4), (got - want).abs().max()
+
+
+def test_frozen_head_weightings_differ():
+    torch.manual_seed(1)
+    Z = F.normalize(torch.randn(100, D), dim=-1)
+    f = F.normalize(torch.randn(C, D), dim=-1)
+    s = torch.randn(100) * 3
+    mask = straight_through_topk(s, 8).detach()
+    a = frozen_head(Z, s, mask, f, 56.3477, weighting="softmax")
+    b = frozen_head(Z, s, mask, f, 56.3477, weighting="uniform")
+    assert not torch.allclose(a, b, atol=1e-3)
+
+
+def test_unknown_weighting_is_rejected():
+    import pytest
+    with pytest.raises(ValueError, match="weighting"):
+        frozen_head(torch.randn(4, D), torch.randn(4), torch.ones(4),
+                    F.normalize(torch.randn(C, D), dim=-1), 1.0, weighting="oracle")

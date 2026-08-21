@@ -22,12 +22,16 @@ HIDDEN = 256
 
 
 def build_input(features: torch.Tensor, q_tau: torch.Tensor,
-                state_feature: torch.Tensor) -> torch.Tensor:
+                state_feature: torch.Tensor, *,
+                use_query: bool = True, use_state: bool = True) -> torch.Tensor:
     """[N, 1537] = [features ; q_tau ; e_t ; B_tilde_t]。
 
     features:      [N, 512]  g_j（group 層）或 x_i（patch 層）
     q_tau:         [512]
     state_feature: [513]     EvidenceState.feature()
+
+    use_query / use_state 為消融階梯用的開關：關掉的區塊**填零而不縮短維度**，
+    網路架構與參數量在 L3–L6 之間完全相同，差異只在輸入資訊量。
     """
     if features.dim() != 2 or features.shape[1] != FEAT_DIM:
         raise ValueError(f"features must be [N, {FEAT_DIM}], got {tuple(features.shape)}")
@@ -37,7 +41,10 @@ def build_input(features: torch.Tensor, q_tau: torch.Tensor,
         raise ValueError(f"state_feature must be [{STATE_DIM}], "
                          f"got {tuple(state_feature.shape)}")
     n = features.shape[0]
-    tail = torch.cat([q_tau.reshape(1, -1), state_feature.reshape(1, -1)], dim=-1)
+    q = q_tau.reshape(1, -1) if use_query else torch.zeros_like(q_tau.reshape(1, -1))
+    st = (state_feature.reshape(1, -1) if use_state
+          else torch.zeros_like(state_feature.reshape(1, -1)))
+    tail = torch.cat([q, st], dim=-1)
     return torch.cat([features, tail.expand(n, -1).to(features.dtype)], dim=-1)
 
 
@@ -60,8 +67,10 @@ class _SelectorMLP(nn.Module):
         return self.mlp(u).squeeze(-1)
 
     def score(self, features: torch.Tensor, q_tau: torch.Tensor,
-              state_feature: torch.Tensor) -> torch.Tensor:
-        return self(build_input(features, q_tau, state_feature))
+              state_feature: torch.Tensor, *, use_query: bool = True,
+              use_state: bool = True) -> torch.Tensor:
+        return self(build_input(features, q_tau, state_feature,
+                                use_query=use_query, use_state=use_state))
 
 
 class GroupSelector(_SelectorMLP):

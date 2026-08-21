@@ -43,13 +43,18 @@ EPS = 1e-12
 # ── CONTRACT-4：單一 frozen head ────────────────────────────────────────────
 
 def frozen_head(Z: torch.Tensor, s: torch.Tensor, ste_mask: torch.Tensor,
-                f_txt: torch.Tensor, logit_scale) -> torch.Tensor:
+                f_txt: torch.Tensor, logit_scale,
+                weighting: str = "softmax") -> torch.Tensor:
     """[1, C]：selected patches → score-weighted pooling → L2 norm → class-text logits。
 
-    權重 = softmax(s) 限制在被選中的 patch 上；乘上 straight-through mask，
-    梯度同時經由分數 s 與選取決策流回 F_p。
+    weighting="softmax"（主線）權重 = softmax(s) 限制在被選中的 patch 上；乘上
+    straight-through mask，梯度同時經由分數 s 與選取決策流回 F_p。
+    weighting="uniform" 是 selection-only：被選中的 patch 等權，分數只影響「選誰」。
     """
-    e = torch.exp(s - s.max().detach())
+    if weighting not in ("softmax", "uniform"):
+        raise ValueError(f"unknown weighting: {weighting}")
+    e = (torch.exp(s - s.max().detach()) if weighting == "softmax"
+         else torch.ones_like(s))
     w_un = ste_mask * e
     w = w_un / w_un.sum().clamp_min(EPS)
     pooled = F.normalize((w.unsqueeze(-1) * Z).sum(0, keepdim=True), dim=-1)
@@ -102,7 +107,8 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
                tissue=None, grouping=None, budget=DEFAULT_BUDGET,
                chunk=DEFAULT_CHUNK, prior_kind=MAINLINE_PRIOR,
                beta_s=0.1, beta_u=0.1, n_candidate_classes=None,
-               group_grad=DEFAULT_GROUP_GRAD):
+               group_grad=DEFAULT_GROUP_GRAD, use_query=True, use_state=True,
+               hierarchy=True, weighting="softmax"):
     """跑完一張 slide 的 chunked loop 並回傳 (loss, parts, result)。"""
     if grouping is None:
         if tissue is None:
@@ -110,7 +116,9 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
         grouping = assign_groups(Z, tissue)
 
     result = run_rounds(Z, grouping, q_tau, f_group, f_patch,
-                        budget=budget, chunk=chunk, group_grad=group_grad)
+                        budget=budget, chunk=chunk, group_grad=group_grad,
+                        use_query=use_query, use_state=use_state,
+                        hierarchy=hierarchy)
     if not result.records:
         raise RuntimeError("chunked loop 一輪都沒跑完，檢查候選是否為空")
 
@@ -119,7 +127,7 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
     ste = torch.zeros_like(s_last)
     for rec in result.records:
         ste = ste + rec.ste_mask
-    logits = frozen_head(Z, s_last, ste, f_txt, logit_scale)
+    logits = frozen_head(Z, s_last, ste, f_txt, logit_scale, weighting=weighting)
 
     prior = semantic_prior(Z, f_txt, kind=prior_kind,
                            n_candidate_classes=n_candidate_classes or f_txt.shape[0],

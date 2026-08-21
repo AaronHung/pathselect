@@ -53,7 +53,7 @@ def eval_one_task(selector, f_txt, logit_scale, cfg, task, task_pos):
                                            scores=scores, weighting=MAINLINE)
         pred_abl, _ = select_and_classify(rec.Z, idx, f_txt, logit_scale,
                                           weighting=ABLATION)
-        records.append({"sid": rec.sid, "task": task, "task_pos": task_pos,
+        records.append({"slide_id": rec.sid, "task": task, "task_pos": task_pos,
                         "n_patch": int(rec.Z.shape[0]), "true": rec.label,
                         "pred_softmax": pred_main, "pred_uniform": pred_abl})
     return records
@@ -238,10 +238,10 @@ def write_flips(rows) -> None:
               "| slide id | true | 等權 pred | softmax pred | 方向 |",
               "|---|---|---|---|---|"]
         for x in cw:
-            L.append(f"| {x['sid']} | {x['true']} | {x['pred_uniform']} | "
+            L.append(f"| {x['slide_id']} | {x['true']} | {x['pred_uniform']} | "
                      f"{x['pred_softmax']} | 等權對 → softmax錯 |")
         for x in wc:
-            L.append(f"| {x['sid']} | {x['true']} | {x['pred_uniform']} | "
+            L.append(f"| {x['slide_id']} | {x['true']} | {x['pred_uniform']} | "
                      f"{x['pred_softmax']} | 等權錯 → softmax對 |")
         L.append("")
     L += [

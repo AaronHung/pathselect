@@ -21,28 +21,37 @@ def _fixture(n=900, seed=0):
     return Z, assign_groups(Z, t), q, GroupSelector(), PatchSelector()
 
 
-def test_defaults_are_b64_c8():
-    assert DEFAULT_BUDGET == 64 and DEFAULT_CHUNK == 8
+def test_defaults_are_the_ruled_operating_point():
+    """PI 裁定 A：B=8、c=1，仍是 8 rounds。"""
+    assert DEFAULT_BUDGET == 8 and DEFAULT_CHUNK == 1
+    assert DEFAULT_BUDGET // DEFAULT_CHUNK == 8
+
+
+def test_config_matches_the_module_default_operating_point():
+    from selector.text_encoder import load_config
+    cfg = load_config()
+    assert cfg["budget"] == DEFAULT_BUDGET and cfg["chunk"] == DEFAULT_CHUNK
 
 
 def test_eight_rounds_and_cumulative_counts():
     Z, g, q, fg, fp = _fixture()
     res = run_rounds(Z, g, q, fg, fp)
     assert res.n_rounds == 8
-    assert [r.n_selected_after for r in res.records] == [8, 16, 24, 32, 40, 48, 56, 64]
+    assert [r.n_selected_after for r in res.records] == [1, 2, 3, 4, 5, 6, 7, 8]
 
 
 def test_each_round_sums_to_chunk_not_budget():
     Z, g, q, fg, fp = _fixture()
-    res = run_rounds(Z, g, q, fg, fp)
-    for rec in res.records:
-        assert int(rec.b.sum()) == DEFAULT_CHUNK
-        assert rec.picked.numel() == DEFAULT_CHUNK
+    for budget, chunk in ((8, 1), (64, 8), (8, 2)):
+        res = run_rounds(Z, g, q, fg, fp, budget=budget, chunk=chunk)
+        for rec in res.records:
+            assert int(rec.b.sum()) == chunk
+            assert rec.picked.numel() == chunk
 
 
 def test_no_patch_is_selected_twice():
     Z, g, q, fg, fp = _fixture()
-    res = run_rounds(Z, g, q, fg, fp)
+    res = run_rounds(Z, g, q, fg, fp, budget=64, chunk=8)
     sel = res.selected.tolist()
     assert len(sel) == 64 == len(set(sel))
 
@@ -50,7 +59,7 @@ def test_no_patch_is_selected_twice():
 def test_a_group_may_be_picked_across_multiple_rounds():
     """同一個 group 可跨輪重複選 —— 不是每輪換一個 group。"""
     Z, g, q, fg, fp = _fixture()
-    res = run_rounds(Z, g, q, fg, fp)
+    res = run_rounds(Z, g, q, fg, fp, budget=64, chunk=8)
     hit_rounds = [(rec.b > 0).nonzero().reshape(-1).tolist() for rec in res.records]
     repeated = set(hit_rounds[0]) & set(hit_rounds[1])
     assert repeated, hit_rounds[:2]
@@ -67,7 +76,7 @@ def test_custom_chunk_changes_round_count():
 
 def test_candidate_set_is_capped_and_only_available():
     Z, g, q, fg, fp = _fixture(n=1000)
-    res = run_rounds(Z, g, q, fg, fp)
+    res = run_rounds(Z, g, q, fg, fp, budget=64, chunk=8)
     seen: set[int] = set()
     for rec in res.records:
         assert rec.cand_idx.numel() <= 256
@@ -77,7 +86,7 @@ def test_candidate_set_is_capped_and_only_available():
 
 def test_stops_when_slide_has_fewer_patches_than_budget():
     Z, g, q, fg, fp = _fixture(n=20)
-    res = run_rounds(Z, g, q, fg, fp)
+    res = run_rounds(Z, g, q, fg, fp, budget=64, chunk=8)
     assert res.selected.numel() == 20
     assert len(set(res.selected.tolist())) == 20
 
@@ -86,7 +95,7 @@ def test_state_can_be_supplied_and_is_advanced():
     Z, g, q, fg, fp = _fixture()
     st = EvidenceState(Z, DEFAULT_BUDGET)
     res = run_rounds(Z, g, q, fg, fp, state=st)
-    assert res.state is st and st.n_selected == 64 and st.B_t == 0
+    assert res.state is st and st.n_selected == DEFAULT_BUDGET and st.B_t == 0
 
 
 def test_group_grad_mode_does_not_change_the_forward():
@@ -124,3 +133,41 @@ def test_none_mode_gives_no_group_gradient_and_is_ablation_only():
     ste = sum(rec.ste_mask for rec in res.records)
     (ste * torch.randn_like(ste)).sum().backward()
     assert fg.mlp[0].weight.grad is None
+
+
+def test_flat_mode_ignores_group_quota_but_still_records_it():
+    """L3 / L4 的 flat 模式：直接在全部候選上取 top-c。"""
+    Z, g, q, fg, fp = _fixture()
+    res = run_rounds(Z, g, q, fg, fp, hierarchy=False)
+    assert res.selected.numel() == DEFAULT_BUDGET
+    for rec in res.records:
+        assert int(rec.b.sum()) == DEFAULT_CHUNK          # b 仍記錄落在哪個 group
+    flat = run_rounds(Z, g, q, fg, fp, hierarchy=False, budget=8, chunk=8)
+    top8 = torch.topk(flat.records[0].s.detach(), 8).indices
+    assert torch.equal(flat.selected.sort().values, top8.sort().values)
+
+
+def test_ablation_switches_zero_the_input_blocks_not_the_architecture():
+    Z, g, q, fg, fp = _fixture()
+    n_params = sum(p.numel() for p in fp.parameters())
+    for uq in (True, False):
+        for us in (True, False):
+            res = run_rounds(Z, g, q, fg, fp, use_query=uq, use_state=us)
+            assert res.selected.numel() == DEFAULT_BUDGET
+    assert sum(p.numel() for p in fp.parameters()) == n_params
+
+
+def test_score_reuse_is_numerically_identical_to_recomputation():
+    """use_state=False 的分數重用必須與逐輪重算位元相同。"""
+    Z, g, q, fg, fp = _fixture()
+    res = run_rounds(Z, g, q, fg, fp, use_state=False)
+    first = res.records[0].s
+    for rec in res.records[1:]:
+        assert torch.equal(first, rec.s)
+
+
+def test_stateful_scores_change_between_rounds():
+    """use_state=True 時分數必須逐輪改變 —— 否則 E_t 條件化沒有作用。"""
+    Z, g, q, fg, fp = _fixture()
+    res = run_rounds(Z, g, q, fg, fp, use_state=True)
+    assert not torch.equal(res.records[0].s, res.records[-1].s)

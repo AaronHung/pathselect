@@ -23,18 +23,53 @@ class SlideRecord:
     label: int               # 全域 label（已加 shift）
 
 
-def iter_test_slides(cfg: dict, task: str, task_pos: int,
-                     limit: int = 0) -> Iterator[SlideRecord]:
-    """v9 用的同一組 test slide（fold 1、shuffle=False、batch_size=1）。
+SPLITS = ("train", "val", "test")
 
-    label 已加上 shift = 2 * task_pos，對應 8-way label space 的列索引。
+
+def slide_dataset(cfg: dict, task: str, task_pos: int, split: str = "test"):
+    """回傳 (dataset, shift)，供需要「隨機存取單張 slide」的呼叫端使用。
+
+    建 dataset 只讀表格與 split，不載入任何特徵 —— 特徵在 dataset[i] 時才讀。
     """
     from data.table_utils import read_datasplit_npz
     from data.wsi_dataset import WSIClf
 
+    if split not in SPLITS:
+        raise ValueError(f"unknown split: {split}; expected one of {SPLITS}")
     root = cfg["dataset_root_dir"]
-    _, _, pids_test = read_datasplit_npz(root + cfg["path_split"].format(task, cfg["fold"]))
-    ds = WSIClf(pids_test,
+    pids = dict(zip(SPLITS, read_datasplit_npz(
+        root + cfg["path_split"].format(task, cfg["fold"]))))[split]
+    ds = WSIClf(pids,
+                root + cfg["path_feat"].format(task, cfg["conch_path_feat"]),
+                root + cfg["path_table"].format(task, task.upper()),
+                cfg["feat_format"])
+    return ds, 2 * task_pos
+
+
+def read_slide(ds, shift: int, i: int) -> SlideRecord:
+    """從 dataset 讀第 i 張 slide（這一步才真的碰特徵檔）。"""
+    _idx, feats, label = ds[i]
+    Z = feats.float()
+    return SlideRecord(str(ds.sids[i]), Z.squeeze(0) if Z.dim() == 3 else Z,
+                       int(label.view(-1)[0]) + shift)
+
+
+def iter_slides(cfg: dict, task: str, task_pos: int, split: str = "test",
+                limit: int = 0) -> Iterator[SlideRecord]:
+    """依 split 取 slide（fold 1、shuffle=False、batch_size=1）。
+
+    label 已加上 shift = 2 * task_pos，對應 8-way label space 的列索引。
+    ⚠️ 訓練一律用 split="train"；test 只在最終評估時碰。
+    """
+    from data.table_utils import read_datasplit_npz
+    from data.wsi_dataset import WSIClf
+
+    if split not in SPLITS:
+        raise ValueError(f"unknown split: {split}; expected one of {SPLITS}")
+    root = cfg["dataset_root_dir"]
+    pids = dict(zip(SPLITS, read_datasplit_npz(
+        root + cfg["path_split"].format(task, cfg["fold"]))))[split]
+    ds = WSIClf(pids,
                 root + cfg["path_feat"].format(task, cfg["conch_path_feat"]),
                 root + cfg["path_table"].format(task, task.upper()),
                 cfg["feat_format"])
@@ -45,6 +80,12 @@ def iter_test_slides(cfg: dict, task: str, task_pos: int,
         Z = feats.float()
         yield SlideRecord(str(ds.sids[i]), Z.squeeze(0) if Z.dim() == 3 else Z,
                           int(label.view(-1)[0]) + shift)
+
+
+def iter_test_slides(cfg: dict, task: str, task_pos: int,
+                     limit: int = 0) -> Iterator[SlideRecord]:
+    """向後相容的薄包裝：等同 iter_slides(..., split="test")。"""
+    return iter_slides(cfg, task, task_pos, split="test", limit=limit)
 
 
 @torch.no_grad()
