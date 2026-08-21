@@ -8,7 +8,7 @@ import os.path as osp
 import h5py
 from torch import Tensor
 
-from .WSI import WSIClf
+from .wsi_dataset import WSIClf
 
 
 def read_datasplit_npz(path: str):

@@ -1,0 +1,1154 @@
+[
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 8,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.6,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 8,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 8,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 8,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.4666666666666667,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 8,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 8,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.4,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 8,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.8,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 8,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 16,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.6,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 16,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.6,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 16,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.4666666666666667,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 16,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.4666666666666667,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 16,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 16,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.6666666666666666,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 16,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.8,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 16,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 32,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 32,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.6,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 32,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 32,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.4666666666666667,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 32,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 32,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 32,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 32,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 64,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 64,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 64,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 64,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 64,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.4666666666666667,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 64,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.5333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 64,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7333333333333333,
+  "n_slides": 15
+ },
+ {
+  "task": 0,
+  "task_name": "tcga_esca",
+  "K": 64,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8,
+  "n_slides": 15
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 8,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.868421052631579,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 8,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.8552631578947368,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 8,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.868421052631579,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 8,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.8552631578947368,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 8,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.8552631578947368,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 8,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.8552631578947368,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 8,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.9473684210526315,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 8,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.9736842105263158,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 16,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.868421052631579,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 16,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.881578947368421,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 16,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.8947368421052632,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 16,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.8947368421052632,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 16,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.8421052631578947,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 16,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.881578947368421,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 16,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.9473684210526315,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 16,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.9605263157894737,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 32,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.8552631578947368,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 32,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.8552631578947368,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 32,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.8947368421052632,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 32,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.8947368421052632,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 32,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.8552631578947368,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 32,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.868421052631579,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 32,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.9473684210526315,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 32,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.9605263157894737,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 64,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.868421052631579,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 64,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.8421052631578947,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 64,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.868421052631579,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 64,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.881578947368421,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 64,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.8552631578947368,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 64,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.868421052631579,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 64,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.9473684210526315,
+  "n_slides": 76
+ },
+ {
+  "task": 1,
+  "task_name": "tcga_rcc",
+  "K": 64,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.9605263157894737,
+  "n_slides": 76
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 8,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.5268817204301075,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 8,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.5806451612903226,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 8,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.4946236559139785,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 8,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.5483870967741935,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 8,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.5161290322580645,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 8,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.4946236559139785,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 8,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7526881720430108,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 8,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8924731182795699,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 16,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.5483870967741935,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 16,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.5591397849462365,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 16,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.5268817204301075,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 16,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.5591397849462365,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 16,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.5483870967741935,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 16,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.5268817204301075,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 16,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7526881720430108,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 16,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8924731182795699,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 32,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.5806451612903226,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 32,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.5591397849462365,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 32,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.5483870967741935,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 32,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.5483870967741935,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 32,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.5483870967741935,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 32,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.5698924731182796,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 32,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7634408602150538,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 32,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8924731182795699,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 64,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.5376344086021505,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 64,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.5483870967741935,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 64,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.5483870967741935,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 64,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.5483870967741935,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 64,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.5591397849462365,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 64,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.5698924731182796,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 64,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7419354838709677,
+  "n_slides": 93
+ },
+ {
+  "task": 2,
+  "task_name": "tcga_brca",
+  "K": 64,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8924731182795699,
+  "n_slides": 93
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 8,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.6842105263157895,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 8,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.7578947368421053,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 8,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.7157894736842105,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 8,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.7157894736842105,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 8,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.7052631578947368,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 8,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.7578947368421053,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 8,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7473684210526316,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 8,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8526315789473684,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 16,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.6842105263157895,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 16,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.7368421052631579,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 16,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.7368421052631579,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 16,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.7157894736842105,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 16,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.6842105263157895,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 16,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.7052631578947368,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 16,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7473684210526316,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 16,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8421052631578947,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 32,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.7473684210526316,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 32,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.7263157894736842,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 32,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.7578947368421053,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 32,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.7473684210526316,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 32,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.7368421052631579,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 32,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.7473684210526316,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 32,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7789473684210526,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 32,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8421052631578947,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 64,
+  "policy": "random",
+  "seed": 0,
+  "acc": 0.7684210526315789,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 64,
+  "policy": "random",
+  "seed": 1,
+  "acc": 0.7684210526315789,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 64,
+  "policy": "random",
+  "seed": 2,
+  "acc": 0.7684210526315789,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 64,
+  "policy": "random",
+  "seed": 3,
+  "acc": 0.7578947368421053,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 64,
+  "policy": "random",
+  "seed": 4,
+  "acc": 0.7263157894736842,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 64,
+  "policy": "grid",
+  "seed": null,
+  "acc": 0.7578947368421053,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 64,
+  "policy": "similarity",
+  "seed": null,
+  "acc": 0.7684210526315789,
+  "n_slides": 95
+ },
+ {
+  "task": 3,
+  "task_name": "tcga_lung",
+  "K": 64,
+  "policy": "learned-flat",
+  "seed": null,
+  "acc": 0.8421052631578947,
+  "n_slides": 95
+ }
+]

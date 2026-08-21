@@ -1,0 +1,30 @@
+# PathSelect — 方法設定（不含任何外部方法相依）
+# 用法：from selector.text_encoder import load_config, build_f_txt
+
+device: auto                    # auto: cuda > mps > cpu
+feat_dim: 512                   # CONCH contrastive embedding 維度
+
+# ── CONCH（只用 text tower 重建 f_txt）────────────────────────────────────────
+# 指向本機的 CONCH CoCa 權重（pytorch_model.bin）。權重不隨 repo 發佈。
+conch_ckpt_path: /Users/aaron/research/01_navipath/checkpoints/conch/pytorch_model.bin
+conch_model_cfg: conch_ViT-B-16
+
+# ── class prompt ensemble ────────────────────────────────────────────────────
+class_prompt_path: data/class_prompts.json
+f_txt_cache_dir: outputs/cache   # f_txt_{task}.pt
+
+# ── 任務序（與 reference/v9 的 reverse order 一致）────────────────────────────
+tasks:
+  - tcga_esca
+  - tcga_rcc
+  - tcga_brca
+  - tcga_lung
+
+# ── 資料（TCGA patch features，CONCH l1-s256）────────────────────────────────
+dataset_root_dir: /Users/aaron/research/can_dataset
+path_split: /{}/datasplit/fold_{}.npz
+path_feat: /{}/feats-l1-s256_{}/pt_files
+path_table: /{}/table/{}_path_subtype_x10_processed.csv
+conch_path_feat: CONCH
+feat_format: pt
+fold: 1

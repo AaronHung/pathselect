@@ -1,13 +1,10 @@
-"""ZeroNav router — CONCH text-image alignment only, no prototype features.
+"""EvidenceSelector — CONCH text-image alignment only, no external method deps.
 
 ZeroSlide-inspired: uses max cosine similarity between patch embeddings
-and class text embeddings (CONCH) as the navigation foundation.
+and class text embeddings (CONCH) as the selection foundation.
 
-Key difference from MicroRouterV0:
-  summary: 4-D [max_txt, txt_ent, max_proto, mean_proto]
-        →  2-D [max_txt, txt_ent]          (prototype terms removed)
-  MLP input: 516-D → 514-D
-  backbone call: prototype_features() removed entirely
+Per-patch summary is 2-D [max_txt, txt_ent]; the selector MLP therefore takes
+D+2 = 514-D input.  No auxiliary prototype/backbone features are ever used.
 """
 from __future__ import annotations
 
@@ -22,7 +19,7 @@ import torch.nn.functional as F
 def text_nav_feats(Z: torch.Tensor, f_txt: torch.Tensor) -> torch.Tensor:
     """2-D per-patch text-image alignment summary (ZeroSlide-inspired).
 
-    Uses CONCH text-patch cosine similarity only — no prototype features.
+    Uses CONCH text-patch cosine similarity only.
 
     Z:     [n, D=512]  CONCH patch embeddings
     f_txt: [C, D=512]  CONCH class text embeddings
@@ -36,7 +33,7 @@ def text_nav_feats(Z: torch.Tensor, f_txt: torch.Tensor) -> torch.Tensor:
     return torch.cat([txt.amax(-1, keepdim=True), txt_ent], dim=-1)        # [n, 2]
 
 
-def zeroslide_score(Z: torch.Tensor, f_txt: torch.Tensor) -> torch.Tensor:
+def similarity_score(Z: torch.Tensor, f_txt: torch.Tensor) -> torch.Tensor:
     """ZeroSlide zero-shot patch importance score.
 
     max cosine similarity between CONCH patch embeddings and class text
@@ -50,16 +47,16 @@ def zeroslide_score(Z: torch.Tensor, f_txt: torch.Tensor) -> torch.Tensor:
     return (z @ t.t()).amax(-1)                                   # [n]
 
 
-class TextNavRouter(nn.Module):
-    """ZeroNav learned navigation router.
+class EvidenceSelector(nn.Module):
+    """Learned patch-evidence selector.
 
     ZeroSlide-inspired: CONCH patch embedding + 2-D text-alignment summary
-    → learned importance score.  No prototype features from QPMIL.
+    → learned importance score.
 
     Architecture: Linear(D+2 → 256) → GELU → Linear(256 → 1)
-    Default D=512 → 514-D input, ~130 K params (cf. MicroRouterV0 ~132 K).
+    Default D=512 → 514-D input, ~130 K params.
 
-    forward(Z, f_txt) — no F_p argument.
+    forward(Z, f_txt).
     """
 
     def __init__(self, feat_dim: int = 512, hidden: int = 256):
@@ -76,18 +73,20 @@ class TextNavRouter(nn.Module):
         """
         Z:     [n, D]  CONCH patch embeddings
         f_txt: [C, D]  CONCH class text embeddings
-        returns score [n] — no prototype_features() call.
+        returns score [n].
         """
         s = text_nav_feats(Z, f_txt)          # [n, 2]
         u = torch.cat([Z, s], dim=-1)         # [n, D+2]
         return self.mlp(u).squeeze(-1)        # [n]
 
 
-class ZeroNavSkillBank:
-    """Navigation Skill Memory for ZeroNav (TextNavRouter).
+class SelectorBank:
+    """task_id → EvidenceSelector state_dict.
 
-    task_id → TextNavRouter state_dict.
-    Drop-in replacement for NavigationSkillBank without prototype dependency.
+    ⚠️ 這是 **per-task oracle upper bound**，不是我們的 CL 方法：
+    每個 task 各存一份獨立訓練好的 selector，評估時用 ground-truth task_id
+    直接取出對應的那一份。它的作用是給出「若 task identity 完全已知」的上界，
+    供對照用；持續學習方法本身不得依賴這個 bank。
     """
 
     def __init__(self, feat_dim: int = 512, hidden: int = 256):
@@ -97,9 +96,9 @@ class ZeroNavSkillBank:
 
     # ── skill management ────────────────────────────────────────────────────
 
-    def add_skill(self, task_id: int, router_or_state) -> None:
-        state = (router_or_state.state_dict()
-                 if hasattr(router_or_state, "state_dict") else router_or_state)
+    def add_skill(self, task_id: int, selector_or_state) -> None:
+        state = (selector_or_state.state_dict()
+                 if hasattr(selector_or_state, "state_dict") else selector_or_state)
         self._skills[int(task_id)] = copy.deepcopy(state)
 
     def has(self, task_id: int) -> bool:
@@ -111,12 +110,12 @@ class ZeroNavSkillBank:
     def __len__(self) -> int:
         return len(self._skills)
 
-    def build_router(self, task_id: int, device=None) -> TextNavRouter:
-        router = TextNavRouter(feat_dim=self.feat_dim, hidden=self.hidden)
-        router.load_state_dict(self._skills[int(task_id)])
+    def build_selector(self, task_id: int, device=None) -> EvidenceSelector:
+        selector = EvidenceSelector(feat_dim=self.feat_dim, hidden=self.hidden)
+        selector.load_state_dict(self._skills[int(task_id)])
         if device is not None:
-            router = router.to(device)
-        return router.eval()
+            selector = selector.to(device)
+        return selector.eval()
 
     def weight_vectors(self) -> dict[int, torch.Tensor]:
         """Flat parameter vector per task (for cosine similarity analysis)."""
@@ -129,17 +128,17 @@ class ZeroNavSkillBank:
 
     def save(self, path: str) -> None:
         torch.save({
-            "type": "zeronav_v1",
+            "type": "selector_bank_v1",
             "feat_dim": self.feat_dim,
             "hidden": self.hidden,
             "skills": self._skills,
         }, path)
-        print(f"[ZeroNavSkillBank] saved {len(self)} skills → {path}")
+        print(f"[SelectorBank] saved {len(self)} skills → {path}")
 
     @classmethod
-    def load(cls, path: str, map_location: str = "cpu") -> "ZeroNavSkillBank":
+    def load(cls, path: str, map_location: str = "cpu") -> "SelectorBank":
         blob = torch.load(path, map_location=map_location)
         bank = cls(feat_dim=blob["feat_dim"], hidden=blob["hidden"])
         bank._skills = blob["skills"]
-        print(f"[ZeroNavSkillBank] loaded {len(bank)} skills from {path}")
+        print(f"[SelectorBank] loaded {len(bank)} skills from {path}")
         return bank

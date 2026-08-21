@@ -11,7 +11,7 @@ class WSIClf(Dataset):
         self.read_format = feat_format
 
         info = ['sid', 'sid2pid', 'sid2label', 'pid2label']
-        from .data_utils import retrieve_from_table_clf
+        from .table_utils import retrieve_from_table_clf
         self.sids, self.sid2pid, self.sid2label, self.pid2label = retrieve_from_table_clf(
             patient_ids, table_path, ret=info, level='slide')
 
@@ -27,7 +27,7 @@ class WSIClf(Dataset):
         label = torch.Tensor([label]).to(torch.long)
 
         full_path = osp.join(self.read_path, sid + '.' + self.read_format)
-        from .data_utils import read_patch_data
+        from .table_utils import read_patch_data
         feats = read_patch_data(full_path, dtype='torch').to(torch.float)
 
         return index, feats, label

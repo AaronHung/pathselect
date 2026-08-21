@@ -6,13 +6,13 @@
 
 設計（對齊 docs/wiki/05 介面契約 R1/R2/R3 與 STORYLINE §6）：
 - 不訓練 backbone（frozen），只透過 predict(subset) 取信心。
-- 重用既有 navigation skill（NSM 的 per-task MicroRouterV0）當「基礎評分器」。
+- 重用既有 navigation skill（per-task EvidenceSelector）當「基礎評分器」。
 - one-shot 模式（redundancy_weight=0 且 step_size>=budget）會退化成舊 Top-K
   -> 直接拿來做 N2 的 sequential vs one-shot ablation。
 
-本檔 device-agnostic、不 import QPMIL / train_router_v0，可單獨單元測試。
-backbone 鴨子型別需提供：class_text_features(), prototype_features(),
-aggregate_and_predict(Z_subset) -> (logits, ...)。
+本檔 device-agnostic、無任何外部方法相依，可單獨單元測試。
+分類一律由呼叫端傳入的 predict_fn(Z_subset) -> logits 負責（見
+selector.classifier.conch_classify / make_predict_fn）。
 
 對應 spec：specs/01_sop_navipath-cl_phase0.md (N1)。
 """
@@ -24,8 +24,15 @@ from typing import Callable, Optional
 import torch
 import torch.nn.functional as F
 
-from .routers import MicroRouterV0, summary_feats, top_k_select
-from .continual_agent import ContextGate, NavigationSkillBank
+from .flat_selector import EvidenceSelector, SelectorBank, similarity_score
+
+
+def top_k_select(score: torch.Tensor, k: int) -> torch.Tensor:
+    """選分數最高的 K 個 patch index；k<=0 或 k>=n 表示全選。"""
+    n = score.shape[0]
+    if k <= 0 or k >= n:
+        return torch.arange(n, device=score.device)
+    return torch.topk(score, k).indices
 
 
 @dataclass
@@ -36,7 +43,7 @@ class ObserveConfig:
 
     N6 路線 A（讓 sequential 真的 != one-shot）：
     - normalize_base：把 base_score z-score 正規化，讓 redundancy 懲罰與分數同尺度
-      （否則 router 分數尺度大、0.5*cos 幾乎不改排序 -> seq==oneshot 的主因）。z-score
+      （否則 selector 分數尺度大、0.5*cos 幾乎不改排序 -> seq==oneshot 的主因）。z-score
       單調，故 one-shot（redundancy=0、單輪）的 top-K 結果不變。
     - redundancy_mode：
         "maxsim"  = MMR 式：懲罰「與已選『任一』patch 的最大相似度」-> 真正逐步探索新區域（預設）。
@@ -114,8 +121,10 @@ class SequentialBudgetedObserver:
     """序列、有預算的觀察器（純粹、可測，不依賴 backbone 內部）。
 
     輸入：
-      base_score: [n] 每個 patch 的靜態重要度（來自 NSM 的 navigation skill）。
-      predict_fn: callable(Z_subset[m,D]) -> logits[C]，包住 frozen backbone。
+      base_score: [n] 每個 patch 的靜態重要度（來自 per-task EvidenceSelector）。
+      predict_fn: callable(Z_subset[m,D], idx[m]) -> logits[C]，由呼叫端提供。
+                  idx 是被選中 patch 在原 slide 中的 index，讓 predict_fn 能取回
+                  對應的 selector 分數做 softmax 加權（主線權重政策）。
     """
 
     def __init__(self, config: Optional[ObserveConfig] = None):
@@ -174,7 +183,7 @@ class SequentialBudgetedObserver:
             # 不早停時，最終子集只需在迴圈外預測一次 -> sequential 成本 ≈ one-shot。
             if cfg.confidence_threshold is not None:
                 sel = torch.tensor(state.seen, device=Z.device)
-                logits = predict_fn(Z.index_select(0, sel))
+                logits = predict_fn(Z.index_select(0, sel), sel)
                 state.last_logits = logits
                 state.confidence = float(F.softmax(logits.reshape(-1), dim=-1).max())
                 if state.confidence >= cfg.confidence_threshold:
@@ -184,7 +193,7 @@ class SequentialBudgetedObserver:
         # 最終在已選子集上預測一次（涵蓋無早停情況，並確保 logits 對應最終子集）
         if state.seen:
             sel = torch.tensor(state.seen, device=Z.device)
-            logits = predict_fn(Z.index_select(0, sel))
+            logits = predict_fn(Z.index_select(0, sel), sel)
             state.last_logits = logits
             state.confidence = float(F.softmax(logits.reshape(-1), dim=-1).max())
 
@@ -195,54 +204,51 @@ class SequentialBudgetedObserver:
 
 
 class ContinualSequentialNavigationAgent:
-    """CNL（序列版）：frozen backbone + NSM + Context Gate + 序列觀察。
+    """CNL（序列版）：per-task EvidenceSelector + 序列觀察 + 外部分類器。
 
-    與 continual_agent.ContinualWSINavigationAgent 的差別：
-    後者一次 Top-K（單步）；本類做多輪、累積證據的序列觀察並產出 trace。
+    與單步 Top-K 的差別：本類做多輪、累積證據的序列觀察並產出 trace。
+
+    predict_fn 由呼叫端提供（通常是 selector.classifier.make_predict_fn(f_txt,
+    logit_scale) 產生的 conch_classify closure），本類不自行決定如何分類。
+
+    ⚠️ selector_bank 是 per-task oracle upper bound：以 ground-truth task_id
+    取出對應 skill，僅供上界對照。
     """
 
-    def __init__(self, backbone, skill_bank: NavigationSkillBank,
-                 gate: Optional[ContextGate] = None,
+    def __init__(self, selector_bank: SelectorBank, f_txt: torch.Tensor,
+                 predict_fn: Callable[[torch.Tensor], torch.Tensor],
                  config: Optional[ObserveConfig] = None, device=None,
-                 policy_mode: str = "router"):
-        if policy_mode not in ("router", "zero_shot"):
+                 policy_mode: str = "selector"):
+        if policy_mode not in ("selector", "zero_shot"):
             raise ValueError(f"unknown policy_mode: {policy_mode}")
-        self.backbone = backbone
-        self.skill_bank = skill_bank
-        self.gate = gate or ContextGate("oracle")
+        self.selector_bank = selector_bank
+        self.f_txt = f_txt if device is None else f_txt.to(device)
+        self.predict_fn = predict_fn
         self.observer = SequentialBudgetedObserver(config)
         self.device = device
-        self.policy_mode = policy_mode  # "router"=trained NSM skill; "zero_shot"=frozen-FM text sim
-        self._router_cache: dict[int, MicroRouterV0] = {}
+        self.policy_mode = policy_mode  # "selector"=trained skill; "zero_shot"=frozen-FM text sim
+        self._selector_cache: dict[int, EvidenceSelector] = {}
 
-    def _router_for(self, task_id: int) -> MicroRouterV0:
-        if task_id not in self._router_cache:
-            self._router_cache[task_id] = self.skill_bank.build_router(task_id, self.device)
-        return self._router_cache[task_id]
+    def _selector_for(self, task_id: int) -> EvidenceSelector:
+        if task_id not in self._selector_cache:
+            self._selector_cache[task_id] = self.selector_bank.build_selector(
+                task_id, self.device)
+        return self._selector_cache[task_id]
 
     @torch.no_grad()
     def _base_score(self, Z: torch.Tensor, task_id: int) -> torch.Tensor:
-        f_txt = self.backbone.class_text_features()
-        F_p = self.backbone.prototype_features()
-        if self.device is not None:
-            f_txt, F_p = f_txt.to(self.device), F_p.to(self.device)
         if self.policy_mode == "zero_shot":
-            # SPEC-07: zero-shot navigation — 不訓練、不查 skill bank，
-            # 直接用 frozen FM 的 patch-text 相似度 (ZeroSlide 精神搬到 navigation)。
-            _, sim_txt_max = summary_feats(Z, f_txt, F_p)
-            return sim_txt_max
-        router = self._router_for(task_id)
-        score, _ = router(Z, f_txt, F_p)
-        return score
+            # SPEC-07: zero-shot selection — 不訓練、不查 skill bank，
+            # 直接用 frozen FM 的 patch-text 相似度 (ZeroSlide 精神)。
+            return similarity_score(Z, self.f_txt)
+        return self._selector_for(task_id)(Z, self.f_txt)
 
     @torch.no_grad()
-    def observe(self, Z: torch.Tensor, *, task_id: Optional[int] = None) -> ObservationResult:
-        skill_id = self.gate.select(task_id=task_id, Z=Z, backbone=self.backbone)
-        base_score = self._base_score(Z, skill_id)
-        predict_fn = lambda S: self.backbone.aggregate_and_predict(S)[0]  # noqa: E731
-        return self.observer.observe(Z, base_score, predict_fn)
+    def observe(self, Z: torch.Tensor, *, task_id: int) -> ObservationResult:
+        base_score = self._base_score(Z, task_id)
+        return self.observer.observe(Z, base_score, self.predict_fn)
 
     @torch.no_grad()
-    def predict(self, Z: torch.Tensor, *, task_id: Optional[int] = None):
+    def predict(self, Z: torch.Tensor, *, task_id: int):
         res = self.observe(Z, task_id=task_id)
         return res.logits, res.selected
