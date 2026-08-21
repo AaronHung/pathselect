@@ -11,9 +11,20 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+#: 每一份逐 slide 存檔都必須有的欄位
 REQUIRED = {"slide_id", "task", "true"}
-#: 選取類評估另外必須帶的欄位
+#: **選取類**評估另外必須帶的欄位。診斷用的 probe（例如 S1 的 task id 分類）
+#: 沒有 patch 選取這回事，只需滿足 REQUIRED。
 REQUIRED_SELECTION = {"selected_idx", "weights_softmax", "weights_uniform"}
+
+
+def _is_selection_dump(path: Path) -> bool:
+    """帶 budget 欄位 B 的才是選取類評估。"""
+    try:
+        records = json.loads(path.read_text())
+    except Exception:
+        return False
+    return bool(records) and isinstance(records, list) and "B" in records[0]
 
 
 def _per_slide_files() -> list[Path]:
@@ -42,7 +53,7 @@ def test_per_slide_records_have_required_fields(path: Path):
         assert any(k.startswith("pred") for k in r), f"{path}[{i}] 沒有任何預測欄位"
 
 
-@pytest.mark.parametrize("path", [p for p in _per_slide_files() if "exp1" in str(p)],
+@pytest.mark.parametrize("path", [p for p in _per_slide_files() if _is_selection_dump(p)],
                          ids=lambda p: str(p.relative_to(REPO_ROOT)))
 def test_selection_dumps_record_indices_and_weights(path: Path):
     records = json.loads(path.read_text())
