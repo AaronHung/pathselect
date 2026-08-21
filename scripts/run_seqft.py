@@ -237,6 +237,8 @@ def main() -> int:
     ap.add_argument("--chunk", type=int, default=1)
     ap.add_argument("--max-train", type=int, default=0)
     ap.add_argument("--no-resume", action="store_true")
+    ap.add_argument("--report-only", action="store_true",
+                    help="從既有的 results.json 重繪報告，不訓練也不評估")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -246,6 +248,11 @@ def main() -> int:
     (OUT_DIR / "ckpt").mkdir(parents=True, exist_ok=True)
 
     ctx = Ctx(cfg)
+    if args.report_only:
+        recs = json.loads((OUT_DIR / "results.json").read_text())
+        write_report(ctx, recs, orders, seeds, args)
+        print(f"→ {OUT_DIR / 'SEQFT.md'}（report-only）")
+        return 0
     print(f"SeqFT  orders={orders}  seeds={seeds}  B={args.budget} c={args.chunk} "
           f"epochs={args.epochs}  arch=L3b(no q_tau, no state, flat)  無任何 CL 機制",
           flush=True)
@@ -344,13 +351,15 @@ def write_report(ctx, recs, orders, seeds, args) -> None:
                                             for s, t in zip(short, tasks)) + "。",
               "", "### 表 2：三個軸（3 seeds mean ± std）", "",
               "| task | n | A1 accuracy forgetting (pp) | A2 Jaccard | "
-              "A2 quota KL | A3 utility retention |",
-              "|---|---|---|---|---|---|"]
+              "A2 quota KL | A3 ΣU 學完 T_i | A3 ΣU 學完 T_4 | A3 retention |",
+              "|---|---|---|---|---|---|---|---|"]
         per_seed = {sd: axes_for(rs, tasks, sd) for sd in seeds}
         for t in tasks:
             g = lambda k: [per_seed[sd][t][k] for sd in seeds if t in per_seed[sd]]
             L.append(f"| {t} | {n_test[t]} | {ms(g('A1_acc_forgetting'), '{:+.2f}')} | "
                      f"{ms(g('A2_jaccard'))} | {ms(g('A2_quota_kl'))} | "
+                     f"{ms(g('A3_utility_at_learn'), '{:.1f}')} | "
+                     f"{ms(g('A3_utility_at_end'), '{:.1f}')} | "
                      f"{ms(g('A3_retention'))} |")
         L += ["",
               "- **A1** = acc(T_i | 學完 T_i) − acc(T_i | 學完 T_4)，正值代表退步。",
@@ -358,15 +367,19 @@ def write_report(ctx, recs, orders, seeds, args) -> None:
               "1.0 = 完全沒變，0.0 = 完全換掉。",
               "- **A2 quota KL** = group 配額分佈 KL(學完 T_i ‖ 學完 T_4)，"
               "Laplace 平滑；0 = 分佈沒變。",
-              "- **A3 retention** = ΣU(學完 T_4 的選擇) / ΣU(學完 T_i 的選擇)。"
+              "- **A3** ΣU 是該 task 全部 test slide 的 utility 加總。"
               "U 沿選取順序累加 counterfactual gain；frozen head 不隨訓練改變，"
-              "所以 U 只取決於選了哪些 patch。1.0 = 效用完全保留。",
+              "所以 U 只取決於選了哪些 patch。retention = ΣU(學完 T_4) / ΣU(學完 T_i)："
+              "1.0 = 效用完全保留，0 = 新選的東西完全沒用，**負值 = 新選的東西是反效果**"
+              "（把證據推向錯誤類別，比什麼都不看還糟）。",
               "", "### T4 學完後，各 task 的 group 配額分佈", "",
               "| task | 時點 | " + " | ".join(TISSUE_GROUP_NAMES) + " |",
               "|---" * (len(TISSUE_GROUP_NAMES) + 2) + "|"]
         for i, t in enumerate(tasks):
-            for label, stage in (("學完 T%d" % (i + 1), i),
-                                 ("學完 T%d" % len(tasks), len(tasks) - 1)):
+            stages = [("學完 T%d" % (i + 1), i)]
+            if i != len(tasks) - 1:      # 最後一個 task 的兩個時點是同一個，不重複列
+                stages.append(("學完 T%d" % len(tasks), len(tasks) - 1))
+            for label, stage in stages:
                 sub = [r for r in rs if r["stage"] == stage and r["task"] == t]
                 if not sub:
                     continue
@@ -376,7 +389,25 @@ def write_report(ctx, recs, orders, seeds, args) -> None:
                          + " | ".join(f"{v / s:.3f}" for v in tot) + " |")
         L.append("")
 
-    L += ["## 產出檔案", "",
+    L += ["## 事前預測對照（跑完後填入；上面的預測段落未修改）", "", "| 預測 | 觀察 |",
+          "|---|---|"]
+    for order_name in orders:
+        tasks = ORDERS[order_name]
+        rs = [r for r in recs if r["order"] == order_name]
+        per_seed = {sd: axes_for(rs, tasks, sd) for sd in seeds}
+        early = [t for t in tasks[:-1]]
+        a1 = [per_seed[sd][t]["A1_acc_forgetting"] for sd in seeds for t in early
+              if t in per_seed[sd]]
+        jac = [per_seed[sd][t]["A2_jaccard"] for sd in seeds for t in early
+               if t in per_seed[sd]]
+        L.append(f"| ({order_name}) accuracy 層 forgetting **偏輕** | "
+                 f"前 3 個 task 的 A1 平均 **{statistics.mean(a1):+.2f} pp**"
+                 f"（範圍 {min(a1):+.2f} ~ {max(a1):+.2f}） |")
+        L.append(f"| ({order_name}) selection 行為層**嚴重漂移** | "
+                 f"前 3 個 task 的 Jaccard 平均 **{statistics.mean(jac):.4f}**"
+                 f"（範圍 {min(jac):.4f} ~ {max(jac):.4f}） |")
+    L += ["", "判讀由 PI 進行；此處只陳述數字。", "",
+          "## 產出檔案", "",
           "- 逐 slide 預測與選中 index：`outputs/exp2/seqft/per_slide/"
           "{order}_seed{seed}_stage{k}.json`",
           "- 曲線資料（accuracy 隨訓練進度）：`outputs/exp2/seqft/curves.json`",
