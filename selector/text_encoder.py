@@ -92,6 +92,43 @@ def _encode(text_tower, prompts: list[str], device, batch_size: int = 64) -> tor
     return torch.cat(out, dim=0)
 
 
+def encode_prompt_groups(groups: list[list[str]], cfg: dict | None = None, *,
+                         device: str | torch.device = "cpu",
+                         cache_name: str | None = None,
+                         refresh: bool = False) -> torch.Tensor:
+    """把「每組多條 prompt」編成 [G, D]：組內平均後 L2 normalize。
+
+    與 build_f_txt 同一條路徑（CONCH text tower、同樣的平均與正規化），只是
+    prompt 來源由呼叫端給定，供 tissue prototype 之類的用途重用。
+    cache_name 給定時結果快取到 outputs/cache/{cache_name}.pt。
+    """
+    cfg = cfg or load_config()
+    cache_path = (_abs(cfg["f_txt_cache_dir"]) / f"{cache_name}.pt") if cache_name else None
+    if cache_path is not None and cache_path.exists() and not refresh:
+        return torch.load(cache_path, map_location=device)["features"].to(device)
+
+    text_tower, _logit_scale, _dim = build_text_tower(
+        _require_ckpt(cfg), model_cfg=cfg.get("conch_model_cfg", "conch_ViT-B-16"),
+        device=device)
+    rows = [F.normalize(_encode(text_tower, prompts, device).mean(0), dim=-1)
+            for prompts in groups]
+    feats = torch.stack(rows, dim=0)
+    if cache_path is not None:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        torch.save({"features": feats.cpu(), "n_groups": len(groups)}, cache_path)
+        print(f"[text_encoder] {cache_name}{tuple(feats.shape)} → {cache_path}")
+    return feats
+
+
+def _require_ckpt(cfg: dict) -> str:
+    ckpt = cfg["conch_ckpt_path"]
+    if not Path(ckpt).exists():
+        raise FileNotFoundError(
+            f"CONCH checkpoint not found: {ckpt}\n"
+            f"請在 {DEFAULT_CONFIG} 設定 conch_ckpt_path。")
+    return ckpt
+
+
 def build_f_txt(task: str, cfg: dict | None = None, *,
                               device: str | torch.device = "cpu",
                               refresh: bool = False) -> ClassTextFeatures:
@@ -105,14 +142,9 @@ def build_f_txt(task: str, cfg: dict | None = None, *,
                                  blob["logit_scale"].to(device),
                                  list(blob["class_names"]), task)
 
-    ckpt = cfg["conch_ckpt_path"]
-    if not Path(ckpt).exists():
-        raise FileNotFoundError(
-            f"CONCH checkpoint not found: {ckpt}\n"
-            f"請在 {DEFAULT_CONFIG} 設定 conch_ckpt_path。"
-        )
     text_tower, logit_scale, embed_dim = build_text_tower(
-        ckpt, model_cfg=cfg.get("conch_model_cfg", "conch_ViT-B-16"), device=device)
+        _require_ckpt(cfg), model_cfg=cfg.get("conch_model_cfg", "conch_ViT-B-16"),
+        device=device)
 
     class_names, prompts_per_class = class_prompt_ensemble(task, cfg["class_prompt_path"])
     rows = []
