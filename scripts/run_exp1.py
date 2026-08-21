@@ -361,6 +361,8 @@ def main() -> int:
     ap.add_argument("--chunk", type=int, default=1)
     ap.add_argument("--max-train", type=int, default=0)
     ap.add_argument("--tag", default="")
+    ap.add_argument("--no-resume", action="store_true",
+                    help="忽略既有的 per_slide 存檔，全部重跑")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -378,6 +380,13 @@ def main() -> int:
     for lv in levels:
         spec = LEVELS[lv]
         for seed in seeds:
+            # 續跑：(level, seed) 是最小的存檔單位，跑完就落檔，中斷後可從這裡接。
+            done = out_dir / "per_slide" / f"{lv}_seed{seed}.json"
+            if done.exists() and not args.no_resume:
+                recs = json.loads(done.read_text())
+                all_recs += recs
+                print(f"  ▷ {lv} seed={seed} 已有存檔，跳過（{len(recs)} 筆）", flush=True)
+                continue
             print(f"  ▶ {lv} ({spec['mode']}) seed={seed}", flush=True)
             if spec["mode"] == "per_task":
                 recs = []
