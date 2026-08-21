@@ -387,12 +387,19 @@ def arm_metrics(recs, arm, tasks, seed, label_space):
         }
     p = out["per_task"]
     if p:
+        # final accuracy 算全部 T 個 task（標準做法）
         out["final_task_il"] = statistics.mean([v["task_il_at_end"] for v in p.values()])
         out["final_class_il"] = statistics.mean([v["class_il_at_end"] for v in p.values()])
-        out["mean_A1_task_il"] = statistics.mean([v["A1_task_il"] for v in p.values()])
-        out["mean_A1_class_il"] = statistics.mean([v["A1_class_il"] for v in p.values()])
-        out["mean_jaccard"] = statistics.mean([v["jaccard"] for v in p.values()])
         out["mean_leak"] = statistics.mean([v["leak"] for v in p.values()])
+        # forgetting 類指標只算前 T−1 個 task：最後一個 task 的「學完」與「學完 T4」
+        # 是同一個時點，A1 恆為 0、Jaccard 恆為 1，算進去只會稀釋數字。
+        early = [p[t] for t in tasks[:-1] if t in p]
+        if early:
+            out["mean_A1_task_il"] = statistics.mean([v["A1_task_il"] for v in early])
+            out["mean_A1_class_il"] = statistics.mean([v["A1_class_il"] for v in early])
+            out["mean_jaccard"] = statistics.mean([v["jaccard"] for v in early])
+            out["mean_quota_kl"] = statistics.mean([v["quota_kl"] for v in early])
+            out["mean_leak_early"] = statistics.mean([v["leak"] for v in early])
         fr = [v["l_eq_fire_rate"] for v in p.values() if v["l_eq_fire_rate"] is not None]
         out["l_eq_fire_rate"] = statistics.mean(fr) if fr else None
     return out
@@ -433,15 +440,23 @@ def write_report(ctx, recs, arms, order_name, seeds, args, out_dir):
         "## 主表",
         "",
         "| # | 方法臂 | final avg acc (task-IL) | final avg acc (class-IL) | "
-        "平均 A1 forgetting (task-IL, pp) | 平均 Jaccard | 平均洩漏率 | l_eq fire rate |",
-        "|---|---|---|---|---|---|---|---|",
+        "A1 forgetting task-IL (pp) | A1 forgetting class-IL (pp) | Jaccard | "
+        "quota KL | 洩漏率 | l_eq fire rate |",
+        "|---|---|---|---|---|---|---|---|---|---|",
     ]
     for a in arms:
         L.append(f"| {a} | {ARMS[a]['name']} | {col(a, 'final_task_il')} | "
                  f"{col(a, 'final_class_il')} | {col(a, 'mean_A1_task_il', '{:+.2f}')} | "
-                 f"{col(a, 'mean_jaccard')} | {col(a, 'mean_leak')} | "
+                 f"{col(a, 'mean_A1_class_il', '{:+.2f}')} | {col(a, 'mean_jaccard')} | "
+                 f"{col(a, 'mean_quota_kl')} | {col(a, 'mean_leak')} | "
                  f"{col(a, 'l_eq_fire_rate')} |")
     L += ["",
+          f"**欄位口徑**：final avg acc 算全部 {len(tasks)} 個 task；"
+          f"**forgetting、Jaccard、quota KL 只算前 {len(tasks) - 1} 個 task** —— "
+          f"最後學的 {short[-1]} 的「學完」與「學完 T4」是同一個時點，"
+          "A1 恆為 0、Jaccard 恆為 1，算進去只會稀釋遺忘的量級（CL 慣例）。"
+          "洩漏率算全部 4 個 task，因為最後一個 task 的洩漏不是由構造為 0。",
+          "",
           "⚠️ **R1 / R2 不是 CL baseline**：R1 每個 task 獨立訓練（無干擾天花板），"
           "R2 一次看到所有資料、沒有 task 順序（offline shared-model reference）。"
           "兩者的 A1 forgetting 由構造為 0，不能用來宣稱 forgetting。",
