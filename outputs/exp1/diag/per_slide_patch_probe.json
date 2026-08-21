@@ -1,0 +1,2234 @@
+[
+ {
+  "slide_id": "TCGA-R6-A6Y2-01Z-00-DX1.9B1F1957-2C59-4D5A-BCE7-9FCBF1417B42",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 366,
+  "pred_patch_correct_frac": 0.8688524590163934,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-L5-A4OW-01Z-00-DX1.BA40D477-007A-40BE-B37B-5228C65EED42",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 5095,
+  "pred_patch_correct_frac": 0.8718351324828263,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-VR-A8EO-01Z-00-DX1.34D04FE6-3C6B-4F9B-8A89-3A3AAC25205B",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 5570,
+  "pred_patch_correct_frac": 0.63016157989228,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-JY-A93D-01Z-00-DX1.14D17584-237D-4197-AC50-F8293D576445",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 3955,
+  "pred_patch_correct_frac": 0.7201011378002529,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-L5-A4OT-01Z-00-DX1.23F2765D-7674-49EB-A932-5D63A0A2E551",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 7905,
+  "pred_patch_correct_frac": 0.36736242884250475,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-L5-A4ON-01Z-00-DX1.0C8EF68C-AA46-42E3-9F14-01AF78077DB3",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 6485,
+  "pred_patch_correct_frac": 0.7879722436391673,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-LN-A4MR-01Z-00-DX1.A27F1932-A134-48AE-ACB5-9A1C2EF823A9",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 1635,
+  "pred_patch_correct_frac": 0.8758409785932721,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-LN-A7HY-01Z-00-DX1.AEEADA09-F984-4A4D-93BD-B5FA02E3E743",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 1786,
+  "pred_patch_correct_frac": 0.4400895856662934,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-VR-A8EU-01Z-00-DX1.EB679D42-1505-4220-83BD-0D5B51F42EE6",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 3432,
+  "pred_patch_correct_frac": 0.21736596736596736,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-R6-A8W5-01Z-00-DX1.DD3F48D7-3C8E-4468-BB2F-797F2F0FCB7B",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 859,
+  "pred_patch_correct_frac": 0.8160651920838184,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-2H-A9GN-01Z-00-DX1.2373BEFC-931F-460D-8F6C-49C424600930",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 6318,
+  "pred_patch_correct_frac": 0.5112377334599557,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-LN-A49Y-01Z-00-DX1.AD2B54DA-A898-4B0F-AD03-6DE728D29465",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 1218,
+  "pred_patch_correct_frac": 0.6839080459770115,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-IG-A3YC-01Z-00-DX1.71785237-8DA6-4034-9CDA-9BE227D53A49",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 3890,
+  "pred_patch_correct_frac": 0.5820051413881748,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-XP-A8T8-01Z-00-DX1.90E0B853-A751-4D13-B1D0-676754177C28",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 6762,
+  "pred_patch_correct_frac": 0.7030464359656906,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-LN-A8HZ-01Z-00-DX1.EA3875B4-BB87-47F9-9976-86B9EDA2D47B",
+  "task": "tcga_esca",
+  "true": 0,
+  "n_patch": 1320,
+  "pred_patch_correct_frac": 0.8477272727272728,
+  "pred_patch_majority": 0
+ },
+ {
+  "slide_id": "TCGA-B3-4103-01Z-00-DX1.76bba2e9-0a6d-460b-8ae8-c38a1109456e",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 2170,
+  "pred_patch_correct_frac": 0.9267281105990783,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AL-3468-01Z-00-DX1.F86A4811-D60C-4845-A7A5-B7C7BE202202",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1520,
+  "pred_patch_correct_frac": 0.9697368421052631,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AL-3468-01Z-00-DX2.B7D8DCCE-C015-4284-96EF-ED7F4A7771B7",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 868,
+  "pred_patch_correct_frac": 0.9769585253456221,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BQ-7058-01Z-00-DX1.b2419f7a-e4af-467d-a0ee-c00b7ac33bdc",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4737,
+  "pred_patch_correct_frac": 0.781296179016255,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-EV-5902-01Z-00-DX1.dfbe9f70-a570-422e-a883-4b2f0e9a3024",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3857,
+  "pred_patch_correct_frac": 0.9751101892662691,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-2Z-A9JP-01Z-00-DX1.8B0F498B-85AC-494F-866C-0FDAB54D216B",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 2311,
+  "pred_patch_correct_frac": 0.9831241886629165,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-SX-A7SP-01Z-00-DX1.093B9AC2-423B-4E58-BDD9-47FD5A6EA94A",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1415,
+  "pred_patch_correct_frac": 0.9689045936395759,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-A4-A5XZ-01Z-00-DX1.91B936FA-1697-4571-800D-F45B68596A58",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 626,
+  "pred_patch_correct_frac": 0.8722044728434505,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BQ-5879-01Z-00-DX1.682ab315-998b-4379-8492-3b422ce06308",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 5505,
+  "pred_patch_correct_frac": 0.810535876475931,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-4691-01Z-00-DX1.789de56b-23df-47c5-a075-705edc9e6d44",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4176,
+  "pred_patch_correct_frac": 0.9528256704980843,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AK-3428-01Z-00-DX1.E437BB00-F731-4B71-9A78-5BC7CA0F08AF",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 929,
+  "pred_patch_correct_frac": 0.9924650161463939,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B8-A54D-01Z-00-DX1.DCD17375-918C-4AEA-96F0-7FF8FCF4D00B",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 2313,
+  "pred_patch_correct_frac": 0.9736273238218763,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B8-4619-01Z-00-DX1.2738922d-4a07-45b3-968b-83994e9a0ed6",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 878,
+  "pred_patch_correct_frac": 0.9954441913439636,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-5192-01Z-00-DX1.a907179e-7b54-4315-bed1-6f1f12609cc9",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3302,
+  "pred_patch_correct_frac": 0.9830405814657783,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-5169-01Z-00-DX1.b9739d1e-6d86-44ab-a064-9fe50d393613",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 7311,
+  "pred_patch_correct_frac": 0.8957734919983587,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CJ-5677-01Z-00-DX1.46FEF9C4-445C-4046-9ACC-54402E3702A9",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1725,
+  "pred_patch_correct_frac": 0.32057971014492753,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BP-4354-01Z-00-DX1.9f53f9e2-ea72-4be4-9848-1a3f5634dac0",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4589,
+  "pred_patch_correct_frac": 0.9034648071475267,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CJ-5678-01Z-00-DX1.E71A7F98-7D7F-4DFC-920F-27000010217F",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1832,
+  "pred_patch_correct_frac": 0.9334061135371179,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-4782-01Z-00-DX1.1da979ff-efd3-4c2b-920c-a458f52ef89a",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 2819,
+  "pred_patch_correct_frac": 0.9829726853494147,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-A3-3308-01Z-00-DX1.bbd79ced-9fb9-4601-8ba0-b343da5f6f5b",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1712,
+  "pred_patch_correct_frac": 0.945677570093458,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B2-5635-01Z-00-DX1.04222a5c-a2b2-4206-8a54-66c7474982d8",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1058,
+  "pred_patch_correct_frac": 0.9933837429111532,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-EU-5907-01Z-00-DX1.22c3e851-d286-437f-b7ac-50350a001888",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3583,
+  "pred_patch_correct_frac": 0.9718113312866313,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CJ-4874-01Z-00-DX1.614D8D7D-E9FA-464D-A90F-C5C789664287",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4545,
+  "pred_patch_correct_frac": 0.9181518151815181,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-4327-01Z-00-DX1.fd80b9b2-ec68-4e6a-b0ce-a08c9baba9b7",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4476,
+  "pred_patch_correct_frac": 0.8415996425379804,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AK-3454-01Z-00-DX1.C6853BCF-0ECF-443A-8516-6D544C9BD456",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1041,
+  "pred_patch_correct_frac": 0.9221902017291066,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-DW-7836-01Z-00-DX1.A8A28E5B-0D97-42D5-B04E-BD0D007CC30A",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 393,
+  "pred_patch_correct_frac": 0.8880407124681934,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-P4-AAVK-01Z-00-DX1.D23DE669-A54A-4921-AB4C-398A2ED7CB93",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4223,
+  "pred_patch_correct_frac": 0.9647170258110348,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B1-A47M-01Z-00-DX1.B049A5A8-406C-4208-BB5E-2CA42D063D16",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4856,
+  "pred_patch_correct_frac": 0.8377265238879736,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B9-5156-01Z-00-DX1.200621df-b59f-4c69-957c-65aebfe855a8",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1564,
+  "pred_patch_correct_frac": 0.9808184143222506,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BQ-7055-01Z-00-DX1.a27d276d-8321-4bc3-a1fa-a9a68150353a",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 5900,
+  "pred_patch_correct_frac": 0.963728813559322,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-IA-A40Y-01Z-00-DX1.E8D91A02-A0BD-4974-8CF9-68DC1AF506EF",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4004,
+  "pred_patch_correct_frac": 0.698051948051948,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AL-3472-01Z-00-DX1.66FF9A6E-2851-4E32-A10C-62EB7568AFC3",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 797,
+  "pred_patch_correct_frac": 0.9686323713927227,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AL-3472-01Z-00-DX2.C7BF0356-F099-4070-8824-1AC3339E9F59",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 798,
+  "pred_patch_correct_frac": 0.9887218045112782,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-PJ-A5Z8-01Z-00-DX1.84E38F4E-BCF7-4383-AFEC-67C2C15DD3CF",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3027,
+  "pred_patch_correct_frac": 0.9372315824248431,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-5694-01Z-00-DX1.d33b7c17-1d59-467f-9f33-47158ab5bdf7",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4191,
+  "pred_patch_correct_frac": 0.9470293486041518,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-4960-01Z-00-DX1.8ed78985-d391-4756-ab30-eca545091013",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4670,
+  "pred_patch_correct_frac": 0.9903640256959315,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-4843-01Z-00-DX1.22597d5c-43e9-4ed1-a2c2-68d2f70fd5c4",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3804,
+  "pred_patch_correct_frac": 0.9742376445846478,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AK-3461-01Z-00-DX1.C63E8820-0A22-4567-B986-2958B4B73EA9",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 897,
+  "pred_patch_correct_frac": 0.8918617614269788,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-4814-01Z-00-DX1.954b3034-13bf-49f3-ba89-175fd1fc7fbd",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 7043,
+  "pred_patch_correct_frac": 0.9832457759477495,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-A3-3373-01Z-00-DX1.681dd573-9832-4739-92b5-5cdf6e993802",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 803,
+  "pred_patch_correct_frac": 0.9863013698630136,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CJ-4636-01Z-00-DX1.828E1165-8011-4DEB-A7F0-BECF570F310F",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 2860,
+  "pred_patch_correct_frac": 0.8255244755244755,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B8-4148-01Z-00-DX1.B27E1027-0740-46B2-91FA-FE018746D81F",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3408,
+  "pred_patch_correct_frac": 0.9909037558685446,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AK-3425-01Z-00-DX1.39FD616C-3050-41E1-BF80-D2069E492FDE",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1436,
+  "pred_patch_correct_frac": 0.947075208913649,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-A3-3319-01Z-00-DX1.38d515b4-6488-421a-9d61-d1e92d98ddbe",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1248,
+  "pred_patch_correct_frac": 0.8725961538461539,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-4718-01Z-00-DX1.24cc8660-df2d-4910-ae5d-68b6ab6feb57",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4374,
+  "pred_patch_correct_frac": 0.9963420210333791,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-4174-01Z-00-DX1.be4a0246-98f6-44c3-a00f-dfb7d076e9db",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3414,
+  "pred_patch_correct_frac": 0.9912126537785588,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CJ-4923-01Z-00-DX1.ADD3D7FE-46D1-49AF-B6D4-1FD07B761EF1",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 5799,
+  "pred_patch_correct_frac": 0.7618554923262632,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CJ-4890-01Z-00-DX1.4CD542E0-5057-477E-B578-17FE98A503FD",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 5106,
+  "pred_patch_correct_frac": 0.3826870348609479,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-2Z-A9J3-01Z-00-DX1.6B0E7DF6-733D-4007-84A3-E67BBC4966A6",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4753,
+  "pred_patch_correct_frac": 0.9652850831054071,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B2-4099-01Z-00-DX1.c0aa462a-083d-4db8-af8f-37b45a544c8b",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1335,
+  "pred_patch_correct_frac": 0.9250936329588015,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-G6-A5PC-01Z-00-DX1.1E7A6945-7AC1-438D-B1EC-C45BEFC6851E",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4911,
+  "pred_patch_correct_frac": 0.8670331907961718,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-4352-01Z-00-DX1.fc671377-0f49-4a28-93fe-0409be6a7473",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4910,
+  "pred_patch_correct_frac": 0.8857433808553972,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-5707-01Z-00-DX1.a531abb4-5981-4fa2-a6e0-a2e3b64b0688",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 5808,
+  "pred_patch_correct_frac": 0.9375,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-5713-01Z-00-DX1.afdee2d7-be99-4a3f-addf-b4942b891e7a",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3791,
+  "pred_patch_correct_frac": 0.9050382484832498,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-5200-01Z-00-DX1.857a5a60-4cbb-4aa1-ad71-2de6e7e1df30",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3715,
+  "pred_patch_correct_frac": 0.9574697173620458,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-4799-01Z-00-DX1.bf24e85e-66d4-4cf6-ad5d-9a7e1d27d008",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 2604,
+  "pred_patch_correct_frac": 0.912826420890937,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AK-3453-01Z-00-DX1.39B363CD-9995-4077-9C44-3A2F4792A510",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1332,
+  "pred_patch_correct_frac": 0.9902402402402403,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-AK-3433-01Z-00-DX1.53f1ec0a-bb16-4899-bdc7-99c6e61f729e",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3997,
+  "pred_patch_correct_frac": 0.9794846134600951,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-5119-01Z-00-DX1.0efec19e-0a46-4951-926b-d172fb90b2a1",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4254,
+  "pred_patch_correct_frac": 0.9623883403855195,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B2-A4SR-01Z-00-DX1.CC86884F-7784-495E-AFA0-FE57E4E6BADF",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1679,
+  "pred_patch_correct_frac": 0.9839189994044074,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-4817-01Z-00-DX1.92c7c348-7373-4ebc-9459-c8122e6eeb41",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 5546,
+  "pred_patch_correct_frac": 0.9309412188965019,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BP-4973-01Z-00-DX1.2f753bb4-d7f4-43fc-994a-f076e6d10c50",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 5829,
+  "pred_patch_correct_frac": 0.8893463715903243,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CZ-5462-01Z-00-DX1.270f84aa-9ae5-4de7-adb3-8b3ea53aeba1",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 2870,
+  "pred_patch_correct_frac": 0.9738675958188153,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CJ-4913-01Z-00-DX1.47D39794-A772-41CA-8921-65B7FD5C6006",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4197,
+  "pred_patch_correct_frac": 0.9699785561115082,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-A3-3382-01Z-00-DX1.38cdb806-248a-4030-8a47-b5ce266991de",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 646,
+  "pred_patch_correct_frac": 0.955108359133127,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CJ-4888-01Z-00-DX1.3C25F016-BC38-4B8A-9DCF-6ACCDEEC2525",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3718,
+  "pred_patch_correct_frac": 0.8754706831629908,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-B0-5399-01Z-00-DX1.2b8db692-a777-46d2-bfef-ac889bd957aa",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 6903,
+  "pred_patch_correct_frac": 0.9978270317253368,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-CZ-5987-01Z-00-DX1.b9be10de-122d-4cef-961f-298c359e513d",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4404,
+  "pred_patch_correct_frac": 0.8962306993642144,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-2Z-A9J8-01Z-00-DX1.27D9327E-905A-418B-BDC1-B2320D98F5F3",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1720,
+  "pred_patch_correct_frac": 0.8959302325581395,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-O9-A75Z-01Z-00-DX1.BC6BD21E-6875-4182-B143-B1F656229416",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 4164,
+  "pred_patch_correct_frac": 0.9181075888568684,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-2Z-A9JG-01Z-00-DX1.1ACF5371-F7F7-4477-9450-4A46709CCEDC",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 2382,
+  "pred_patch_correct_frac": 0.8413098236775819,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BQ-5891-01Z-00-DX1.8e19c5b6-693e-4f65-b1ce-ab1e9ca960ec",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 6382,
+  "pred_patch_correct_frac": 0.7405202130993419,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-A4-8310-01Z-00-DX1.62A765FE-C8B8-4017-A37A-CD7B66CB07AD",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 224,
+  "pred_patch_correct_frac": 0.9241071428571429,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BQ-5875-01Z-00-DX1.8dfe43ac-98ed-49b7-9da0-8a831f323edd",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 3992,
+  "pred_patch_correct_frac": 0.9832164328657315,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-SX-A7SS-01Z-00-DX1.8D9E6599-DA42-4F5B-93FF-08CBDCC77591",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 1296,
+  "pred_patch_correct_frac": 0.7330246913580247,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-BQ-5893-01Z-00-DX1.d68bdc5e-06ef-4e9c-bfe0-0fab07c36a58",
+  "task": "tcga_rcc",
+  "true": 1,
+  "n_patch": 5377,
+  "pred_patch_correct_frac": 0.48558675841547333,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-E2-A1L7-01Z-00-DX1.BE796CD2-2E81-44E8-8CA2-85B4D2A31B64",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 744,
+  "pred_patch_correct_frac": 0.989247311827957,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-D8-A143-01Z-00-DX1.4697FB2F-91D5-4506-AF23-7DE304D44A3F",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3354,
+  "pred_patch_correct_frac": 0.8807394156231365,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-E2-A15L-01Z-00-DX1.626032DC-D396-48E7-B888-DFEBCF7102FF",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3910,
+  "pred_patch_correct_frac": 0.9951406649616368,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-C8-A138-01Z-00-DX1.845A0680-23A4-4A58-A9C4-2EE17BDBD371",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2494,
+  "pred_patch_correct_frac": 0.6647955092221332,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A0U4-01Z-00-DX1.DE722DC5-859D-4866-ADCC-ED98EDBFB588",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4470,
+  "pred_patch_correct_frac": 0.6062639821029083,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-D8-A1JM-01Z-00-DX1.3CD15BC8-08B3-4BEE-9FD7-A8BEED33268E",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3005,
+  "pred_patch_correct_frac": 0.4,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-BH-A1EY-01Z-00-DX1.25C3DE1F-C702-4959-8DFA-69EF78AD9307",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3282,
+  "pred_patch_correct_frac": 0.9966483851310177,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A1FH-01Z-00-DX1.F90A691F-B6DB-4C4A-9975-9A2CB01F29E2",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3373,
+  "pred_patch_correct_frac": 0.9937740883486511,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AN-A0FJ-01Z-00-DX1.97B60767-916E-4938-9D0B-E6C0FE1CB3FC",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2108,
+  "pred_patch_correct_frac": 0.2452561669829222,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-BH-A18P-01Z-00-DX1.C66642D3-BE44-4D65-B4AE-C1C3D959D22C",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4261,
+  "pred_patch_correct_frac": 0.9969490729875616,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-GM-A3NY-01Z-00-DX1.BEED8B8F-5A1B-4CE2-BB5D-A7ED40551AE4",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2271,
+  "pred_patch_correct_frac": 0.9445178335535006,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-B6-A0I9-01Z-00-DX1.78E1D43A-507E-482E-B988-AF13B12B4497",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 6644,
+  "pred_patch_correct_frac": 0.9622215532811559,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-E2-A9RU-01Z-00-DX1.A06BE284-B9DC-4B45-A202-A9D027AEEDD9",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4407,
+  "pred_patch_correct_frac": 0.9836623553437712,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A8-A07P-01Z-00-DX1.2C7C75EF-EEE2-4A42-994C-A1A40850C87A",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 423,
+  "pred_patch_correct_frac": 1.0,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A8-A07O-01Z-00-DX1.3D657129-F2A7-4BC1-A910-805FBDCE2212",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 615,
+  "pred_patch_correct_frac": 0.9284552845528455,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A04P-01Z-00-DX1.5B481E02-D269-4732-8FDD-6494E6EE2B71",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3183,
+  "pred_patch_correct_frac": 0.9509896324222432,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-B6-A0IG-01Z-00-DX1.4238CB6E-0561-49FD-9C49-9B8AEAFC4618",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 5655,
+  "pred_patch_correct_frac": 0.9876215738284704,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-LD-A66U-01Z-00-DX1.AEC25C62-0519-47ED-A85B-2A964BA2BA87",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2932,
+  "pred_patch_correct_frac": 0.9655525238744884,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A254-01Z-00-DX1.EA5CD008-1106-41EC-998A-04EF08EEEC9D",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2831,
+  "pred_patch_correct_frac": 0.9039208760155422,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A1EV-01Z-00-DX1.106CF220-1D7D-40DD-88B2-A7F00B758F8F",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4370,
+  "pred_patch_correct_frac": 0.9553775743707094,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AQ-A0Y5-01Z-00-DX1.f68f5b49-30fa-4fb6-bec6-5da9f6809d02",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2841,
+  "pred_patch_correct_frac": 0.9961281239000352,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A0U0-01Z-00-DX1.C8BECD9F-68D9-47B1-B31E-C1C6CAE456B6",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1309,
+  "pred_patch_correct_frac": 0.6386554621848739,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-B6-A1KI-01Z-00-DX1.EFAA08A8-02EC-4A9B-AC6B-79BF2DC5A2AA",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2612,
+  "pred_patch_correct_frac": 0.9617151607963247,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-EW-A1PC-01Z-00-DX1.45369705-AD49-419F-A0F0-EC51473BBAB9",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 5980,
+  "pred_patch_correct_frac": 0.941304347826087,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A5J0-01Z-00-DX1.73CFBC85-8449-48FF-86F8-D4D49A90498B",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4048,
+  "pred_patch_correct_frac": 0.9750494071146245,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A0SY-01Z-00-DX1.279A5479-E183-4F79-AF40-50BF1834BA4A",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 6102,
+  "pred_patch_correct_frac": 0.9908226810881678,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-LL-A440-01Z-00-DX1.6E031FD6-236C-49FA-B920-4CB120C59037",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1193,
+  "pred_patch_correct_frac": 0.9430008382229673,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A5QN-01Z-00-DX1.BF92AA24-3D44-4FFA-BCC0-CDB934EC3BBC",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2754,
+  "pred_patch_correct_frac": 0.985838779956427,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A0T3-01Z-00-DX1.5E96BC87-F4FB-4ABA-8D81-FAB7F4A80661",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2788,
+  "pred_patch_correct_frac": 0.9953371592539455,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A1AJ-01Z-00-DX1.34B9FCF0-74D8-4328-9B5A-698AD57EDA85",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1550,
+  "pred_patch_correct_frac": 0.7574193548387097,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A0BG-01Z-00-DX1.0838FB7F-8C85-4687-9F70-D136A1063383",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1927,
+  "pred_patch_correct_frac": 0.9932537623248573,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A0AZ-01Z-00-DX1.E20051E8-DEEF-48E5-B519-40777DDBC96B",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3366,
+  "pred_patch_correct_frac": 0.9863339275103981,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A3Y0-01Z-00-DX1.A1EDDF82-FFAA-44A4-A749-7FB6F8133CC0",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3290,
+  "pred_patch_correct_frac": 0.8045592705167173,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A0SX-01Z-00-DX1.219A994C-8974-4458-98FA-FB1F14868E04",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3117,
+  "pred_patch_correct_frac": 0.9615014436958614,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A1FN-01Z-00-DX1.CEE3C59B-6CF0-4D41-8334-6067BB5A8BF7",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3274,
+  "pred_patch_correct_frac": 0.9664019547953574,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A0YH-01Z-00-DX1.FBA5E711-8275-45B3-BC20-5A786EE23548",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1710,
+  "pred_patch_correct_frac": 0.991812865497076,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-EW-A423-01Z-00-DX1.31502D62-9C83-4A9C-9682-05A185486EAA",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3651,
+  "pred_patch_correct_frac": 0.9408381265406738,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-EW-A423-01Z-00-DX2.5EF1CF39-600A-4ED3-A5A2-AF4435A5F8B5",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 5753,
+  "pred_patch_correct_frac": 0.9360333738918825,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A2LM-01Z-00-DX1.CB64A062-2E35-41F9-97C7-07BB60754799",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4134,
+  "pred_patch_correct_frac": 0.9973391388485728,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-E2-A15R-01Z-00-DX1.B58D2D9D-05EE-4D66-8DC0-9E5C6AD2E3D3",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3259,
+  "pred_patch_correct_frac": 0.9880331389996931,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A0B0-01Z-00-DX1.316D35DB-7F13-4AE5-82A7-5716D2519669",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3188,
+  "pred_patch_correct_frac": 0.9607904642409034,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-GM-A2DF-01Z-00-DX1.CD0BE6D7-2DB3-4193-84CC-F9BE7BF18CC2",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3348,
+  "pred_patch_correct_frac": 0.9764038231780168,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-EW-A1P8-01Z-00-DX1.E9852193-8CDD-49EF-B49B-DA6931198F0D",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 6274,
+  "pred_patch_correct_frac": 0.980235894166401,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A24R-01Z-00-DX1.47D79205-63E7-43E6-A513-2CD10DFA53C9",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3354,
+  "pred_patch_correct_frac": 0.9862850327966607,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-GM-A2DH-01Z-00-DX1.5790F15F-2A0F-4929-8FE4-18A557007989",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3214,
+  "pred_patch_correct_frac": 0.9642190416925949,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-EW-A1PA-01Z-00-DX1.03B033F8-62C0-49E1-BDEA-C5217AB3460A",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3918,
+  "pred_patch_correct_frac": 0.9900459418070444,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A0H5-01Z-00-DX1.28F24D4D-EE80-4EDA-BC30-A194E22FD61C",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4912,
+  "pred_patch_correct_frac": 0.989413680781759,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A24V-01Z-00-DX1.E749C2FE-E26B-4306-80B4-8269EEB23270",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2957,
+  "pred_patch_correct_frac": 0.9854582346973284,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A7-A0DB-01Z-00-DX1.9CE855BC-0C37-43FB-8806-6625E176BE2E",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1296,
+  "pred_patch_correct_frac": 0.9722222222222222,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A7-A0DB-01Z-00-DX2.6C6A5F9C-294F-4A86-A0F1-B68D4729B535",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 922,
+  "pred_patch_correct_frac": 0.9945770065075922,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AN-A0XN-01Z-00-DX1.A8EB9F62-236E-4C59-A206-DF0C7654AC30",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1519,
+  "pred_patch_correct_frac": 0.989466754443713,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-E9-A295-01Z-00-DX1.ED6CC024-56E7-45A9-B41F-F84550A899F7",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4530,
+  "pred_patch_correct_frac": 0.9620309050772627,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A42U-01Z-00-DX1.130D060A-3DD8-407E-B8B0-EBBF743491AE",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 5009,
+  "pred_patch_correct_frac": 0.9720503094430026,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-S3-AA17-01Z-00-DX1.9B7DC02E-ECB2-4403-A894-F418AD452E49",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2411,
+  "pred_patch_correct_frac": 0.9560348403152219,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A24N-01Z-00-DX1.563E9160-9E09-4E3F-8CE9-FFED0AA52927",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3937,
+  "pred_patch_correct_frac": 0.9900939801879604,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-E2-A154-01Z-00-DX1.01FC9B1A-8ECD-4467-9EDD-0B02E4AEEF72",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3449,
+  "pred_patch_correct_frac": 0.9820237750072485,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A8-A09R-01Z-00-DX1.392580F3-0CE5-4EDB-91CF-814AAD0DB649",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 839,
+  "pred_patch_correct_frac": 0.9821215733015495,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A0W3-01Z-00-DX1.38DCA2B7-1A54-4FFA-BABA-29F80974BB17",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 5295,
+  "pred_patch_correct_frac": 0.983947119924457,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-B6-A1KF-01Z-00-DX1.2E08E830-4216-4CD0-9646-1F489300E11D",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4018,
+  "pred_patch_correct_frac": 0.9402687904430065,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-C8-A26V-01Z-00-DX1.6E86DF74-D575-4969-8142-963D9DF5208F",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2331,
+  "pred_patch_correct_frac": 0.7413127413127413,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-EW-A1P1-01Z-00-DX1.4B670029-4B3B-4D76-8EA4-F4F29EEF9E37",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4314,
+  "pred_patch_correct_frac": 0.8783031988873435,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A8-A09Z-01Z-00-DX1.D56497BE-5099-4537-9600-60F3213F7BF5",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1655,
+  "pred_patch_correct_frac": 0.9897280966767371,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-E2-A10B-01Z-00-DX1.148CFC4B-EE65-4A7E-918F-10C72F37CB0F",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3288,
+  "pred_patch_correct_frac": 0.9811435523114356,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A2LK-01Z-00-DX1.FBD59C38-CD4E-4C22-BC74-A57C192A9BBC",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2446,
+  "pred_patch_correct_frac": 0.9582992641046607,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A8-A085-01Z-00-DX1.0DA29016-AEA4-4E5F-B679-83095A79F5B3",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 834,
+  "pred_patch_correct_frac": 1.0,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A0T4-01Z-00-DX1.AC61ED08-2E42-4D4A-BB81-746D3FEBB653",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1767,
+  "pred_patch_correct_frac": 0.9988681380871534,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-PE-A5DD-01Z-00-DX1.E1EF11EC-B87B-49DE-A544-2E162F9AE789",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1947,
+  "pred_patch_correct_frac": 0.9661016949152542,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A04R-01Z-00-DX1.BE3661A3-A2A0-4248-B7D5-D8986E529B6C",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2753,
+  "pred_patch_correct_frac": 0.9974573192880494,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-D8-A1XW-01Z-00-DX1.10187A1F-086B-4CD9-AC01-ADA2E435CD34",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3780,
+  "pred_patch_correct_frac": 0.532010582010582,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-D8-A1XW-01Z-00-DX2.9849E503-BE3E-417C-ABE8-93A39583DDE0",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4544,
+  "pred_patch_correct_frac": 0.5719630281690141,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A8-A08X-01Z-00-DX1.01FB49CC-6B8E-4317-8C42-6B6D81187A40",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 600,
+  "pred_patch_correct_frac": 0.935,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AN-A0FN-01Z-00-DX1.CAA3C2D0-7E74-48E5-ACB7-487434C7AAD2",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1957,
+  "pred_patch_correct_frac": 0.9882473173224323,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A0DT-01Z-00-DX1.73AFCEBB-06B1-4870-ADA2-881511B1BE2D",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1377,
+  "pred_patch_correct_frac": 0.9658678286129266,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A5QM-01Z-00-DX1.A9017CED-FF57-4090-95B9-94DC91854347",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3025,
+  "pred_patch_correct_frac": 0.9742148760330579,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-C8-A1HF-01Z-00-DX1.81EF9A57-54E1-4750-9816-5571FD18A297",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3711,
+  "pred_patch_correct_frac": 0.9493398005928321,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-LL-A73Z-01Z-00-DX1.C010142E-29C0-411D-9E0E-4B7D8A4C09BF",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1207,
+  "pred_patch_correct_frac": 0.9337199668599834,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-GM-A2DB-01Z-00-DX1.9EE36AA6-2594-44C7-B05C-91A0AEC7E511",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2897,
+  "pred_patch_correct_frac": 0.7777010700724888,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-LL-A7SZ-01Z-00-DX1.4DAF6421-6A1D-41C8-BFD6-859FE10CB8CC",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4282,
+  "pred_patch_correct_frac": 0.9042503503035965,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AR-A0TT-01Z-00-DX1.127C2A4F-62AC-4E83-99DB-13519BD2949D",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2573,
+  "pred_patch_correct_frac": 0.9172172561212593,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-B6-A0X1-01Z-00-DX1.2A41630E-A8BF-4966-99F5-D5D8036B1759",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 9945,
+  "pred_patch_correct_frac": 0.9219708396178985,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-BH-A0HF-01Z-00-DX1.1EB2F7CE-54F4-4E41-A3CF-78209770B7CE",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1432,
+  "pred_patch_correct_frac": 0.986731843575419,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A3XV-01Z-00-DX1.4B58B7CD-B3F6-4C31-863F-924D291EF17C",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2744,
+  "pred_patch_correct_frac": 0.9799562682215743,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A04V-01Z-00-DX1.EB430DDB-8FE9-4302-8829-53DBAD09E79F",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 5460,
+  "pred_patch_correct_frac": 0.9926739926739927,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-GM-A2DC-01Z-00-DX1.39F956BB-52D0-4385-9923-4D7D36D78862",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2639,
+  "pred_patch_correct_frac": 0.989010989010989,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-E2-A10A-01Z-00-DX1.98B19EF1-0DAE-4DC6-8B0E-963CFABC6724",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3477,
+  "pred_patch_correct_frac": 0.993960310612597,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-B6-A0I1-01Z-00-DX1.86BEC5E4-A2D1-4039-8D08-0598FA8BCC2B",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 4261,
+  "pred_patch_correct_frac": 0.8957991081905656,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A0EN-01Z-00-DX1.F43A5D17-9267-4963-993A-93AC91BDC031",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2587,
+  "pred_patch_correct_frac": 0.9698492462311558,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A2-A0YK-01Z-00-DX1.FB23FC30-B3B2-452A-A6B0-94129B333207",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2980,
+  "pred_patch_correct_frac": 0.9983221476510067,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-AN-A0XS-01Z-00-DX1.B4D4B73E-2912-4B2E-B18A-FBC35F8160D3",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 893,
+  "pred_patch_correct_frac": 0.9742441209406495,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-A8-A09D-01Z-00-DX1.66312A8A-88BA-4B58-96DF-1A7AC39F9E4A",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 846,
+  "pred_patch_correct_frac": 0.9846335697399528,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-5L-AAT1-01Z-00-DX1.F3449A5B-2AC4-4ED7-BF44-4C8946CDB47D",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 1131,
+  "pred_patch_correct_frac": 0.8399646330680813,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-B6-A1KC-01Z-00-DX1.4DD3E48B-F434-499F-9FF1-0FFD2883A375",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 3208,
+  "pred_patch_correct_frac": 0.9675810473815462,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-B6-A0IK-01Z-00-DX1.1640DB44-4AC0-4A34-9E21-4673C4289A99",
+  "task": "tcga_brca",
+  "true": 2,
+  "n_patch": 2079,
+  "pred_patch_correct_frac": 0.9437229437229437,
+  "pred_patch_majority": 2
+ },
+ {
+  "slide_id": "TCGA-51-6867-01Z-00-DX1.5f3a0562-efbe-413f-8e13-9826aaefa298",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1263,
+  "pred_patch_correct_frac": 0.9746634996041171,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-66-2789-01Z-00-DX1.93719e52-7dd4-4bbb-b908-c91db1d99b76",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1201,
+  "pred_patch_correct_frac": 0.9708576186511241,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-85-8277-01Z-00-DX1.ffad077e-e969-40ba-8504-2f2103911758",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 6695,
+  "pred_patch_correct_frac": 0.9188946975354743,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-98-A53B-01Z-00-DX1.5429DF3F-9F1C-4DEE-8A7A-CCB3E2BBDC8A",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 865,
+  "pred_patch_correct_frac": 0.9595375722543352,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-85-7844-01Z-00-DX1.9035209b-75ae-4c9b-8edf-5851af490f29",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2819,
+  "pred_patch_correct_frac": 0.961688542036183,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-56-8625-01Z-00-DX1.11AADFB3-33FF-4EAA-B423-CD0F07163747",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 849,
+  "pred_patch_correct_frac": 0.9893992932862191,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-85-A4JB-01Z-00-DX1.3CEC3662-68C1-4874-8273-540459B8F138",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4684,
+  "pred_patch_correct_frac": 0.5140905209222887,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-52-7622-01Z-00-DX1.cb3bb056-27dd-4c15-9004-b06cc8923663",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 5578,
+  "pred_patch_correct_frac": 0.9411975618501255,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-33-A5GW-01Z-00-DX2.8E12990B-CA60-4C94-9309-9A0DA6C63588",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4372,
+  "pred_patch_correct_frac": 0.9409881061299177,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-33-A5GW-01Z-00-DX3.7A1C5169-96C6-4ECB-81E1-1050EFE84B60",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 5440,
+  "pred_patch_correct_frac": 0.9613970588235294,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-33-A5GW-01Z-00-DX1.6F0833B7-EDAB-4DF4-83D9-393D8ADBFCF3",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 5122,
+  "pred_patch_correct_frac": 0.9841858648965248,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-43-6773-01Z-00-DX1.a05f9597-51b5-4a5a-9936-c61535b115bb",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2911,
+  "pred_patch_correct_frac": 0.986946066643765,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-56-8503-01Z-00-DX1.87FEB654-FC88-4CDA-8F52-ACF0D9A19191",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1196,
+  "pred_patch_correct_frac": 0.9874581939799331,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-56-A4BX-01Z-00-DX1.60E64193-473C-4220-9E38-0F5D952BD157",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 663,
+  "pred_patch_correct_frac": 0.9849170437405732,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-98-8020-01Z-00-DX1.fcf8e956-c413-40ae-9f09-610403e70fb3",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1392,
+  "pred_patch_correct_frac": 0.9877873563218391,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-22-5481-01Z-00-DX1.6BB77BD0-92FF-43FF-A86C-9EF41B2921DA",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2985,
+  "pred_patch_correct_frac": 0.6613065326633166,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-18-3421-01Z-00-DX1.3777597A-8B36-48A9-B950-C8233392A6D5",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3178,
+  "pred_patch_correct_frac": 0.9625550660792952,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-22-5492-01Z-00-DX1.A17DE349-CD76-4B12-9C5C-DB8DFB23C003",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2822,
+  "pred_patch_correct_frac": 0.8720765414599575,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-37-4129-01Z-00-DX1.0b52aa1e-20d4-4084-8fa1-2f1b7f09dd5b",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2577,
+  "pred_patch_correct_frac": 0.4058983313930927,
+  "pred_patch_majority": 1
+ },
+ {
+  "slide_id": "TCGA-22-4613-01Z-00-DX1.4BC3B7B8-99E7-4744-8F5A-089ECCDE144E",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2148,
+  "pred_patch_correct_frac": 0.9208566108007449,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-66-2768-01Z-00-DX1.02fadcc4-9d05-4b37-9114-d8e80c09ef1a",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 743,
+  "pred_patch_correct_frac": 0.9057873485868102,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-77-6842-01Z-00-DX1.934f1e6a-9c30-40ad-a764-7d0b6fdb92e9",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 5593,
+  "pred_patch_correct_frac": 0.9864115859109601,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-85-7698-01Z-00-DX1.bc8a89a7-356e-4913-9632-627774730f48",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3200,
+  "pred_patch_correct_frac": 0.828125,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-66-2778-01Z-00-DX1.5806ab4d-fdde-45b6-a131-fd5f71bcde0b",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 878,
+  "pred_patch_correct_frac": 0.9703872437357631,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-37-3789-01Z-00-DX1.d7a4923e-988e-45e9-a64e-30c983740614",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1899,
+  "pred_patch_correct_frac": 0.9826224328593997,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-1592-01Z-00-DX1.ee15e261-2f9c-4a93-a19f-27cb1c3bae15",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1700,
+  "pred_patch_correct_frac": 0.9088235294117647,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-38-A44F-01Z-00-DX1.B9958072-D8BB-40DD-B28E-2E83CE2B550B",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3224,
+  "pred_patch_correct_frac": 0.9761166253101737,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-18-3409-01Z-00-DX1.3E32CC78-B066-4F85-A781-EDAF39DE0704",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4603,
+  "pred_patch_correct_frac": 0.9207038887681946,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-43-A475-01Z-00-DX1.48694B33-6070-4D6E-9CE4-BDEF072500A1",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 848,
+  "pred_patch_correct_frac": 0.6757075471698113,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-34-5929-01Z-00-DX1.a461aed7-0ba9-44dc-8f5b-941cb57aa855",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3231,
+  "pred_patch_correct_frac": 0.9721448467966574,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-85-A53L-01Z-00-DX1.4B1C0D74-CF56-4B52-9EA0-9DC72EA07B1C",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 6963,
+  "pred_patch_correct_frac": 0.9527502513284504,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-NK-A5CX-01Z-00-DX1.CA1C230C-7A29-491B-A124-7D3B600DAFB7",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 5626,
+  "pred_patch_correct_frac": 0.6727692854603626,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-NC-A5HF-01Z-00-DX1.6371242D-227A-4531-8BB3-FD1AABF770C9",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2762,
+  "pred_patch_correct_frac": 0.9366401158580738,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-NC-A5HL-01Z-00-DX1.E40E17C1-42BA-4C02-AA01-0E2891B3174A",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2373,
+  "pred_patch_correct_frac": 0.842393594605984,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-77-8143-01Z-00-DX1.e844a7e1-ebba-4acb-8fe2-08aee2102848",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 8126,
+  "pred_patch_correct_frac": 0.922101895151366,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-33-6738-01Z-00-DX5.4af96952-d323-4d2e-9871-e590b7c5f59d",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4020,
+  "pred_patch_correct_frac": 0.991044776119403,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-33-6738-01Z-00-DX6.631ec263-2df0-4d13-982b-14db382a2532",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3339,
+  "pred_patch_correct_frac": 0.9919137466307277,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-33-6738-01Z-00-DX2.3a2fa17d-0297-4b0c-8a5f-aa18c5342ef4",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3866,
+  "pred_patch_correct_frac": 0.9650801862390067,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-33-6738-01Z-00-DX3.26deb8f3-f138-45e4-9765-f713030746e8",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3777,
+  "pred_patch_correct_frac": 0.9793486894360603,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-33-6738-01Z-00-DX1.d688fae9-4daf-4b6e-b907-fb55e3983d62",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3341,
+  "pred_patch_correct_frac": 0.980544747081712,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-33-6738-01Z-00-DX4.8a8b2411-f425-4181-82cc-0c8535055028",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3994,
+  "pred_patch_correct_frac": 0.9584376564847271,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-66-2788-01Z-00-DX1.1a57324a-5b00-44ed-912d-9522d0141500",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 825,
+  "pred_patch_correct_frac": 0.9963636363636363,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-22-4599-01Z-00-DX1.2178D5C0-A444-44F5-B878-F5D1FB2943C9",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3276,
+  "pred_patch_correct_frac": 0.6642246642246642,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-A48Y-01Z-00-DX1.D8735347-E060-439F-B5A1-1E47A958A392",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 499,
+  "pred_patch_correct_frac": 0.9939879759519038,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-86-8054-01Z-00-DX1.2c4c08f6-be1c-46d1-a719-5983cade0c54",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2032,
+  "pred_patch_correct_frac": 0.9655511811023622,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-MN-A4N5-01Z-00-DX1.D0FBA0D2-6245-4EFD-AF2B-849215600DBE",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3601,
+  "pred_patch_correct_frac": 0.9913912801999445,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-MP-A4T4-01Z-00-DX1.5F72FF0B-59C0-4E95-A8C1-BF22A948F7AC",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1672,
+  "pred_patch_correct_frac": 0.9694976076555024,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-78-7158-01Z-00-DX1.74db3dcd-2715-4ce7-8e48-30c8b7946ba0",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4947,
+  "pred_patch_correct_frac": 0.9670507378209016,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-49-AARO-01Z-00-DX1.FB8C82DC-F823-43CF-A8EA-1208C767AF54",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3145,
+  "pred_patch_correct_frac": 0.9717011128775834,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-NJ-A4YQ-01Z-00-DX1.56C29975-77E9-4822-A9E1-83AD70D6C5F7",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 6450,
+  "pred_patch_correct_frac": 0.9534883720930233,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-44-7662-01Z-00-DX1.2f0b6cea-795a-40ad-93a9-319858e6fb3b",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 311,
+  "pred_patch_correct_frac": 0.9871382636655949,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-78-7160-01Z-00-DX1.f40f6c04-74b1-4cef-aabc-cbafadbdf39f",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3904,
+  "pred_patch_correct_frac": 0.9684938524590164,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-J2-A4AG-01Z-00-DX1.487780B8-18E7-494A-8054-5637239870EB",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4474,
+  "pred_patch_correct_frac": 0.9555207867679929,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-J2-A4AE-01Z-00-DX1.42C5DE4A-7787-4E59-8969-D12503262C96",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3089,
+  "pred_patch_correct_frac": 0.9569439948203302,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-97-7937-01Z-00-DX1.6db4b2ff-722c-4bb8-b12f-15f1a38b4ab1",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4485,
+  "pred_patch_correct_frac": 0.9761426978818283,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-90-7964-01Z-00-DX1.25D2CC5D-2383-41FE-B5D5-0ACFC0F8209B",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1536,
+  "pred_patch_correct_frac": 0.8092447916666666,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-85-A513-01Z-00-DX1.9C4C6BA2-BBEB-4EC6-9A70-65B1F6198E1F",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1712,
+  "pred_patch_correct_frac": 0.9223130841121495,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-98-A53C-01Z-00-DX1.1E06B7B5-32C3-436C-AD66-27E5829ADA85",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1754,
+  "pred_patch_correct_frac": 0.9378563283922463,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-LA-A7SW-01Z-00-DX1.A65863F5-EA8F-46F5-A4D1-52FAD3D93E26",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3494,
+  "pred_patch_correct_frac": 0.67830566685747,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-85-7699-01Z-00-DX1.418bb5e3-9721-41b0-82f6-21ce3cc29de2",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3014,
+  "pred_patch_correct_frac": 0.9190444591904446,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-O2-A52W-01Z-00-DX1.3D388EB0-8402-4540-9E50-7C3757FA5D83",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4167,
+  "pred_patch_correct_frac": 0.865370770338373,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-56-8626-01Z-00-DX1.C9836EAF-F005-40E9-B781-1D5586141F0D",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1097,
+  "pred_patch_correct_frac": 0.9963536918869644,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-18-3406-01Z-00-DX1.8D07F006-425C-4724-BBB3-5BA099401234",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 6478,
+  "pred_patch_correct_frac": 0.8090460018524236,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-7724-01Z-00-DX1.31a194ac-62e3-4225-8e32-8c2a83dcdd10",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 408,
+  "pred_patch_correct_frac": 0.9828431372549019,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-38-4625-01Z-00-DX1.ffdbfc1d-7a21-4e67-a54f-89597bd14a7f",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1843,
+  "pred_patch_correct_frac": 0.9495387954422138,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-97-7552-01Z-00-DX1.a5ab8959-ff7a-4287-b014-87439957fb67",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2798,
+  "pred_patch_correct_frac": 0.9846318799142244,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-35-4122-01Z-00-DX1.2ac022e4-e796-49e5-9a24-f0ff3f76a527",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2205,
+  "pred_patch_correct_frac": 0.9981859410430839,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-67-3772-01Z-00-DX1.CB05C5CC-2801-4BB9-94A0-83E9005BCA2E",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2249,
+  "pred_patch_correct_frac": 0.9390840373499333,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-05-4424-01Z-00-DX1.4892016C-1A96-4A72-ACB8-FFD282FC4E69",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 807,
+  "pred_patch_correct_frac": 0.9355638166047088,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-95-7039-01Z-00-DX1.C191A46D-A667-4BF6-8E6B-3E5CBF9DF43F",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3653,
+  "pred_patch_correct_frac": 0.9720777443197371,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-7907-01Z-00-DX1.f5a264f5-3926-4d09-82f3-cd38d554f3db",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1528,
+  "pred_patch_correct_frac": 0.956151832460733,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-38-4628-01Z-00-DX1.eee4f100-142f-4d9c-8e38-b16aab123413",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1159,
+  "pred_patch_correct_frac": 0.8472821397756687,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-05-4403-01Z-00-DX1.fee8e988-956c-42a2-a6c5-06b6d6736295",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1344,
+  "pred_patch_correct_frac": 0.9940476190476191,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-44-6147-01Z-00-DX1.a34a9f49-e86b-43ee-9e2d-7ef35da0aecf",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1151,
+  "pred_patch_correct_frac": 0.9739357080799305,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-1596-01Z-00-DX1.de65522d-92ab-408e-9b7e-24210d386b97",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3196,
+  "pred_patch_correct_frac": 0.9834167709637046,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-8511-01Z-00-DX1.8EDFB05B-5B59-46EA-973C-1048B1E284D2",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 669,
+  "pred_patch_correct_frac": 0.9895366218236173,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-44-6146-01Z-00-DX1.8db8c567-690e-4df3-98a9-f241b6a8d811",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1124,
+  "pred_patch_correct_frac": 0.9697508896797153,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-44-3917-01Z-00-DX1.cf5b5b49-de5e-4f2e-90b4-b138f55560a9",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 706,
+  "pred_patch_correct_frac": 0.9844192634560907,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-86-7955-01Z-00-DX1.ef4f4d94-5efb-4a07-97cf-b0ed69085827",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 5682,
+  "pred_patch_correct_frac": 0.8166138683562126,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-95-7567-01Z-00-DX1.982FF122-A440-4949-926C-B58AF8381090",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3828,
+  "pred_patch_correct_frac": 0.9657784743991641,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-73-4666-01Z-00-DX1.dd9c8922-ddd1-4674-8124-9e334532e47e",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4439,
+  "pred_patch_correct_frac": 0.9909889614778103,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-78-7537-01Z-00-DX1.e5597e41-ebba-4d6f-8a1f-15cd81d8f026",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 5886,
+  "pred_patch_correct_frac": 0.855929323819232,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-MN-A4N1-01Z-00-DX2.9B0852C4-16BF-4962-B86F-E2570E48A89E",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 5190,
+  "pred_patch_correct_frac": 0.9520231213872833,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-MN-A4N1-01Z-00-DX1.07CD10C3-73A7-47E5-AD45-45458CE33107",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 7140,
+  "pred_patch_correct_frac": 0.9686274509803922,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-8614-01Z-00-DX1.043DE2B5-A453-4570-8830-99170450658C",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1309,
+  "pred_patch_correct_frac": 0.988540870893812,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-62-A46S-01Z-00-DX1.7A8A6F38-76EA-4F43-BC03-1C42E6787E33",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 4215,
+  "pred_patch_correct_frac": 0.6481613285883748,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-78-7147-01Z-00-DX1.a9fd2c5d-b8f3-4524-bd64-6c3362ce373b",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 7130,
+  "pred_patch_correct_frac": 0.973492286115007,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-78-7148-01Z-00-DX1.aac94f79-77f2-45e6-b0c3-0b103fecbb22",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 5706,
+  "pred_patch_correct_frac": 0.9612688398177357,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-64-1676-01Z-00-DX1.3B8F1FAC-0FB2-45DE-AFA1-6ED451A4A61B",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1043,
+  "pred_patch_correct_frac": 0.4937679769894535,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-6982-01Z-00-DX1.055aeec1-2fc1-4796-b5df-c159335e0300",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 644,
+  "pred_patch_correct_frac": 0.9767080745341615,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-05-4398-01Z-00-DX1.269bc75f-492e-48b1-87ee-85924aa80e74",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2170,
+  "pred_patch_correct_frac": 0.9663594470046083,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-6642-01Z-00-DX1.0487cfc6-8216-4da3-aae1-a35452e9e4f6",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 722,
+  "pred_patch_correct_frac": 0.9515235457063712,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-05-4249-01Z-00-DX1.9fce0297-cc19-4c04-872c-4466ee4024db",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 1222,
+  "pred_patch_correct_frac": 0.9746317512274959,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-55-6970-01Z-00-DX1.be042a9b-3eab-4b6c-9cd7-7486ffab037f",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 2795,
+  "pred_patch_correct_frac": 0.962432915921288,
+  "pred_patch_majority": 3
+ },
+ {
+  "slide_id": "TCGA-73-4659-01Z-00-DX1.578400cd-d284-451b-8fdf-9f82c1458276",
+  "task": "tcga_lung",
+  "true": 3,
+  "n_patch": 3730,
+  "pred_patch_correct_frac": 0.9753351206434316,
+  "pred_patch_majority": 3
+ }
+]

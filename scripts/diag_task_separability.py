@@ -32,6 +32,10 @@ from selector.text_encoder import load_config                            # noqa:
 
 OUT_DIR = REPO_ROOT / "outputs" / "exp1" / "diag"
 SEED = 0
+#: 附錄 A：patch 層 probe 的 train 端每張 slide 取樣數。
+#: train 全集是 2273 × ~3400 ≈ 7.7M 個 patch（float32 約 15.8 GB），機器只有 16 GB，
+#: 放不下也不必放；train 端固定子取樣，**test 端跑全部 patch**（串流，不materialize）。
+PATCH_PER_TRAIN_SLIDE = 64
 
 
 def build_features(cfg, tissue, split: str):
@@ -49,6 +53,42 @@ def build_features(cfg, tissue, split: str):
         print(f"  {split:5s} {task:10s} {len(ds):4d} slides", flush=True)
     return (torch.stack(X_mean).numpy(), torch.stack(X_group).numpy(),
             np.array(y), sids)
+
+
+def build_patch_train(cfg, n_per_slide: int = PATCH_PER_TRAIN_SLIDE):
+    """[N, 512] 單一 patch 特徵 + task id。train 端每張 slide 固定取樣 n_per_slide 個。"""
+    rs = np.random.RandomState(SEED)
+    X, y = [], []
+    for pos, task in enumerate(cfg["tasks"]):
+        ds, shift = slide_dataset(cfg, task, pos, "train")
+        for i in range(len(ds)):
+            Z = read_slide(ds, shift, i).Z
+            n = int(Z.shape[0])
+            k = min(n_per_slide, n)
+            idx = rs.choice(n, size=k, replace=False)
+            X.append(Z[torch.as_tensor(idx, dtype=torch.long)].numpy())
+            y.append(np.full(k, pos))
+        print(f"  patch-train {task:10s} {len(ds):4d} slides", flush=True)
+    return np.concatenate(X), np.concatenate(y)
+
+
+def eval_patch_probe(clf, cfg):
+    """test 端逐 slide 串流預測**全部** patch，累積 confusion matrix。"""
+    cm = np.zeros((4, 4), dtype=np.int64)
+    per_slide = []
+    for pos, task in enumerate(cfg["tasks"]):
+        ds, shift = slide_dataset(cfg, task, pos, "test")
+        for i in range(len(ds)):
+            rec = read_slide(ds, shift, i)
+            pred = clf.predict(rec.Z.numpy())
+            for c in range(4):
+                cm[pos, c] += int((pred == c).sum())
+            per_slide.append({"slide_id": rec.sid, "task": task, "true": pos,
+                              "n_patch": int(rec.Z.shape[0]),
+                              "pred_patch_correct_frac": float((pred == pos).mean()),
+                              "pred_patch_majority": int(np.bincount(pred, minlength=4).argmax())})
+        print(f"  patch-test  {task:10s} {len(ds):4d} slides", flush=True)
+    return cm, per_slide
 
 
 def fit_probe(Xtr, ytr, Xte, yte):
@@ -114,6 +154,32 @@ def main() -> int:
          "pred_group_proto": int(res["group_prototypes_4096"]["pred_test"][i])}
         for i, (s, t) in enumerate(zip(sid_te, y_te))], indent=1))
 
+    # ── 附錄 A：patch 層 probe ─────────────────────────────────────────────
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    print("patch-level probe…", flush=True)
+    Xp, yp = build_patch_train(cfg)
+    print(f"  train patches: {Xp.shape}", flush=True)
+    patch_clf = make_pipeline(StandardScaler(),
+                              LogisticRegression(max_iter=1000, random_state=SEED))
+    patch_clf.fit(Xp, yp)
+    patch_train_acc = float(patch_clf.score(Xp, yp))
+    cm_patch, per_slide_patch = eval_patch_probe(patch_clf, cfg)
+    patch_test_acc = float(np.trace(cm_patch) / cm_patch.sum())
+    slide_vote_acc = float(np.mean([r["pred_patch_majority"] == r["true"]
+                                    for r in per_slide_patch]))
+    print(f"  patch_level_512          train={patch_train_acc:.4f}  "
+          f"test={patch_test_acc:.4f}  (slide 多數決 {slide_vote_acc:.4f})")
+    res["patch_level_512"] = {"train_acc": patch_train_acc, "test_acc": patch_test_acc,
+                              "confusion": cm_patch.tolist(),
+                              "slide_majority_vote_acc": slide_vote_acc,
+                              "n_train_patches": int(Xp.shape[0]),
+                              "n_test_patches": int(cm_patch.sum())}
+    (OUT_DIR / "per_slide_patch_probe.json").write_text(
+        json.dumps(per_slide_patch, indent=1))
+
     short = [t.replace("tcga_", "") for t in tasks]
     n_tr = [int((y_tr == i).sum()) for i in range(4)]
     n_te = [int((y_te == i).sum()) for i in range(4)]
@@ -145,6 +211,9 @@ def main() -> int:
         f"| 8 個 tissue group prototype 串接 | {NUM_GROUPS * 512} | "
         f"{res['group_prototypes_4096']['train_acc']:.4f} | "
         f"{res['group_prototypes_4096']['test_acc']:.4f} |",
+        f"| **單一 patch feature（附錄 A）** | 512 | "
+        f"{res['patch_level_512']['train_acc']:.4f} | "
+        f"**{res['patch_level_512']['test_acc']:.4f}** |",
         "",
         "group prototype 的順序為 " + "、".join(TISSUE_GROUP_NAMES) + "；空 group 補零向量。",
         "",
@@ -156,7 +225,31 @@ def main() -> int:
     L += md_confusion(res["mean_patch_512"]["confusion"], short)
     L += ["", "### B. group prototype 串接（4096-d）", ""]
     L += md_confusion(res["group_prototypes_4096"]["confusion"], short)
-    L += ["", "逐 slide 預測：`outputs/exp1/diag/per_slide_task_probe.json`", ""]
+
+    pl = res["patch_level_512"]
+    L += ["", "## 附錄 A — 單一 patch 的 task 可分離性", "",
+          "S1 的主 probe 用全片平均，但 F_p 的輸入是**單一 512-d patch**。這一節把"
+          "輸入換成單一 patch feature，label 是該 slide 的 task id，split 沿用同一組。",
+          "",
+          f"- **train 端子取樣**：全集是 2273 張 × 平均約 3400 個 patch ≈ 7.7M 個，"
+          f"float32 約 15.8 GB，這台機器放不下。改為每張 train slide 固定隨機取 "
+          f"{PATCH_PER_TRAIN_SLIDE} 個（`np.random.RandomState({SEED})`），"
+          f"共 {pl['n_train_patches']:,} 個 patch。",
+          f"- **test 端不取樣**：279 張 test slide 的**全部** {pl['n_test_patches']:,} "
+          f"個 patch 都評估（逐 slide 串流預測，不一次載入）。",
+          f"- max_iter=1000（patch 數量大，比主 probe 的 5000 低）。",
+          "",
+          "| 指標 | 值 |", "|---|---|",
+          f"| patch 層 train accuracy | {pl['train_acc']:.4f} |",
+          f"| **patch 層 test accuracy** | **{pl['test_acc']:.4f}** |",
+          f"| 同一個 patch probe 做 slide 多數決 | {pl['slide_majority_vote_acc']:.4f} |",
+          f"| 多數類基準（patch 層） | "
+          f"{max(sum(r) for r in pl['confusion']) / pl['n_test_patches']:.4f} |",
+          "", "### Confusion matrix（test split，patch 層，單位：patch 數）", ""]
+    L += md_confusion(pl["confusion"], short)
+    L += ["", "逐 slide 預測：`outputs/exp1/diag/per_slide_task_probe.json`"
+          "（slide 層）、`outputs/exp1/diag/per_slide_patch_probe.json`"
+          "（patch 層，含每張 slide 的 patch 正確率與多數決）", ""]
     (OUT_DIR / "TASK_SEPARABILITY.md").write_text("\n".join(L) + "\n")
     print(f"\n→ {OUT_DIR / 'TASK_SEPARABILITY.md'}")
     return 0
