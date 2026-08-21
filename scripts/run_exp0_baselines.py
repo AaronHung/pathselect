@@ -34,6 +34,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from selector.baselines import grid_indices, random_indices          # noqa: E402
+from selector.classifier import softmax_weights                      # noqa: E402
 from selector.evaluate import (iter_test_slides, score_based_indices,  # noqa: E402
                                select_and_classify)
 from selector.flat_selector import SelectorBank, similarity_score    # noqa: E402
@@ -43,7 +44,8 @@ BANK_PATH = REPO_ROOT / "reference" / "v9" / "skill_bank_reverse_f1.pt"
 OUT_DIR = REPO_ROOT / "outputs" / "exp0"
 JSON_PATH = OUT_DIR / "baselines_reverse_f1.json"
 MD_PATH = OUT_DIR / "BASELINES.md"
-KS = (8, 16, 32, 64)
+EFFK_PATH = OUT_DIR / "EFFECTIVE_K.md"
+KS = (1, 2, 4, 8, 16, 32, 64)
 RANDOM_SEEDS = (0, 1, 2, 3, 4)
 SCORED = {"similarity": "softmax", "learned-flat": "softmax"}
 UNSCORED = {"random": "uniform", "grid": "uniform"}
@@ -59,6 +61,7 @@ def eval_task_k(selector, f_txt, logit_scale, cfg, task, task_pos, k, max_eval):
     """單一 (task, K)：一次掃過 slide，四條線同時算。"""
     hits = {"grid": 0, "similarity": 0, "learned-flat": 0}
     hits.update({("random", s): 0 for s in RANDOM_SEEDS})
+    eff_k = {"similarity": [], "learned-flat": []}     # participation ratio 逐 slide
     n_slides = 0
 
     for rec in iter_test_slides(cfg, task, task_pos, limit=max_eval):
@@ -80,6 +83,8 @@ def eval_task_k(selector, f_txt, logit_scale, cfg, task, task_pos, k, max_eval):
             pred, _ = select_and_classify(Z, idx, f_txt, logit_scale,
                                           scores=scores, weighting="softmax")
             hits[name] += int(pred == rec.label)
+            w = softmax_weights(scores, idx)                       # sum w = 1
+            eff_k[name].append(float(1.0 / (w.pow(2).sum())))      # 1 / sum(w_i^2)
 
     rows = []
     for seed in RANDOM_SEEDS:
@@ -87,8 +92,13 @@ def eval_task_k(selector, f_txt, logit_scale, cfg, task, task_pos, k, max_eval):
                          seed=seed, acc=hits[("random", seed)] / n_slides,
                          n_slides=n_slides))
     for name in ("grid", "similarity", "learned-flat"):
-        rows.append(dict(task=task_pos, task_name=task, K=k, policy=name,
-                         seed=None, acc=hits[name] / n_slides, n_slides=n_slides))
+        row = dict(task=task_pos, task_name=task, K=k, policy=name,
+                   seed=None, acc=hits[name] / n_slides, n_slides=n_slides)
+        if name in eff_k:
+            v = torch.tensor(eff_k[name])
+            row["eff_K_mean"] = float(v.mean())
+            row["eff_K_std"] = float(v.std(unbiased=True)) if v.numel() > 1 else 0.0
+        rows.append(row)
     return rows
 
 
@@ -127,7 +137,10 @@ def main() -> int:
                   + "  ".join(f"{p}={summary[p]}" for p in POLICY_ORDER), flush=True)
 
     write_report(records, md_path, args)
-    print(f"\n→ {json_path}\n→ {md_path}")
+    effk_path = EFFK_PATH if not args.tag else EFFK_PATH.with_name(
+        f"{EFFK_PATH.stem}_{args.tag}.md")
+    write_effective_k(records, effk_path, args)
+    print(f"\n→ {json_path}\n→ {md_path}\n→ {effk_path}")
     return 0
 
 
@@ -218,6 +231,67 @@ def write_report(records, md_path, args) -> None:
                  + f" | {(vals['learned-flat'] - vals['random']) * 100:+.2f} |")
     L += ["", "逐筆結果：`outputs/exp0/baselines_reverse_f1.json`",
           "（欄位 task / task_name / K / policy / seed / acc / n_slides）", ""]
+    md_path.write_text("\n".join(L) + "\n")
+
+
+def write_effective_k(records, md_path, args) -> None:
+    """D2 —— softmax 權重的有效 patch 數 eff_K = 1 / sum(w_i^2)。"""
+    tasks = [t for t in load_config()["tasks"]
+             if any(r["task_name"] == t for r in records)]
+    ks = sorted({r["K"] for r in records})
+
+    def cell_eff(task, k, policy):
+        v = [r for r in records if r["task_name"] == task and r["K"] == k
+             and r["policy"] == policy and "eff_K_mean" in r]
+        if not v:
+            return "—"
+        return f"{v[0]['eff_K_mean']:.2f} ± {v[0]['eff_K_std']:.2f}"
+
+    L = [
+        "# Exp 0 診斷 D2 — softmax 權重的有效 patch 數",
+        "",
+        "假設：budget 軸失效是因為 softmax 權重高度集中 —— K 變大時多出來的 patch "
+        "拿到接近 0 的權重，等於沒被加進來。",
+        "",
+        "指標是權重的 participation ratio：",
+        "",
+        "```",
+        "eff_K = 1 / sum_i w_i^2        w = softmax(top-K 分數)，sum_i w_i = 1",
+        "```",
+        "",
+        "eff_K = K 代表權重完全平均（每個被選中的 patch 都真的參與）；",
+        "eff_K = 1 代表全部權重壓在單一 patch 上，其餘等於沒選。",
+        "逐 slide 計算後報 mean ± std（std 為跨 slide 的樣本標準差）。",
+        "",
+        "⚠️ random / grid 沒有分數、只能等權，其 eff_K 由構造等於 K，不列表。",
+        "設定與 Exp 0 完全相同，未調整任何溫度。",
+        "",
+        "## learned-flat",
+        "",
+        "| task | " + " | ".join(f"K={k}" for k in ks) + " |",
+        "|---" * (len(ks) + 1) + "|",
+    ]
+    for t in tasks:
+        L.append(f"| {t} | " + " | ".join(cell_eff(t, k, "learned-flat") for k in ks) + " |")
+    L += ["", "## similarity", "",
+          "| task | " + " | ".join(f"K={k}" for k in ks) + " |",
+          "|---" * (len(ks) + 1) + "|"]
+    for t in tasks:
+        L.append(f"| {t} | " + " | ".join(cell_eff(t, k, "similarity") for k in ks) + " |")
+
+    L += ["", "## eff_K / K（權重被稀釋掉多少）", "",
+          "| policy | " + " | ".join(f"K={k}" for k in ks) + " |",
+          "|---" * (len(ks) + 1) + "|"]
+    for policy in ("learned-flat", "similarity"):
+        cells = []
+        for k in ks:
+            vals = [r["eff_K_mean"] for r in records
+                    if r["K"] == k and r["policy"] == policy and "eff_K_mean" in r]
+            cells.append(f"{statistics.mean(vals) / k:.3f}" if vals else "—")
+        L.append(f"| {policy} | " + " | ".join(cells) + " |")
+
+    L += ["", "逐筆結果（含 eff_K_mean / eff_K_std）："
+          "`outputs/exp0/baselines_reverse_f1.json`", ""]
     md_path.write_text("\n".join(L) + "\n")
 
 

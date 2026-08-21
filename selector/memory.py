@@ -6,9 +6,8 @@ entry = (tau, slide_id, e_t, B_tilde_t, r_old[J], cand_idx[256],
 不存 patch feature：只留 slide_id + index，需要時從特徵檔重載。
 容量上限 |M| <= 512，寫成常數 MEMORY_CAPACITY。
 
-⚠️ 契約寫的是 `r_old[M]`；此處讀作「group 層分數向量」，長度 = group 數 J
-   （M 在同一份契約裡另外用來表示記憶體容量，兩者不是同一個符號）。
-   若 PI 的原意不同，改這裡的 shape 檢查即可，其餘程式不受影響。
+符號約定（PI 裁定）：**J = group 數（=8）**，**|M| = 記憶體容量（<=512）**。
+r_old 是 group 層分數向量，長度為 J。
 """
 from __future__ import annotations
 

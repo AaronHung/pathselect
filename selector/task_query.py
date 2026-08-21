@@ -1,5 +1,9 @@
 """q_tau — task query，512 維，**絕不接觸 label**。
 
+🔒 **此定義已凍結，變更需 PI 批准。**
+   特別是：不得改成可學習的 task embedding —— 那會退化成 one-hot 的連續版，
+   後續「證明 text semantics 不只是 task ID」的 ablation 就自動失效。
+
 定義：該 task 全部 candidate class prompt 的文字特徵取平均後 L2 normalize。
 
     q_tau = normalize( mean_c f_txt[c] )    for c in 該 task 的所有類別

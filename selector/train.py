@@ -149,7 +149,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     ap.add_argument("--tasks", default="", help="逗號分隔；空 = config 的全部 task")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--group-grad", choices=GROUP_GRAD_MODES, default=DEFAULT_GROUP_GRAD,
-                    help="F_g 的梯度路徑；凍結契約未規定，預設 none（等 PI 裁定）")
+                    help="F_g 的梯度路徑；主線 ste_allocation，none 僅供 ablation")
     return ap
 
 
@@ -178,8 +178,9 @@ def main(argv=None) -> int:
           f"  prior={args.prior}  beta_s={args.beta_s}  beta_u={args.beta_u}"
           f"  enabled_terms={ENABLED_TERMS}  group_grad={args.group_grad}")
     if args.group_grad == "none":
-        print("  ⚠️  group_grad=none：F_g 這輪不會從 L_diag 收到梯度（取整不可微）。"
-              "凍結契約未規定此事，等 PI 裁定後再用 --group-grad ste_allocation。")
+        print("  ⚠️  group_grad=none：F_g 不接收梯度（取整不可微），在整個 within-task "
+              "訓練中等於固定的隨機函數。**僅供 ablation 使用** —— 用這個模式跑 "
+              "+hierarchy 會得到由構造保證的 null，不是實驗結果。")
 
     from selector.evaluate import iter_test_slides   # 訓練資料載入沿用同一組工具
 

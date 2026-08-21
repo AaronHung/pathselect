@@ -31,16 +31,16 @@ DEFAULT_CHUNK = 8
 
 #: F_g 的梯度路徑。
 #:
-#: ⚠️ **凍結契約沒有規定這件事，預設關閉，等 PI 裁定。**
-#: r_j 經過 softmax → 乘 c → largest-remainder 取整才變成 b_j，取整是不可微的，
-#: 所以 L_diag 的梯度到不了 F_g。本輪的選項：
-#:   "none"            契約字面：F_g 這輪不從 L_diag 收梯度（若之後由 L_util /
-#:                     Selection Memory 的 r_old 監督 r_j，這就是正確行為）
-#:   "ste_allocation"  把 a_j = softmax(r)_j 以 a_j / a_j.detach() 注入該 group
-#:                     的選取 mask：forward 恆等於 1（CONTRACT-4 的 head 完全
-#:                     不受影響），backward 讓 r_j 收到梯度
-GROUP_GRAD_MODES = ("none", "ste_allocation")
-DEFAULT_GROUP_GRAD = "none"
+#: r_j 經過 softmax → 乘 c → largest-remainder 取整才變成 b_j，取整不可微，
+#: L_diag 的梯度到不了 F_g。原契約沒有考慮到取整會截斷梯度；PI 裁定以契約
+#: **意圖**為準：
+#:   "ste_allocation"  （主線，預設）把 a_j = softmax(r)_j 以 a_j / a_j.detach()
+#:                     注入該 group 的選取 mask：forward 恆等於 1（CONTRACT-4 的
+#:                     head 數值完全不受影響），backward 讓 r_j 收到梯度
+#:   "none"            **僅供 ablation**：F_g 完全不接收梯度，等於固定的隨機函數。
+#:                     用來證明 group 層確實需要學習；不可當作主線跑 L5。
+GROUP_GRAD_MODES = ("ste_allocation", "none")
+DEFAULT_GROUP_GRAD = "ste_allocation"
 
 
 @dataclass
@@ -79,7 +79,7 @@ def run_rounds(Z: torch.Tensor, grouping: Grouping, q_tau: torch.Tensor,
                state: EvidenceState | None = None) -> RoundsResult:
     """跑完 ceil(budget / chunk) 輪，回傳完整 trace。
 
-    group_grad 見 GROUP_GRAD_MODES —— 預設 "none"，F_g 不從 L_diag 收梯度。
+    group_grad 見 GROUP_GRAD_MODES —— 預設 "ste_allocation"，F_g 從 L_diag 收梯度。
     """
     if chunk <= 0:
         raise ValueError(f"chunk must be positive, got {chunk}")

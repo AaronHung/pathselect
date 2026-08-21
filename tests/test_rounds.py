@@ -6,7 +6,8 @@ import torch.nn.functional as F
 
 from selector.grouping import NUM_GROUPS, assign_groups
 from selector.model import GroupSelector, PatchSelector
-from selector.rounds import DEFAULT_BUDGET, DEFAULT_CHUNK, run_rounds
+from selector.rounds import (DEFAULT_BUDGET, DEFAULT_CHUNK, DEFAULT_GROUP_GRAD,
+                             GROUP_GRAD_MODES, run_rounds)
 from selector.state import EvidenceState
 
 D = 512
@@ -98,3 +99,28 @@ def test_group_grad_mode_does_not_change_the_forward():
     for ra, rb in zip(a.records, b.records):
         assert torch.equal(ra.b, rb.b)
         assert torch.equal(ra.ste_mask.detach(), rb.ste_mask.detach())
+
+
+def test_default_group_grad_is_ste_allocation():
+    """PI 裁定 1：主線必須讓 F_g 收得到梯度。"""
+    assert DEFAULT_GROUP_GRAD == "ste_allocation"
+    assert GROUP_GRAD_MODES[0] == "ste_allocation"
+
+
+def test_group_selector_receives_gradient_under_the_default():
+    """預設模式下 F_g 必須有梯度 —— 否則 +hierarchy 的結論會是構造保證的 null。"""
+    Z, g, q, fg, fp = _fixture()
+    res = run_rounds(Z, g, q, fg, fp)
+    ste = sum(rec.ste_mask for rec in res.records)
+    (ste * torch.randn_like(ste)).sum().backward()
+    assert fg.mlp[0].weight.grad is not None
+    assert float(fg.mlp[0].weight.grad.norm()) > 0
+
+
+def test_none_mode_gives_no_group_gradient_and_is_ablation_only():
+    """對照 ablation：none 模式下 F_g 完全收不到梯度。"""
+    Z, g, q, fg, fp = _fixture()
+    res = run_rounds(Z, g, q, fg, fp, group_grad="none")
+    ste = sum(rec.ste_mask for rec in res.records)
+    (ste * torch.randn_like(ste)).sum().backward()
+    assert fg.mlp[0].weight.grad is None
