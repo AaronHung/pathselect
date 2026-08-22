@@ -63,6 +63,34 @@ def test_every_index_entry_has_a_card():
     assert not missing, f"INDEX 列到但沒有卡片：{missing}"
 
 
+def test_dr_numbers_have_no_gaps():
+    """DR 編號不得有缺口。
+
+    append-only 的範圍是「已寫的卡不改內文」，**不是**「不得補記早先的決策」。
+    補記是允許且被鼓勵的；缺口代表有裁定沒建檔。
+    """
+    nums = sorted(int(r["num"]) for r in index_rows())
+    assert nums, "INDEX 沒有任何 DR"
+    expected = list(range(1, max(nums) + 1))
+    missing = sorted(set(expected) - set(nums))
+    assert not missing, f"DR 編號有缺口：{[f'DR-{n:03d}' for n in missing]}"
+    assert nums[0] == 1, f"編號應從 DR-001 開始，實得 DR-{nums[0]:03d}"
+
+
+def test_seeds_file_exists_and_is_parseable():
+    """SEEDS 是 L3 的另一半：墓園收「決定不做」，種子收「還不知道」。"""
+    seeds = LEDGER / "SEEDS.md"
+    assert seeds.is_file(), "docs/ledger/SEEDS.md 不存在"
+    text = seeds.read_text(encoding="utf-8")
+    ids = re.findall(r"^(?:\| )?(S-\d{2})\b", text, re.MULTILINE)
+    ids += re.findall(r"^##\s+(S-\d{2})\b", text, re.MULTILINE)
+    ids = sorted(set(ids))
+    assert ids, "SEEDS.md 解析不到任何 S 編號"
+    nums = sorted(int(i.split("-")[1]) for i in ids)
+    missing = sorted(set(range(1, max(nums) + 1)) - set(nums))
+    assert not missing, f"種子編號有缺口：{[f'S-{n:02d}' for n in missing]}"
+
+
 def test_every_card_is_listed_in_the_index():
     """反向：不能有卡片沒被 INDEX 收錄（否則 L1 不再是完整入口）。"""
     listed = {r["num"] for r in index_rows()}

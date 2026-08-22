@@ -26,8 +26,11 @@
 | [015](DR-015.md) | 主張定調：replay→accuracy、KD+eq→behaviour | ACTIVE | task-IL +0.74pp 在雜訊內，不得宣稱 |
 | [016](DR-016.md) | 配對統計 + win count，不報 p 值 | ACTIVE | 七臂同 seeds；n=5 政策沿用 |
 | [017](DR-017.md) | E1 記憶體曲線為主要防禦；牌一先實作備援 | ACTIVE | ⏳ 執行中；防「把 \|M\| 開大就好」；utility-gated KD 在手 |
+| [018](DR-018.md) | 寫作策略：完整版母本優先，venue 視圖後導出 | ACTIVE | 不為任何 venue 砍 idea；去風險由 checklist/ledger/SEEDS 承擔 |
+| [019](DR-019.md) | E1 判讀：防禦成立，記憶體效率主張定為 2× | ACTIVE | 四條可宣稱；中段 128/256 的弱證據須揭露；牌一改為稀缺端假設驅動 |
 | [020](DR-020.md) | win count 三級規則與 A3 非單調的定性 | ACTIVE | 5/5 systematic、4/5 directional inconclusive、≤3/5 within noise；2× 為跨容量陳述 |
 
-> DR-018 / DR-019 尚未配發，編號留空不補號（append-only，編號一旦跳過就不回填）。
+**append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
+DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。
 
 墓園（柴火區）見 [GRAVEYARD.md](GRAVEYARD.md)；未解釋的現象見 [SEEDS.md](SEEDS.md)。
