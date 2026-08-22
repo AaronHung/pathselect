@@ -139,6 +139,30 @@ def main() -> int:
                   f"class-IL = **{ref5:.4f}**；"
                   + (f"**A3 在 |M| ∈ {over} 追上或超過它**。"
                      if over else "A3 在所有測試的 |M| 都沒有追上它。")]
+    # 穩健性：曲線非單調時，只對 A3@512 比較會讓結論依賴單一低點
+    L += ["", "## 穩健性檢查：對 A3 的**最佳** |M| 比較", "",
+          "⚠️ 這條曲線**不是單調的**（見上表）。只拿 A5 去比 A3@512 有可能踩到 A3 "
+          "的低點，所以再對 A3 在所有 |M| 上的最佳值比一次。", ""]
+    best = [(c, mean_of(M, "A3", c, seeds, "final_class_il")) for c in caps]
+    best = [(c, v) for c, v in best if v is not None]
+    if best:
+        bc, bv = max(best, key=lambda x: x[1])
+        hit2 = next((c for c in caps
+                     if (v := mean_of(M, "A5", c, seeds, "final_class_il")) is not None
+                     and v >= bv), None)
+        L += [f"- A3 的 class-IL 最佳值 = **{bv:.4f}**，出現在 |M|={bc}。",
+              (f"- **A5 在 |M|={hit2} 就達到或超過 A3 的最佳值**"
+               f"（A5@{hit2} = {mean_of(M, 'A5', hit2, seeds, 'final_class_il'):.4f}）。"
+               if hit2 is not None else
+               "- A5 在所有測試的 |M| 都沒有達到 A3 的最佳值。"),
+              ""]
+        L += ["- 各 |M| 的 class-IL（看非單調性）：",
+              "  - A3：" + "、".join(
+                  f"{c}→{v:.4f}" for c, v in best),
+              "  - A5：" + "、".join(
+                  f"{c}→{mean_of(M, 'A5', c, seeds, 'final_class_il'):.4f}"
+                  for c in caps if mean_of(M, "A5", c, seeds, "final_class_il")),
+              ""]
     L += ["", "逐 slide 預測：`outputs/exp2/memory/per_slide/*.json`", ""]
     OUT.write_text("\n".join(L) + "\n")
     print(f"→ {OUT}")
