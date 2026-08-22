@@ -113,56 +113,136 @@ def main() -> int:
             L.append(f"| {cap}{mark} | " + " | ".join(cells) + f" | {paired} |")
         L.append("")
 
-    # 追平點
-    ref = mean_of(M, "A3", CONTRACT_CAP, seeds, "final_class_il")
-    L += ["## 追平點", ""]
-    if ref is None:
-        L.append("（缺 A3 @ |M|=512 的資料，無法計算）")
-    else:
-        hit = next((c for c in caps
-                    if (v := mean_of(M, "A5", c, seeds, "final_class_il")) is not None
-                    and v >= ref), None)
-        L.append(f"A3 在 |M|={CONTRACT_CAP} 的 class-IL final avg = **{ref:.4f}**。")
-        L.append("")
-        L.append(f"→ **A5 在 |M|={hit} 時追平 A3 在 |M|={CONTRACT_CAP} 的 class-IL 表現。**"
-                 if hit is not None else
-                 f"→ **A5 在所有測試的 |M| 都沒有追平 A3 在 |M|={CONTRACT_CAP} 的 "
-                 f"class-IL 表現。**")
-        # 反向：A3 開大能不能追上 A5@512
-        ref5 = mean_of(M, "A5", CONTRACT_CAP, seeds, "final_class_il")
-        if ref5 is not None:
-            over = [c for c in caps
-                    if (v := mean_of(M, "A3", c, seeds, "final_class_il")) is not None
-                    and v >= ref5]
-            L += ["",
-                  f"反向檢查（PI 指定的負面資訊）：A5 在 |M|={CONTRACT_CAP} 的 "
-                  f"class-IL = **{ref5:.4f}**；"
-                  + (f"**A3 在 |M| ∈ {over} 追上或超過它**。"
-                     if over else "A3 在所有測試的 |M| 都沒有追上它。")]
-    # 穩健性：曲線非單調時，只對 A3@512 比較會讓結論依賴單一低點
-    L += ["", "## 穩健性檢查：對 A3 的**最佳** |M| 比較", "",
-          "⚠️ 這條曲線**不是單調的**（見上表）。只拿 A5 去比 A3@512 有可能踩到 A3 "
-          "的低點，所以再對 A3 在所有 |M| 上的最佳值比一次。", ""]
+    # ── F1：replay 取樣是否隨 |M| 成長 ────────────────────────────────────
+    L += ["", "## F1 — replay 取樣強度與 |M| 無關（這條軸是乾淨的）", "",
+          "若每步 replay 的樣本數隨 |M| 成長，這條軸就同時混著「記憶容量」與"
+          "「replay 梯度強度」，大記憶體等於更強的正則、壓抑新任務可塑性 —— "
+          "那樣非單調只是實作副作用。實測不是：", "",
+          "| 問題 | 答案 |", "|---|---|",
+          "| 每個 training step 從 M 取幾個樣本 | **固定 `replay_k = 1`**，"
+          "與 \|M\| 無關（`scripts/run_exp2.py:172`） |",
+          "| 是否為 \|M\| 的函數 | 否。`SelectionMemory.sample(k)` 只有在 "
+          "`k >= len(M)` 時才退回全給；k=1 而 \|M\| 全程 ≥ 64，該分支從未觸發 |",
+          "| L_replay 與 current-task 的 batch 比例 | **固定 1:1**。"
+          "current task 每個 optimizer step 一張 slide，replay 一筆 entry |",
+          "",
+          "\|M\| 變大改變的只有**記憶體內容的多樣性與時間跨度**，"
+          "不改變每步的 replay 梯度筆數。取樣邏輯未修改。", ""]
+
+    # ── F2：非單調是系統性還是雜訊 ────────────────────────────────────────
+    L += ["## F2 — A3 在 256 之後的變化：系統性還是雜訊？", "",
+          "配對比較（同 seed 相減、win count）。A5 為對照組，預期平穩。", ""]
+    F2_PAIRS = [("A3", 256, "A3", 512), ("A3", 256, "A3", 1024),
+                ("A5", 256, "A5", 512)]
+    for key, label, higher in METRICS:
+        rows = []
+        for (aa, ca, ab, cb) in F2_PAIRS:
+            if (aa, ca) not in M or (ab, cb) not in M:
+                continue
+            d = [M[(aa, ca)][sd][key] - M[(ab, cb)][sd][key] for sd in seeds
+                 if M[(aa, ca)][sd].get("per_task") and M[(ab, cb)][sd].get("per_task")]
+            if not d:
+                continue
+            sc = 1 if key == "mean_jaccard" else 100
+            wins = sum((x > 0) if higher else (x < 0) for x in d)
+            sd_ = statistics.stdev(d) if len(d) > 1 else 0.0
+            # 事前約定：5/5 或 0/5 → 系統性；≤3/5 → 雜訊。4/5 規則未定義，
+            # 標為「不確定」而不是替它選一邊。
+            verdict = ("**系統性**" if wins in (0, len(d))
+                       else "雜訊內" if wins <= 3 else "不確定（4/5）")
+            rows.append(f"| {aa}@{ca} − {ab}@{cb} | "
+                        + ", ".join(f"{x * sc:+.2f}" for x in d)
+                        + f" | {statistics.mean(d) * sc:+.2f} ± {sd_ * sc:.2f} | "
+                        f"{wins}/{len(d)} | {verdict} |")
+        if rows:
+            L += [f"### {label}", "",
+                  "| 對照 | 逐 seed 配對差值 | 配對 mean ± std | win count | 判定 |",
+                  "|---|---|---|---|---|"] + rows + [""]
+    L += ["判定規則（事前約定）：5/5 或 0/5 為系統性；≤3/5 視為雜訊，此時一律寫"
+          "「未再改善（差異在雜訊內）」而不是「下滑」。**4/5 規則未定義，標為不確定**，"
+          "不替它選一邊。", "",
+          "### F2 判定", "",
+          "- **A3 的 class-IL 從 |M|=256 到 512 是系統性下滑**（+4.25 ± 2.27 pp，5/5）。"
+          "不是雜訊，「下滑」這個詞在這一格站得住。",
+          "- A3@256 − A3@1024 為 4/5（不確定）；task-IL / 洩漏率 / Jaccard 三個指標"
+          "在所有對照上都不是系統性。",
+          "- **對照組 A5@256 − A5@512 在四個指標上都不是系統性**（1/5、2/5、2/5、1/5），"
+          "A5 沿 |M| 軸確實平穩。",
+          "",
+          "⚠️ **成因未定，不臆測。** F1 已排除「replay 取樣強度隨 |M| 成長」這個混淆"
+          "（每步固定 1 筆、比例固定 1:1），所以這個系統性下滑需要別的解釋。"
+          "可能的方向（**皆未驗證**）：reservoir 在大容量下保留較多早期 task 的樣本、"
+          "改變了 replay 分佈的 task 組成。要回答需要另一組診斷，不在本輪範圍。", ""]
+
+    # ── 記憶體效率主張（依 PI 裁定改寫）──────────────────────────────────
     best = [(c, mean_of(M, "A3", c, seeds, "final_class_il")) for c in caps]
     best = [(c, v) for c, v in best if v is not None]
+    L += ["## 記憶體效率主張", ""]
     if best:
         bc, bv = max(best, key=lambda x: x[1])
-        hit2 = next((c for c in caps
-                     if (v := mean_of(M, "A5", c, seeds, "final_class_il")) is not None
-                     and v >= bv), None)
-        L += [f"- A3 的 class-IL 最佳值 = **{bv:.4f}**，出現在 |M|={bc}。",
-              (f"- **A5 在 |M|={hit2} 就達到或超過 A3 的最佳值**"
-               f"（A5@{hit2} = {mean_of(M, 'A5', hit2, seeds, 'final_class_il'):.4f}）。"
-               if hit2 is not None else
-               "- A5 在所有測試的 |M| 都沒有達到 A3 的最佳值。"),
-              ""]
-        L += ["- 各 |M| 的 class-IL（看非單調性）：",
-              "  - A3：" + "、".join(
-                  f"{c}→{v:.4f}" for c, v in best),
-              "  - A5：" + "、".join(
+        hit = next((c for c in caps
+                    if (v := mean_of(M, "A5", c, seeds, "final_class_il")) is not None
+                    and v >= bv), None)
+        a5_512 = mean_of(M, "A5", CONTRACT_CAP, seeds, "final_class_il")
+        over = [c for c in caps
+                if (v := mean_of(M, "A3", c, seeds, "final_class_il")) is not None
+                and a5_512 is not None and v >= a5_512]
+        L += [f"> **A5 在 |M|={hit} 達到 A3 的全域最佳（A3@{bc} = {bv:.4f}）"
+              f"→ 2× 記憶體效率。**" if hit is not None else
+              "> A5 在所有測試的 |M| 都沒有達到 A3 的全域最佳。",
+              "",
+              "輔助句：A3 在**所有**測試容量（含契約外的 1024）都未超過 "
+              f"A5@{hit}（{mean_of(M, 'A5', hit, seeds, 'final_class_il'):.4f}）。"
+              if hit is not None else "",
+              "",
+              f"⚠️ **不採用「A5@128 追平 A3@512 → 4×」的說法**：A3@{CONTRACT_CAP} "
+              f"({mean_of(M, 'A3', CONTRACT_CAP, seeds, 'final_class_il'):.4f}) "
+              f"是這條曲線上的低點，拿它當基準會高估效率。改以 A3 的全域最佳為基準。",
+              "",
+              "各 |M| 的 class-IL（非單調性在此）：",
+              "",
+              "- A3：" + "、".join(f"{c}→{v:.4f}" for c, v in best),
+              "- A5：" + "、".join(
                   f"{c}→{mean_of(M, 'A5', c, seeds, 'final_class_il'):.4f}"
                   for c in caps if mean_of(M, "A5", c, seeds, "final_class_il")),
+              "",
+              "反向檢查（PI 指定的負面資訊）：A5@512 的 class-IL = "
+              f"**{a5_512:.4f}**；"
+              + (f"A3 在 |M| ∈ {over} 追上或超過它。" if over
+                 else "A3 在所有測試的 |M| 都沒有追上它。"),
               ""]
+
+    # ── 中段不一致的明確揭露（PI 要求，不美化）──────────────────────────
+    L += ["## ⚠️ 中段的不一致（明確揭露）", "",
+          "主張**只建立在稀缺端（|M|=64）與 512/1024 端**。中間兩格的證據弱且方向不一致：", ""]
+    L += ["| \|M\| | class-IL A5−A3 | 洩漏率 A5−A3 |", "|---|---|---|"]
+    for c in caps:
+        if ("A3", c) not in M or ("A5", c) not in M:
+            continue
+        cells = []
+        for key, higher in (("final_class_il", True), ("mean_leak", False)):
+            d = [M[("A5", c)][sd][key] - M[("A3", c)][sd][key] for sd in seeds
+                 if M[("A5", c)][sd].get("per_task") and M[("A3", c)][sd].get("per_task")]
+            wins = sum((x > 0) if higher else (x < 0) for x in d)
+            cells.append(f"{statistics.mean(d) * 100:+.2f} pp（{wins}/{len(d)}）")
+        flag = "  ← 弱" if c in (128, 256) else ""
+        L.append(f"| {c}{flag} | " + " | ".join(cells) + " |")
+    L += ["",
+          "具體說：|M|=128 的 class-IL 只有 +1.20 pp（4/5）、|M|=256 只有 +0.17 pp（2/5）；"
+          "洩漏率在這兩格都是 3/5 且**方向不一致**（128 為 +0.18 pp，方向與主張相反）。"
+          "這兩格不支持主張，也不反對，證據就是弱。**不美化。**", "",
+          "### 與 2× 主張的關係（避免被混為一談）", "",
+          "2× 主張錨在 |M|=128，而 128 正是上表兩個弱格之一。這兩件事不衝突，"
+          "但講的是**不同的比較**：", "",
+          "| 陳述 | 比較對象 | 證據 |",
+          "|---|---|---|",
+          "| 2× 記憶體效率 | A5@128 **vs A3@256**（跨容量） | class-IL 0.8253 vs 0.8203 |",
+          "| 同容量下 A5 優於 A3 | A5@128 **vs A3@128**（同容量） | +1.20 pp，4/5，**弱** |",
+          "",
+          "前者不需要後者成立。但論文若把兩者寫在一起，reviewer 會合理地質疑"
+          "「為什麼在 128 這一格你們自己的方法沒有明顯贏」。**建議把 2× 寫成"
+          "跨容量的效率陳述，同容量的機制貢獻另外以 64 與 512/1024 三格支撐。**", ""]
+
     L += ["", "逐 slide 預測：`outputs/exp2/memory/per_slide/*.json`", ""]
     OUT.write_text("\n".join(L) + "\n")
     print(f"→ {OUT}")
