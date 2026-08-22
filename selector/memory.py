@@ -85,9 +85,19 @@ class SelectionMemory:
     """有界的 entry 儲存。汰換策略可替換，預設 reservoir sampling。"""
 
     def __init__(self, capacity: int = MEMORY_CAPACITY,
-                 policy: Optional[ReplacementPolicy] = None):
-        if capacity <= 0 or capacity > MEMORY_CAPACITY:
-            raise ValueError(f"capacity 必須在 1..{MEMORY_CAPACITY}，got {capacity}")
+                 policy: Optional[ReplacementPolicy] = None,
+                 allow_over_contract: bool = False):
+        """allow_over_contract：CONTRACT-3 把 |M| 凍結在 512，預設超過就拒絕。
+
+        只有記憶體效率曲線（E1）需要跑到 1024 —— 那是**刻意探測契約之外**的
+        診斷點，必須顯式開啟，不會被誤用。
+        """
+        if capacity <= 0:
+            raise ValueError(f"capacity 必須為正，got {capacity}")
+        if capacity > MEMORY_CAPACITY and not allow_over_contract:
+            raise ValueError(
+                f"capacity {capacity} 超過 CONTRACT-3 的 |M| <= {MEMORY_CAPACITY}；"
+                f"要刻意探測契約之外請顯式傳 allow_over_contract=True")
         self.capacity = capacity
         self.policy = policy or ReservoirSampling()
         self.n_seen = 0

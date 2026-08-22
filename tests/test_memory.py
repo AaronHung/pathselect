@@ -75,9 +75,21 @@ def test_reservoir_keeps_a_mix_of_old_and_new():
     assert min(kept) < 500 < max(kept), kept[:5]
 
 
-def test_capacity_above_the_constant_is_rejected():
-    with pytest.raises(ValueError):
+def test_capacity_above_the_contract_is_rejected_by_default():
+    """CONTRACT-3：|M| <= 512。超過必須顯式 opt-in，不能誤用。"""
+    with pytest.raises(ValueError, match="CONTRACT-3"):
         SelectionMemory(capacity=MEMORY_CAPACITY + 1)
+    with pytest.raises(ValueError, match="為正"):
+        SelectionMemory(capacity=0)
+
+
+def test_capacity_above_the_contract_needs_explicit_opt_in():
+    m = SelectionMemory(capacity=1024, allow_over_contract=True)
+    assert m.capacity == 1024
+    for i in range(1500):
+        m.add(_entry(sid=f"s{i}", n_cand=4))
+        assert len(m) <= 1024
+    assert len(m) == 1024
 
 
 def test_by_task_and_tasks():

@@ -43,7 +43,7 @@ from selector.classifier import conch_classify, softmax_weights          # noqa:
 from selector.evaluate import read_slide, slide_dataset                  # noqa: E402
 from selector.grouping import NUM_GROUPS, assign_groups, tissue_text_features  # noqa: E402
 from selector.lora import apply_lora, lora_parameters, merge_lora        # noqa: E402
-from selector.memory import SelectionMemory                              # noqa: E402
+from selector.memory import MEMORY_CAPACITY, SelectionMemory             # noqa: E402
 from selector.model import GroupSelector, PatchSelector                  # noqa: E402
 from selector.priors import MAINLINE_PRIOR                               # noqa: E402
 from selector.text_encoder import build_f_txt, load_config               # noqa: E402
@@ -68,12 +68,27 @@ ARMS = OrderedDict([
                 replay=True, kd=True, eq=False)),
     ("A5", dict(name="Ours (Replay+KD+eq)", mode="sequential", lora=True,
                 replay=True, kd=True, eq=True)),
-    ("R1", dict(name="per-task oracle", mode="per_task", lora=False,
+    # 元件消融：λ 設 0 與「不計算該項」位元等價（乘 0 再相加不改變任何位元），
+    # 實作上直接關掉以省算力。記憶體照常填充與取樣 —— KD / eq 都需要舊樣本。
+    ("B1", dict(name="只 KD (λ_r=λ_eq=0)", mode="sequential", lora=True,
+                replay=False, kd=True, eq=False)),
+    ("B2", dict(name="只 eq (λ_r=λ_kd=0)", mode="sequential", lora=True,
+                replay=False, kd=False, eq=True)),
+    ("R1", dict(name="per-task specialist (independent training)",
+                mode="per_task", lora=False,
                 replay=False, kd=False, eq=False)),
     ("R2", dict(name="joint offline reference", mode="joint", lora=False,
                 replay=False, kd=False, eq=False)),
 ])
 SLIDE_CACHE = 256
+#: E2：臂間比較一律配對統計（PI 裁定 4）。不報 p 值。
+PAIRED_COMPARISONS = [("A5", "A3"), ("A5", "A1"), ("A4", "A3"),
+                      ("A5", "A4"), ("A5", "R2")]
+#: 配對比較看的四個指標，以及「越大越好 / 越小越好」
+PAIRED_METRICS = [("final_task_il", "task-IL final avg", True),
+                  ("final_class_il", "class-IL final avg", True),
+                  ("mean_leak", "跨任務洩漏率", False),
+                  ("mean_jaccard", "selection Jaccard", True)]
 INDISTINGUISHABLE_PP = 100.0 / 15      # esca n=15，一張 slide
 
 
@@ -207,6 +222,7 @@ def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
             "weights_softmax": [round(float(x), 6) for x in w],
             "weights_uniform": [round(1.0 / max(idx.numel(), 1), 6)] * idx.numel(),
             "group_quota": quota, "n_patch": int(rec.Z.shape[0]),
+            "mem_capacity": args.mem_capacity or MEMORY_CAPACITY,
             "utility_total": u_total, "B": args.budget,
             **(diag or {}),
         })
@@ -218,7 +234,9 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
     tasks = ORDERS[order_name]
     recs_all = []
     rng = random.Random(seed)
-    memory = SelectionMemory(policy=None)     # 預設 reservoir
+    cap = args.mem_capacity or MEMORY_CAPACITY
+    memory = SelectionMemory(capacity=cap, policy=None,       # 預設 reservoir
+                             allow_over_contract=cap > MEMORY_CAPACITY)
 
     if spec["mode"] == "per_task":
         # R1：每個 task 獨立訓練，彼此不干擾 → 各 stage 的結果相同（天花板）
@@ -287,6 +305,8 @@ def main() -> int:
     ap.add_argument("--lambda-replay", type=float, default=1.0)
     ap.add_argument("--replay-k", type=int, default=1)
     ap.add_argument("--mem-slides", type=int, default=0, help="0 = 該 task 全部")
+    ap.add_argument("--mem-capacity", type=int, default=None,
+                    help="|M| 上限；超過 CONTRACT-3 的 512 需要本旗標顯式指定")
     ap.add_argument("--max-train", type=int, default=0)
     ap.add_argument("--tag", default="main")
     ap.add_argument("--no-resume", action="store_true")
@@ -315,7 +335,8 @@ def main() -> int:
     all_recs = []
     for arm in arms:
         for seed in seeds:
-            tag = f"{arm}_{args.order}_seed{seed}"
+            suffix = f"_M{args.mem_capacity}" if args.mem_capacity else ""
+            tag = f"{arm}_{args.order}_seed{seed}{suffix}"
             path = out_dir / "per_slide" / f"{tag}.json"
             if path.exists() and not args.no_resume:
                 all_recs += json.loads(path.read_text())
@@ -457,9 +478,15 @@ def write_report(ctx, recs, arms, order_name, seeds, args, out_dir):
           "A1 恆為 0、Jaccard 恆為 1，算進去只會稀釋遺忘的量級（CL 慣例）。"
           "洩漏率算全部 4 個 task，因為最後一個 task 的洩漏不是由構造為 0。",
           "",
-          "⚠️ **R1 / R2 不是 CL baseline**：R1 每個 task 獨立訓練（無干擾天花板），"
-          "R2 一次看到所有資料、沒有 task 順序（offline shared-model reference）。"
-          "兩者的 A1 forgetting 由構造為 0，不能用來宣稱 forgetting。",
+          "⚠️ **R1 / R2 不是 CL baseline**，兩者的 A1 forgetting 由構造為 0，"
+          "不能用來宣稱 forgetting。",
+          "",
+          "**R1 = per-task specialist (independent training)（PI 裁定 2）**："
+          "每個 task 只用自己的訓練資料（esca 僅 120 張），而 A3 / A5 經由 replay "
+          "實質可及跨任務資料。**因此 R1 在 task-IL 上不是上界**；它的參考意義在 "
+          "class-IL —— 那一欄 R1 是全場最高（0.8777）。",
+          "",
+          "**R2 = offline shared-model reference**：一次看到所有資料、沒有 task 順序。",
           "", "## 逐 task 明細（學完 T4 後）", ""]
     for a in arms:
         L += [f"### {a} {ARMS[a]['name']}", "",
@@ -494,8 +521,41 @@ def write_report(ctx, recs, arms, order_name, seeds, args, out_dir):
                  ("A5", "R1"), ("A5", "R2")):
         if x in M and y in M:
             L.append(f"| {x} − {y} | {(fin(x) - fin(y)) * 100:+.2f} |")
+    L += write_paired(M, arms, seeds)
     L += ["", "逐 slide 預測：`outputs/exp2/" + args.tag + "/per_slide/*.json`", ""]
     (out_dir / "EXP2.md").write_text("\n".join(L) + "\n")
+
+
+def write_paired(M, arms, seeds) -> list[str]:
+    """E2 —— 臂間比較一律配對統計（同 seed 相減）。不報 p 值。"""
+    L = ["", "## Paired comparisons（E2）", "",
+         "臂間比較一律**配對**：同一個 seed 相減，再對 5 個差值取 mean ± std。"
+         "win count = 5 個 seed 裡有幾個往「較好」的方向。**不報 p 值。**", ""]
+    for key, label, higher_better in PAIRED_METRICS:
+        L += [f"### {label}（{'越大越好' if higher_better else '越小越好'}）", "",
+              "| 對照 | 逐 seed 配對差值 | 配對 mean ± std | win count |",
+              "|---|---|---|---|"]
+        for x, y in PAIRED_COMPARISONS:
+            if x not in M or y not in M:
+                continue
+            diffs = []
+            for sd in seeds:
+                a, b = M[x][sd].get(key), M[y][sd].get(key)
+                if a is None or b is None:
+                    continue
+                diffs.append(a - b)
+            if not diffs:
+                continue
+            wins = sum((d > 0) if higher_better else (d < 0) for d in diffs)
+            scale = 100 if key != "mean_jaccard" else 1
+            unit = " pp" if scale == 100 else ""
+            per = ", ".join(f"{d * scale:+.2f}" for d in diffs)
+            sd_ = statistics.stdev(diffs) if len(diffs) > 1 else 0.0
+            L.append(f"| {x} − {y} | {per} | "
+                     f"{statistics.mean(diffs) * scale:+.2f} ± {sd_ * scale:.2f}{unit} | "
+                     f"{wins}/{len(diffs)} |")
+        L.append("")
+    return L
 
 
 if __name__ == "__main__":
