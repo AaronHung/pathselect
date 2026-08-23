@@ -37,6 +37,7 @@
 | [025](DR-025.md) | 配額口徑改為對整個 budget；chunked loop 在無 state 下為 no-op | ACTIVE | per-chunk 在 c=1 必然退化；DR-021 判準沿用不改；新增 CLAIMS.md |
 | [026](DR-026.md) | 執行期檔案凍結；長 job 必須檢查 exit code | ACTIVE | G1' 曾被靜默跳過；新增 --help 守門與 set -e |
 | [027](DR-027.md) | 批次腳本的失敗語意；字串替換必須斷言錨點 | ACTIVE | 偽裝成成功的失敗比 crash 危險；憲法 §2.7、§3.5 |
+| [028](DR-028.md) | 報告腳本必須有最小資料煙霧測試 | ACTIVE | --help 擋不住需真實資料才觸發的錯；憲法 §3.6 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

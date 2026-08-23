@@ -112,6 +112,16 @@ flat 的配額是**量測層**（選完之後統計落在哪一組）；hier 的
 ⚠️ 若 group 項無作用（≤3/5 且差值小），照實報 —— 論文會把 L_distill 誠實寫成 patch-level，並在 limitation 說明 group-level 在此設定下未顯示效果。**不調 λ 搶救。**
 
 
+## 結構性診斷：階層有沒有作用空間
+
+| 架構 | 每張 slide 用到幾個 group | 最大組佔比 | 分佈（組數 → slide 數） |
+|---|---|---|---|
+| flat | 2.37 | 0.714 | {1: 281, 2: 525, 3: 408, 4: 159, 5: 22}（共 1395 張） |
+| hier | 1.17 | 0.957 | {1: 1179, 2: 193, 3: 20, 4: 3}（共 1395 張） |
+
+**機制**：`use_state=False` 時 r 逐輪不變（分數重用）。`per_chunk` 配額在 c=1 時 largest-remainder 只有一個名額可發、必然給 argmax(r) ⇒ 每輪同一組 ⇒ 退化為「先挑一組再取該組 top-8」。`per_budget` 對整個 budget 配額，配額用完的組讓位，預算因此攤到多個 group。
+
+
 ## Pre-registered 判準（DR-021，看到結果後不得修改）
 
 hier-A5 − flat-A5（class-IL）= **-18.69 pp**，win **0/5**（**systematic**）。

@@ -169,6 +169,29 @@ def main() -> int:
               "誠實寫成 patch-level，並在 limitation 說明 group-level 在此設定下"
               "未顯示效果。**不調 λ 搶救。**", ""]
 
+    # 結構性診斷：階層是否退化成單一 group（DR-025 / 憲法 §2.5）
+    import collections
+    diag = {}
+    for arch_name, recs in (("flat", flat), ("hier", hier)):
+        rs = [r for r in recs if r["arm"] == "A5" and r["stage"] == len(tasks) - 1
+              and r["seed"] in seeds]
+        if not rs:
+            continue
+        ng = [sum(1 for v in r["group_quota"] if v > 0) for r in rs]
+        share = [max(r["group_quota"]) / sum(r["group_quota"]) for r in rs]
+        diag[arch_name] = (statistics.mean(ng), statistics.mean(share),
+                           dict(sorted(collections.Counter(ng).items())), len(rs))
+    L += ["", "## 結構性診斷：階層有沒有作用空間", "",
+          "| 架構 | 每張 slide 用到幾個 group | 最大組佔比 | 分佈（組數 → slide 數） |",
+          "|---|---|---|---|"]
+    for arch_name, (m, sh, hist, n) in diag.items():
+        L.append(f"| {arch_name} | {m:.2f} | {sh:.3f} | {hist}（共 {n} 張） |")
+    L += ["",
+          "**機制**：`use_state=False` 時 r 逐輪不變（分數重用）。`per_chunk` 配額在 "
+          "c=1 時 largest-remainder 只有一個名額可發、必然給 argmax(r) ⇒ 每輪同一組 "
+          "⇒ 退化為「先挑一組再取該組 top-8」。`per_budget` 對整個 budget 配額，"
+          "配額用完的組讓位，預算因此攤到多個 group。", ""]
+
     L += ["", "## Pre-registered 判準（DR-021，看到結果後不得修改）", ""]
     if ("hier", "A5") in M and ("flat", "A5") in M:
         d = [M[("hier", "A5")][s]["final_class_il"] - M[("flat", "A5")][s]["final_class_il"]

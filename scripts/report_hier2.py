@@ -171,6 +171,29 @@ def main() -> int:
               "誠實寫成 patch-level，並在 limitation 說明 group-level 在此設定下"
               "未顯示效果。**不調 λ 搶救。**", ""]
 
+    # 結構性診斷：階層是否退化成單一 group（DR-025 / 憲法 §2.5）
+    import collections
+    diag = {}
+    for arch_name, recs in (("flat", flat), ("hier", hier)):
+        rs = [r for r in recs if r["arm"] == "A5" and r["stage"] == len(tasks) - 1
+              and r["seed"] in seeds]
+        if not rs:
+            continue
+        ng = [sum(1 for v in r["group_quota"] if v > 0) for r in rs]
+        share = [max(r["group_quota"]) / sum(r["group_quota"]) for r in rs]
+        diag[arch_name] = (statistics.mean(ng), statistics.mean(share),
+                           dict(sorted(collections.Counter(ng).items())), len(rs))
+    L += ["", "## 結構性診斷：階層有沒有作用空間", "",
+          "| 架構 | 每張 slide 用到幾個 group | 最大組佔比 | 分佈（組數 → slide 數） |",
+          "|---|---|---|---|"]
+    for arch_name, (m, sh, hist, n) in diag.items():
+        L.append(f"| {arch_name} | {m:.2f} | {sh:.3f} | {hist}（共 {n} 張） |")
+    L += ["",
+          "**機制**：`use_state=False` 時 r 逐輪不變（分數重用）。`per_chunk` 配額在 "
+          "c=1 時 largest-remainder 只有一個名額可發、必然給 argmax(r) ⇒ 每輪同一組 "
+          "⇒ 退化為「先挑一組再取該組 top-8」。`per_budget` 對整個 budget 配額，"
+          "配額用完的組讓位，預算因此攤到多個 group。", ""]
+
     single_rate = diag.get("hier", (0, 0, {}, 1))[2].get(1, 0) / max(
         diag.get("hier", (0, 0, {}, 1))[3], 1)
     L += ["", "## ⚠️ 結構性把關（PI 指定的停止條件）", "",
@@ -179,6 +202,28 @@ def main() -> int:
            "下方的判準結果不得採用。" if single_rate > 0.5 else
            "✅ 低於 50%，配額口徑確實是真因；階層這次有作用空間，判準結果可採用。"),
           ""]
+    # DR-015 對照：flat 版曾定調「task-IL 不得宣稱勝出」，階層版可能推翻它
+    if ("hier", "A5") in M and ("hier", "A3") in M and ("flat", "A5") in M \
+            and ("flat", "A3") in M:
+        rows = []
+        for label, arch_ in (("flat（DR-015 當時的證據）", "flat"), ("hier（本次）", "hier")):
+            d = [M[(arch_, "A5")][s_]["final_task_il"] - M[(arch_, "A3")][s_]["final_task_il"]
+                 for s_ in seeds if M[(arch_, "A5")][s_].get("per_task")
+                 and M[(arch_, "A3")][s_].get("per_task")]
+            if not d:
+                continue
+            w = sum(x > 0 for x in d)
+            sd = statistics.stdev(d) if len(d) > 1 else 0.0
+            rows.append(f"| {label} | {statistics.mean(d) * 100:+.2f} ± {sd * 100:.2f} pp "
+                        f"| {w}/{len(d)} | {verdict(w, len(d))} |")
+        L += ["", "## ⚠️ 與 DR-015 的對照：A5 − A3 在 task-IL 上", "",
+              "DR-015 依 flat 版的證據定調「task-IL 上 A5 − A3 落在雜訊內，"
+              "**不宣稱勝出**」。階層版的同一個對照結果不同：", "",
+              "| 架構 | A5 − A3（task-IL） | win | 判定 |", "|---|---|---|---|"] + rows
+        L += ["",
+              "⚠️ **DR-015 在它當時的證據下是對的，不應修改**（append-only）。"
+              "階層版是否構成推翻，須由 PI 以新卡裁定。此處只陳述對照，不下結論。", ""]
+
     L += ["", "## Pre-registered 判準（DR-021 原文，一字不改）", ""]
     if ("hier", "A5") in M and ("flat", "A5") in M:
         d = [M[("hier", "A5")][s]["final_class_il"] - M[("flat", "A5")][s]["final_class_il"]
@@ -198,7 +243,7 @@ def main() -> int:
                     "（配額分佈本身就是定性貢獻）。")
         L += [f"hier-A5 − flat-A5（class-IL）= **{mean:+.2f} pp**，"
               f"win **{wins}/{len(d)}**（{verdict(wins, len(d))}）。", "", f"→ {call}", ""]
-    L += ["逐 slide 預測：`outputs/exp2/hier/per_slide/*.json`", ""]
+    L += ["逐 slide 預測：`outputs/exp2/hier2/per_slide/*.json`", ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(L) + "\n")
     print(f"→ {OUT}")
