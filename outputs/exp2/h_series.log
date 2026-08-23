@@ -1,0 +1,17 @@
+=== G1 已結束，開始 H1：B2 補到 5 seeds ===
+Exp2  arms=['B2']  order=reverse  seeds=[0, 1, 2, 3, 4]  B=8 c=1 epochs=5 arch=flat prior=discriminative beta_u=0.1 replay_k=1 λ=(1.0,1.0,1.0)
+  ▷ B2 seed=0 已有存檔，跳過
+  ▷ B2 seed=1 已有存檔，跳過
+  ▷ B2 seed=2 已有存檔，跳過
+  ▶ B2 (只 eq (λ_r=λ_kd=0)) seed=3
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.5415
+      epoch 2/5 n=120 mean_loss=0.2037
+      epoch 3/5 n=120 mean_loss=0.1161
+      epoch 4/5 n=120 mean_loss=0.0515
+      epoch 5/5 n=120 mean_loss=0.0385
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.4063
+      epoch 2/5 n=616 mean_loss=0.3908
