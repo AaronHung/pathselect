@@ -207,6 +207,29 @@ per-task specialist（獨立訓練）與 joint offline 的 forgetting 由構造�
 > 那一節，而我卻在回報中貼出了該表 —— 數字是另一段獨立 python 算出來的、有效，
 > 但**報告與回報不一致**。這正是 §2.7 與本條要一起防的。
 
+### §3.7 長 job 必須有存活訊號（來源 [DR-032](ledger/DR-032.md)）
+
+**每個長 job 每完成一個階段就在 log 追加一行帶時間戳的心跳：**
+
+```
+[heartbeat] <ISO時間> stage=<n/N> <描述>
+```
+
+**非零結束時**，在 log 最後追加 `[FAILED] <階段> <錯誤摘要>`，並另外寫一份
+`outputs/_status/<job>.json` 記錄 `{state, stage, note, updated_at, started_at}`。
+
+這樣只要看一個檔就知道 job 是**活著、完成、還是死了**。
+實作見 `scripts/job_status.py`；`trap ... ERR` 負責失敗路徑。
+
+> 證據鉤子：2026-08-23 的 pipeline **在第一行就死**，log 只有一行錯誤，
+> 沒有任何完成或失敗標記，是 PI 手動看 log 才發現。
+
+#### 附帶：zsh 不對未加引號的變數做 word splitting
+
+`R="python foo.py"; $R` 在 **bash 會展開成兩個詞、在 zsh 會被當成一個檔名**。
+批次腳本**不得用變數當命令**，每一行都要是完整可執行的命令。
+這正是上述 pipeline 第一行就死的直接原因（不是相對路徑問題 —— `cd` 有生效）。
+
 ### §3.5 批次腳本的失敗語意（來源 [DR-027](ledger/DR-027.md)）
 
 **1. 所有批次腳本必須 `set -euo pipefail`。**

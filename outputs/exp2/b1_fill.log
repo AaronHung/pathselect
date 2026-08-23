@@ -27,3 +27,68 @@ Exp2  arms=['B1']  order=reverse  seeds=[0, 1, 2, 3, 4]  B=8 c=1 epochs=5 arch=f
       epoch 1/5 n=763 mean_loss=0.3905
       epoch 2/5 n=763 mean_loss=0.3606
       epoch 3/5 n=763 mean_loss=0.3267
+      epoch 4/5 n=763 mean_loss=0.3570
+      epoch 5/5 n=763 mean_loss=0.3203
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.6667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8026 task-IL=0.9079
+       eval tcga_brca  class-IL=0.8387 task-IL=0.8495
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=0.6861
+      epoch 2/5 n=774 mean_loss=0.4000
+      epoch 3/5 n=774 mean_loss=0.3649
+      epoch 4/5 n=774 mean_loss=0.4764
+      epoch 5/5 n=774 mean_loss=0.4158
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.6667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.6184 task-IL=0.8684
+       eval tcga_brca  class-IL=0.6129 task-IL=0.8495
+       eval tcga_lung  class-IL=0.8000 task-IL=0.8421
+  ▶ B1 (只 KD (λ_r=λ_eq=0)) seed=4
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=1.6190
+      epoch 2/5 n=120 mean_loss=0.1774
+      epoch 3/5 n=120 mean_loss=0.0753
+      epoch 4/5 n=120 mean_loss=0.1064
+      epoch 5/5 n=120 mean_loss=0.2032
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.4694
+      epoch 2/5 n=616 mean_loss=0.2608
+      epoch 3/5 n=616 mean_loss=0.1962
+      epoch 4/5 n=616 mean_loss=0.1869
+      epoch 5/5 n=616 mean_loss=0.1975
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=0.6703
+      epoch 2/5 n=763 mean_loss=0.3565
+      epoch 3/5 n=763 mean_loss=0.3470
+      epoch 4/5 n=763 mean_loss=0.3420
+      epoch 5/5 n=763 mean_loss=0.3377
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.0921 task-IL=0.6579
+       eval tcga_brca  class-IL=0.8925 task-IL=0.9032
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=0.6793
+      epoch 2/5 n=774 mean_loss=0.4498
+      epoch 3/5 n=774 mean_loss=0.3533
+      epoch 4/5 n=774 mean_loss=0.3634
+      epoch 5/5 n=774 mean_loss=0.3137
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.4667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.1711 task-IL=0.5526
+       eval tcga_brca  class-IL=0.3441 task-IL=0.8280
+       eval tcga_lung  class-IL=0.8526 task-IL=0.8526
+
+→ /Users/aaron/research/02_pathselect/outputs/exp2/ablation/EXP2.md
+=== 產物存在性檢查（憲法 §3.5）===
+[check] tag=ablation 期望 25 份、實得 25 份
+[check] ✅ 產物齊全
+=== 重生成消融報告（憲法 §3.6：宣告完成前必須先成功執行報告腳本）===
+→ /Users/aaron/research/02_pathselect/outputs/exp2/ablation/EXP2.md（report-only）
+[freeze] 結束 HEAD = 2a4db0f
+=== B1 補齊完成（產物已檢查、報告已重生成）===
