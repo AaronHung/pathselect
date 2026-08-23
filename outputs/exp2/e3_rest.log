@@ -757,3 +757,4 @@ Exp2  arms=['A3', 'A4', 'A5', 'B1', 'B2']  order=reverse  seeds=[0, 1, 2]  B=8 c
        eval tcga_rcc   class-IL=0.8684 task-IL=0.9211
        eval tcga_brca  class-IL=0.9032 task-IL=0.9140
     ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.3336
