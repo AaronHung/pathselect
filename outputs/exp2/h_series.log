@@ -62,3 +62,39 @@ Exp2  arms=['B2']  order=reverse  seeds=[0, 1, 2, 3, 4]  B=8 c=1 epochs=5 arch=f
        eval tcga_rcc   class-IL=0.9737 task-IL=0.9737
     ── stage 2: tcga_brca
       epoch 1/5 n=763 mean_loss=0.8209
+      epoch 2/5 n=763 mean_loss=0.7121
+      epoch 3/5 n=763 mean_loss=0.8027
+      epoch 4/5 n=763 mean_loss=0.6225
+      epoch 5/5 n=763 mean_loss=0.7075
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.5333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+       eval tcga_brca  class-IL=0.9140 task-IL=0.9355
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.2352
+      epoch 2/5 n=774 mean_loss=1.0900
+      epoch 3/5 n=774 mean_loss=1.1246
+      epoch 4/5 n=774 mean_loss=1.1633
+      epoch 5/5 n=774 mean_loss=0.9148
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.6000 task-IL=0.6667
+       eval tcga_rcc   class-IL=0.8816 task-IL=0.9342
+       eval tcga_brca  class-IL=0.8172 task-IL=0.8710
+       eval tcga_lung  class-IL=0.8316 task-IL=0.8632
+
+→ /Users/aaron/research/02_pathselect/outputs/exp2/ablation/EXP2.md
+Traceback (most recent call last):
+  File "/Users/aaron/research/02_pathselect/scripts/run_exp2.py", line 611, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/aaron/research/02_pathselect/scripts/run_exp2.py", line 332, in main
+    ap.add_argument("--allocation", choices=list(ALLOCATION_MODES),
+                                                 ^^^^^^^^^^^^^^^^
+NameError: name 'ALLOCATION_MODES' is not defined
+=== H1 完成，判定是否跑 H2 ===
+H1：B2 − A5 class-IL 共同 seeds [0, 1, 2, 3, 4]
+    逐 seed ['+2.25', '+0.51', '+0.62', '-2.56', '-8.27']
+    配對 -1.49 pp，win 3/5
+    → 不跑 H2，直接進 F3
+=== 跳過 H2 ===
+=== H 系列全部完成 ===

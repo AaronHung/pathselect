@@ -35,6 +35,7 @@
 | [023](DR-023.md) | n<5 批次的統計警語升格為憲法條文 | ACTIVE | 規則本體移入 docs/CONSTITUTION.md §1.2；報告產生器自動加註 |
 | [024](DR-024.md) | 跨批次配對與撤回程序入憲 | ACTIVE | 憲法 §1.3 共同子集不代表母體、§2.4 撤回不算失分隱瞞才算 |
 | [025](DR-025.md) | 配額口徑改為對整個 budget；chunked loop 在無 state 下為 no-op | ACTIVE | per-chunk 在 c=1 必然退化；DR-021 判準沿用不改；新增 CLAIMS.md |
+| [026](DR-026.md) | 執行期檔案凍結；長 job 必須檢查 exit code | ACTIVE | G1' 曾被靜默跳過；新增 --help 守門與 set -e |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

@@ -1,0 +1,13 @@
+=== H 系列結束，決定 G1' 的臂 ===
+H1 未顯示 B2 >= A5 → 階層跑在 A5 與 A3 上
+=== G1'：per_budget 配額，arms=A5,A3 ===
+Traceback (most recent call last):
+  File "/Users/aaron/research/02_pathselect/scripts/run_exp2.py", line 611, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/aaron/research/02_pathselect/scripts/run_exp2.py", line 332, in main
+    ap.add_argument("--allocation", choices=list(ALLOCATION_MODES),
+                                                 ^^^^^^^^^^^^^^^^
+NameError: name 'ALLOCATION_MODES' is not defined
+尚無 hier 資料
+=== G1' 完成 ===

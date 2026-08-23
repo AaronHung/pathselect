@@ -44,6 +44,8 @@ from selector.evaluate import read_slide, slide_dataset                  # noqa:
 from selector.grouping import NUM_GROUPS, assign_groups, tissue_text_features  # noqa: E402
 from selector.lora import apply_lora, lora_parameters, merge_lora        # noqa: E402
 from selector.memory import MEMORY_CAPACITY, SelectionMemory             # noqa: E402
+from selector.rounds import (ALLOCATION_MODES, DEFAULT_ALLOCATION,      # noqa: E402
+                             run_rounds)
 from selector.model import GroupSelector, PatchSelector                  # noqa: E402
 from selector.priors import MAINLINE_PRIOR                               # noqa: E402
 from selector.text_encoder import build_f_txt, load_config               # noqa: E402
