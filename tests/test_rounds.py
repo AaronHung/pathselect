@@ -56,13 +56,43 @@ def test_no_patch_is_selected_twice():
     assert len(sel) == 64 == len(set(sel))
 
 
+class _PeakedGroupSelector(torch.nn.Module):
+    """回傳固定峰值 r 的 stub —— 用來測「配額集中時的行為」。
+
+    合成 fixture 的 group prototype 彼此太相似，真的 F_g 給出的 r 幾乎均勻，
+    放大權重也只是等比例拉開、softmax 後仍接近均分。要測 CONTRACT-1 的
+    「同組可跨輪重複選」必須有真正集中的配額，因此直接注入。
+    """
+
+    def __init__(self, r: torch.Tensor):
+        super().__init__()
+        self.r = torch.nn.Parameter(r.clone())
+
+    def score(self, features, q_tau, state_feature, **_kw):
+        return self.r
+
+
 def test_a_group_may_be_picked_across_multiple_rounds():
-    """同一個 group 可跨輪重複選 —— 不是每輪換一個 group。"""
-    Z, g, q, fg, fp = _fixture()
-    res = run_rounds(Z, g, q, fg, fp, budget=64, chunk=8)
-    hit_rounds = [(rec.b > 0).nonzero().reshape(-1).tolist() for rec in res.records]
-    repeated = set(hit_rounds[0]) & set(hit_rounds[1])
-    assert repeated, hit_rounds[:2]
+    """CONTRACT-1：同一個 group 可跨輪重複選 —— 不是每輪換一個 group。
+
+    ⚠️ 在 per_budget 配額下這要在 **r 有峰值**時才觀察得到：r 近乎均勻時配額是
+    每組 1 個，自然每輪換組（那不是違反契約，是配額本來就該平均）。
+    """
+    Z, g, q, _fg, fp = _fixture()
+    peaked = torch.tensor([6.0, 3.0, 1.0, 0.0, 0.0, -1.0, -3.0, -6.0])
+    res = run_rounds(Z, g, q, _PeakedGroupSelector(peaked), fp, budget=8, chunk=1)
+    per_round = [int(rec.b.argmax()) for rec in res.records]
+    assert per_round[0] == per_round[1], f"配額集中時前兩輪應同組：{per_round}"
+    assert len(set(per_round)) < len(per_round), f"不該每輪都換組：{per_round}"
+
+
+def test_uniform_group_scores_spread_one_per_group():
+    """對照：r 均勻時配額每組 1 個，八輪剛好走遍八組。"""
+    Z, g, q, _fg, fp = _fixture()
+    res = run_rounds(Z, g, q, _PeakedGroupSelector(torch.zeros(8)), fp,
+                     budget=8, chunk=1)
+    per_round = [int(rec.b.argmax()) for rec in res.records]
+    assert len(set(per_round)) == 8, per_round
 
 
 def test_custom_chunk_changes_round_count():

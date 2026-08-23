@@ -46,6 +46,17 @@ DEFAULT_CHUNK = 1
 GROUP_GRAD_MODES = ("ste_allocation", "none")
 DEFAULT_GROUP_GRAD = "ste_allocation"
 
+#: 配額口徑（DR-025）。
+#:   "per_chunk"  舊版：每一輪對 chunk c 配額。c=1 時 largest-remainder 只有一個
+#:                名額可發、必然給 argmax(r)；r 逐輪不變 ⇒ 每輪同一組 ⇒ 退化為
+#:                「先挑一組再取該組 top-c」。G1 實測 84.5% 的 slide 只用一組。
+#:   "per_budget" 新版：每一輪對**剩餘預算 B_t** 配額得到 b_j，逐輪累計每組已取
+#:                數 taken_j，該輪從「taken_j < b_j 且 r_j 最高」的組取 patch。
+#:                配額用完的組會讓位給次高的組，因此預算會攤到多個 group 上 ——
+#:                對齊架構圖「tumor 12 / lymph 8 / stroma 4 / necrosis 2」的示例。
+ALLOCATION_MODES = ("per_budget", "per_chunk")
+DEFAULT_ALLOCATION = "per_budget"
+
 
 @dataclass
 class RoundRecord:
@@ -82,6 +93,7 @@ def run_rounds(Z: torch.Tensor, grouping: Grouping, q_tau: torch.Tensor,
                group_grad: str = DEFAULT_GROUP_GRAD,
                use_query: bool = True, use_state: bool = True,
                hierarchy: bool = True,
+               allocation: str = DEFAULT_ALLOCATION,
                state: EvidenceState | None = None) -> RoundsResult:
     """跑完 ceil(budget / chunk) 輪，回傳完整 trace。
 
@@ -100,12 +112,15 @@ def run_rounds(Z: torch.Tensor, grouping: Grouping, q_tau: torch.Tensor,
         raise ValueError(f"chunk must be positive, got {chunk}")
     if group_grad not in GROUP_GRAD_MODES:
         raise ValueError(f"unknown group_grad: {group_grad}; {GROUP_GRAD_MODES}")
+    if allocation not in ALLOCATION_MODES:
+        raise ValueError(f"unknown allocation: {allocation}; {ALLOCATION_MODES}")
     state = state or EvidenceState(Z, budget)
     res = RoundsResult(selected=torch.empty(0, dtype=torch.long, device=Z.device),
                        state=state)
 
     n_rounds = -(-budget // chunk)          # ceil
     cached: tuple[torch.Tensor, torch.Tensor] | None = None
+    taken = torch.zeros(grouping.num_groups, dtype=torch.long, device=Z.device)
     for t in range(n_rounds):
         if state.B_t <= 0 or int(state.available_mask.sum()) == 0:
             break
@@ -122,7 +137,29 @@ def run_rounds(Z: torch.Tensor, grouping: Grouping, q_tau: torch.Tensor,
 
         cap = group_capacity(grouping, state.available_mask)
         c_this = min(chunk, state.B_t)
-        if hierarchy:
+        if hierarchy and allocation == "per_budget":
+            # 對**整個 budget** 做一次 largest-remainder 配額，逐輪追蹤各組已取數；
+            # 本輪從「尚未滿額（taken_j < quota_j）且 r_j 最高」的組取 patch。
+            #
+            # 這是「每輪對剩餘預算 B_t 配額」的**累計等價形式**：任一時點各組的
+            # 剩餘配額為 quota_j − taken_j，其總和恰為 B_t。實作成對 B_0 配額一次
+            # 是為了避免逐輪重新取整的漂移（逐輪重配會讓配額提前用完、預算花不完）。
+            # sum(quota) = B_0 且每輪取 1，故八輪剛好取滿、不會提前結束。
+            quota = allocate(r, budget, grouping.mask,
+                             group_capacity(grouping,
+                                            torch.ones_like(state.available_mask)))
+            b = torch.zeros_like(cap)
+            room = (taken < quota) & grouping.mask & (cap > 0)
+            for _ in range(c_this):
+                if not bool(room.any()):     # 全滿額或無容量 → 放寬配額限制
+                    room = grouping.mask & ((cap - b) > 0)
+                    if not bool(room.any()):
+                        break
+                j = int(torch.where(room, r, torch.full_like(r, float("-inf"))).argmax())
+                b[j] += 1
+                taken[j] += 1
+                room = (taken < quota) & grouping.mask & ((cap - b) > 0)
+        elif hierarchy:
             b = allocate(r, c_this, grouping.mask, cap)                    # [J]
         else:
             # flat：不分組，直接在全部候選上取 top-c；b 僅供紀錄

@@ -120,7 +120,7 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
                beta_s=0.1, beta_u=0.1, n_candidate_classes=None,
                group_grad=DEFAULT_GROUP_GRAD, use_query=True, use_state=True,
                hierarchy=True, weighting="softmax",
-               candidate_size=CANDIDATE_SIZE):
+               candidate_size=CANDIDATE_SIZE, allocation=None):
     """跑完一張 slide 的 chunked loop 並回傳 (loss, parts, result)。"""
     if grouping is None:
         if tissue is None:
@@ -130,7 +130,8 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
     result = run_rounds(Z, grouping, q_tau, f_group, f_patch,
                         budget=budget, chunk=chunk, group_grad=group_grad,
                         use_query=use_query, use_state=use_state,
-                        hierarchy=hierarchy)
+                        hierarchy=hierarchy,
+                        **({"allocation": allocation} if allocation else {}))
     if not result.records:
         raise RuntimeError("chunked loop 一輪都沒跑完，檢查候選是否為空")
 

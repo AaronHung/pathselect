@@ -179,7 +179,7 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng):
                 rec.Z, rec.label, ctx.q0, ctx.f_txt, ctx.logit_scale, f_g, f_p,
                 grouping=grp, budget=args.budget, chunk=args.chunk,
                 prior_kind=args.prior, beta_s=args.beta_s, beta_u=args.beta_u,
-                **ARCH[args.arch])
+                allocation=args.allocation, **ARCH[args.arch])
 
             kd = eq = replay = None
             if len(memory) and (spec["kd"] or spec["eq"] or spec["replay"]):
@@ -187,7 +187,7 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng):
                     k_, e_, r_ = continual_terms(
                         entry, ctx.cfg, (f_g, f_p), ctx.f_txt, ctx.logit_scale,
                         ctx.tissue, budget=args.budget, chunk=args.chunk,
-                        spec=ARCH[args.arch],
+                        spec={**ARCH[args.arch], "allocation": args.allocation},
                         use_kd=spec["kd"], use_eq=spec["eq"],
                         use_replay=spec["replay"],
                         kd_group_weight=spec.get("kd_group_weight", 1.0))
@@ -218,7 +218,8 @@ def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
         rec, grp = ctx.get(task, "test", i)
         from selector.rounds import run_rounds
         res = run_rounds(rec.Z, grp, ctx.q0, f_g, f_p, budget=args.budget,
-                         chunk=args.chunk, **ARCH[args.arch])
+                         chunk=args.chunk, allocation=args.allocation,
+                         **ARCH[args.arch])
         idx, s = res.selected, res.records[-1].s
         w = softmax_weights(s, idx)
         logits = conch_classify(rec.Z.index_select(0, idx), w,
@@ -240,6 +241,7 @@ def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
             "group_quota": quota, "n_patch": int(rec.Z.shape[0]),
             "mem_capacity": args.mem_capacity or MEMORY_CAPACITY,
             "arch": args.arch, "prior": args.prior,
+            "allocation": args.allocation,
             "utility_total": u_total, "B": args.budget,
             **(diag or {}),
         })
@@ -287,7 +289,9 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
         if spec["replay"] or spec["kd"] or spec["eq"]:
             added = fill_memory(memory, models, task, ctx.cfg, ctx.f_txt,
                                 ctx.logit_scale, ctx.tissue, budget=args.budget,
-                                chunk=args.chunk, spec=ARCH[args.arch],
+                                chunk=args.chunk,
+                                spec={**ARCH[args.arch],
+                                      "allocation": args.allocation},
                                 max_slides=args.mem_slides)
             print(f"       記憶體 +{added} → |M|={len(memory)}", flush=True)
         for t in tasks[:stage + 1]:
@@ -325,6 +329,10 @@ def main() -> int:
     ap.add_argument("--mem-capacity", type=int, default=None,
                     help="|M| 上限；超過 CONTRACT-3 的 512 需要本旗標顯式指定")
     ap.add_argument("--max-train", type=int, default=0)
+    ap.add_argument("--allocation", choices=list(ALLOCATION_MODES),
+                    default=DEFAULT_ALLOCATION,
+                    help="per_budget = 對整個 budget 配額（DR-025）；"
+                         "per_chunk = 舊版，c=1 時會退化為單組")
     ap.add_argument("--arch", choices=list(ARCH), default=DEFAULT_ARCH,
                     help="flat = 只用 Patch Selector；hier = Group → 配額 → Patch")
     ap.add_argument("--tag", default="main")
@@ -348,7 +356,7 @@ def main() -> int:
 
     print(f"Exp2  arms={arms}  order={args.order}  seeds={seeds}  "
           f"B={args.budget} c={args.chunk} epochs={args.epochs} "
-          f"arch={args.arch} prior={args.prior} "
+          f"arch={args.arch} alloc={args.allocation} prior={args.prior} "
           f"beta_u={args.beta_u} replay_k={args.replay_k} "
           f"λ=({args.lambda_kd},{args.lambda_eq},{args.lambda_replay})", flush=True)
 
