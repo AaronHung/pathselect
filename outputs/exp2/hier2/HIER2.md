@@ -132,5 +132,21 @@ hier-A5 − flat-A5（class-IL）= **-1.20 pp**，win **1/5**（within noise）�
 
 → **在雜訊內 → 仍採用階層為主線**，論文誠實寫「階層在此設定下與 flat 相當；其價值在於提供可解釋的組織層配額與 group-level 保存」（配額分佈本身就是定性貢獻）。
 
+
+## 結論（DR-029）
+
+**階層採用為主線。** 除 DR-021 第二支的「可解釋組織層配額」外，追加一條由數據支撐的理由：階層版 A5 的 seed 標準差顯著小於 flat（task-IL ±0.77 vs ±1.41、class-IL ±1.62 vs ±2.84）—— **階層讓方法更穩定**。
+
+階層版可在 **task-IL 與 class-IL 兩軸皆宣稱勝出**（A5 − A3 = +3.28 / +5.76 pp，均 5/5 systematic）。
+
+⚠️ **差距擴大有雙重來源，必須同時陳述，不得只報前半：**
+
+| 來源 | 證據 |
+|---|---|
+| A5 在階層下更穩定（正向） | seed std task-IL ±1.41 → ±0.77、class-IL ±2.84 → ±1.62 |
+| **replay-only 在階層下退化（負向）** | hier-A3 − flat-A3 = **−3.11 pp**（task-IL）、**−2.35 pp**（class-IL） |
+
+也就是說：A5 − A3 的差距從 +0.74 擴大到 +3.28 pp，**其中一部分來自 A3 變差**，而不是全部來自 A5 變好。A5 本身在階層下是 −0.58 pp（task-IL，within noise）。
+
 逐 slide 預測：`outputs/exp2/hier2/per_slide/*.json`
 

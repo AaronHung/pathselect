@@ -24,7 +24,7 @@
 | [012](DR-012.md) | 遺忘三軸 + task-IL/class-IL/洩漏率並報 | ACTIVE | 洩漏 100% 歸因選取（frozen head）→ 寫成 contribution |
 | [013](DR-013.md) | replay=資料機制；L_replay := L_diag on M | ACTIVE | 圖（三項）與文（兩項）的矛盾以此定義收斂 |
 | [014](DR-014.md) | beta_u=0.1 全臂保留；S2 降級 preliminary | ACTIVE | A1=最終 within-task 目標下的 SeqFT，才是隔離 CL 的正確 baseline |
-| [015](DR-015.md) | 主張定調：replay→accuracy、KD+eq→behaviour | ACTIVE | task-IL +0.74pp 在雜訊內，不得宣稱 |
+| [015](DR-015.md) | 主張定調：replay→accuracy、KD+eq→behaviour | SUPERSEDED-BY DR-029 | flat 架構下的定調；階層版由 DR-029 解禁 |
 | [016](DR-016.md) | 配對統計 + win count，不報 p 值 | ACTIVE | 七臂同 seeds；n=5 政策沿用 |
 | [017](DR-017.md) | E1 記憶體曲線為主要防禦；牌一先實作備援 | ACTIVE | ⏳ 執行中；防「把 \|M\| 開大就好」；utility-gated KD 在手 |
 | [018](DR-018.md) | 寫作策略：完整版母本優先，venue 視圖後導出 | ACTIVE | 不為任何 venue 砍 idea；去風險由 checklist/ledger/SEEDS 承擔 |
@@ -38,6 +38,8 @@
 | [026](DR-026.md) | 執行期檔案凍結；長 job 必須檢查 exit code | ACTIVE | G1' 曾被靜默跳過；新增 --help 守門與 set -e |
 | [027](DR-027.md) | 批次腳本的失敗語意；字串替換必須斷言錨點 | ACTIVE | 偽裝成成功的失敗比 crash 危險；憲法 §2.7、§3.5 |
 | [028](DR-028.md) | 報告腳本必須有最小資料煙霧測試 | ACTIVE | --help 擋不住需真實資料才觸發的錯；憲法 §3.6 |
+| [029](DR-029.md) | 階層架構下 task-IL 主張成立 | ACTIVE | 取代 DR-015 的適用範圍；須同時陳述差距擴大的雙重來源 |
+| [030](DR-030.md) | 回報內容必須存在於 committed 產物中 | ACTIVE | 憲法 §2.8；臨時算出的數字必須先寫進產物再回報 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

@@ -28,11 +28,11 @@ c=8 跑一輪選出的 patch **集合與順序都位元相同**。
 **解除條件**：`use_state=True` 的實驗（L6）跑出來，且證明其選取與 c=8 一次選取
 不同。屆時 sequential 的宣稱只適用於那些實驗。
 
-### C-02 hierarchical selection（在 G1 上）
+### ~~C-02 hierarchical selection~~ ✅ 已解除（G1'，DR-029）
 
-G1 的 `per_chunk` 配額在 c=1 時退化為「先挑一組再取該組 top-8」
-（84.5% 的 slide 只用一個 group）。G1 測到的不是階層。
-**解除條件**：G1'（`per_budget` 配額）跑出來且結構性指標通過。
+G1 的 `per_chunk` 配額在 c=1 時退化為單組選取（88.6%），測到的不是階層。
+**G1'（`per_budget`）已通過結構性把關**：單組比例 2.4%、平均用到 4.31 組。
+**階層已採用為主線**，可正常宣稱。
 
 ### C-03 group-level distillation 有效或無效
 
@@ -50,8 +50,17 @@ S1 顯示跨器官任務 98.2 / 98.6% 線性可分，q_τ 在此 benchmark 結�
 
 ### C-10 A5 相對 A3 的優勢
 
-**只在 class-IL / 洩漏率 / Jaccard 上宣稱**（DR-015）。task-IL 上 +0.74 pp 在雜訊內。
-且 **eq 的貢獻非跨順序穩定**（A5 − A4 在 reverse 與 main 上方向相反），必須同時報告。
+**階層為主線後（DR-029），task-IL 與 class-IL 兩軸皆可宣稱**
+（+3.28 / +5.76 pp，均 5/5 systematic）。
+
+⚠️ 必須同時陳述兩件事，缺一即為選擇性報告：
+1. **差距擴大有雙重來源** —— A5 更穩定（正向）**與 replay-only 在階層下退化**
+   （hier-A3 − flat-A3 = −3.11 pp，負向）。不得只報前半。
+2. **eq 的貢獻非跨順序穩定** —— A5 − A4 在 reverse 與 main 上方向相反
+   （該對照目前只有 flat 版證據）。
+
+flat 架構下的舊定調見 [DR-015](ledger/DR-015.md)（已 SUPERSEDED-BY DR-029），
+其結論在 flat 上仍然成立。
 
 ### C-11 2× 記憶體效率
 
