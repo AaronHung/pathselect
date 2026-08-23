@@ -36,16 +36,23 @@ def _kl(target_logits: torch.Tensor, student_logits: torch.Tensor,
 
 def l_kd(r_old: torch.Tensor, r_new: torch.Tensor,
          s_old: torch.Tensor, s_new: torch.Tensor,
-         tau: float = 1.0) -> torch.Tensor:
+         tau: float = 1.0, group_weight: float = 1.0) -> torch.Tensor:
     """群層 + patch 層的選取行為蒸餾。
 
     r_*: [J] group 分數；s_*: [len(cand_idx)] 候選 patch 分數（同一組 cand_idx）。
+
+    group_weight=0 → **完全不計算** group 項，結果與「只有 patch 蒸餾」位元相同。
+    用來隔離 group-level distillation 的效果（DR-022）：架構圖 Panel I 畫了這一項，
+    但在 flat 模式下 F_g 對選取零影響，所以它從未被實際測試過。
     """
     if r_old.numel() != r_new.numel():
         raise ValueError(f"r 長度不符：{r_old.numel()} vs {r_new.numel()}")
     if s_old.numel() != s_new.numel():
         raise ValueError(f"s 長度不符：{s_old.numel()} vs {s_new.numel()}")
-    return _kl(r_old, r_new, tau) + _kl(s_old, s_new, tau)
+    patch = _kl(s_old, s_new, tau)
+    if group_weight == 0.0:
+        return patch
+    return group_weight * _kl(r_old, r_new, tau) + patch
 
 
 # ── L_eq ────────────────────────────────────────────────────────────────────

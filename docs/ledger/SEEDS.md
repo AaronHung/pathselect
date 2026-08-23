@@ -55,4 +55,4 @@ S-01 在上方單獨列出，因為它有完整的實驗證據鉤子；以下為
 | S-15 | 可分離性 probe 作為 benchmark 設計工具 | S1 probe 20 分鐘判定 conditioning 可測性 | 方法學貢獻：task-conditioned 工作的標準前測 |
 | S-16 | stateful 選取的 per-round utility 監督 | last-round-only 只覆蓋 1/8 決策點 | L6 完整版先決修正 |
 | S-17 | budget 曲線峰值現象（K=8 後下降） | Exp 0 四 task 平均峰值在 K=8；esca 七個 K 全平 | 證據稀釋 vs 冗餘的分析 |
-| S-18 | 研究用程式碼的 mutation-checked 斷言實務 | 本專案 68 條 ledger 測試；一次靜默失敗的字串替換（commit 8675021 前）被自身疏失發現 | research engineering 的方法學短文或附錄 |
+| S-18 | 研究用程式碼的 mutation-checked 斷言實務（**含科學主張**） | 本專案 68 條 ledger 測試；一次靜默失敗的字串替換（commit 8675021 前）被自身疏失發現；G0 以「替換 F_g 為擾動網路 → 選取位元相同」把「零影響」從推論變成證據，並以 hier 下的反向對照排除「替換本身無效」；另發現「數值不可分辨的違例」（0·kl+patch ≡ patch）會讓 mutation 假通過，須改以計算圖斷言 | research engineering 的方法學短文或附錄 |

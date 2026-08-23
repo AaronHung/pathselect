@@ -169,3 +169,55 @@ def test_total_loss_adds_terms_when_enabled():
                             lambda_eq=0.5, lambda_replay=0.25)
     assert float(out) == pytest.approx(1.0 + 2.0 + 1.5 + 1.0)
     assert parts["L_KD"] == 2.0 and parts["L_eq"] == 3.0 and parts["L_replay"] == 4.0
+
+
+# ── DR-022：隔離 group-level distillation ──────────────────────────────────
+
+def test_kd_group_weight_one_is_bit_identical_to_the_original():
+    """group_weight=1（預設）必須與加入這個參數之前位元相同。"""
+    torch.manual_seed(0)
+    r_o, r_n = torch.randn(J), torch.randn(J)
+    s_o, s_n = torch.randn(N), torch.randn(N)
+    from selector.continual import _kl
+    want = _kl(r_o, r_n) + _kl(s_o, s_n)
+    assert torch.equal(l_kd(r_o, r_n, s_o, s_n), want)
+    assert torch.equal(l_kd(r_o, r_n, s_o, s_n, group_weight=1.0), want)
+
+
+def test_kd_group_weight_zero_is_exactly_the_patch_term():
+    """group_weight=0 → 完全不計算 group 項，等於只有 patch 蒸餾。"""
+    torch.manual_seed(1)
+    r_o, r_n = torch.randn(J), torch.randn(J)
+    s_o, s_n = torch.randn(N), torch.randn(N)
+    from selector.continual import _kl
+    got = l_kd(r_o, r_n, s_o, s_n, group_weight=0.0)
+    assert torch.equal(got, _kl(s_o, s_n))
+    assert not torch.equal(got, l_kd(r_o, r_n, s_o, s_n))
+
+
+def test_kd_group_weight_zero_keeps_group_scores_out_of_the_graph():
+    """隔離要徹底：group 項關掉後，r_new **完全不進計算圖**。
+
+    ⚠️ 這裡必須斷言 `grad is None` 而不是「grad 全為零」。
+    `0.0 * kl + patch` 在浮點上等於 `patch`，數值不可分辨；但乘零會把 r_new 拉進圖、
+    讓 backward 產生一個**全零張量**，提前 return 則讓 .grad 保持 None。
+    只有嚴格版的斷言分得出「沒有計算」與「算了再乘零」。
+    """
+    torch.manual_seed(2)
+    r_new = torch.randn(J, requires_grad=True)
+    s_new = torch.randn(N, requires_grad=True)
+    l_kd(torch.randn(J), r_new, torch.randn(N), s_new, group_weight=0.0).backward()
+    assert r_new.grad is None, "group 項關掉後 r_new 仍進了計算圖"
+    assert s_new.grad is not None and float(s_new.grad.abs().sum()) > 0
+
+
+def test_a5ng_arm_differs_from_a5_only_in_kd_group_weight():
+    """A5nG 與 A5 的唯一差異必須是 kd_group_weight。"""
+    from scripts.run_exp2 import ARMS
+    a5 = dict(ARMS["A5"])
+    a5ng = dict(ARMS["A5nG"])
+    a5.pop("name"), a5ng.pop("name")
+    a5.setdefault("kd_group_weight", 1.0)
+    diff = {k for k in set(a5) | set(a5ng) if a5.get(k) != a5ng.get(k)}
+    assert diff == {"kd_group_weight"}, f"不只 kd_group_weight 不同：{diff}"
+    assert a5ng["kd_group_weight"] == 0.0 and a5["kd_group_weight"] == 1.0

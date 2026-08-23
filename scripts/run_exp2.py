@@ -77,6 +77,10 @@ ARMS = OrderedDict([
                 replay=True, kd=True, eq=True)),
     # 元件消融：λ 設 0 與「不計算該項」位元等價（乘 0 再相加不改變任何位元），
     # 實作上直接關掉以省算力。記憶體照常填充與取樣 —— KD / eq 都需要舊樣本。
+    # DR-022：隔離 group-level distillation。與 A5 唯一的差異是 L_KD 的 group 項
+    # 係數設 0（完全不計算），patch 項不變。F_g 仍照常從 L_diag 收梯度（階層下）。
+    ("A5nG", dict(name="Ours − group-KD（只留 patch 蒸餾）", mode="sequential",
+                  lora=True, replay=True, kd=True, eq=True, kd_group_weight=0.0)),
     ("B1", dict(name="只 KD (λ_r=λ_eq=0)", mode="sequential", lora=True,
                 replay=False, kd=True, eq=False)),
     ("B2", dict(name="只 eq (λ_r=λ_kd=0)", mode="sequential", lora=True,
@@ -182,7 +186,8 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng):
                         ctx.tissue, budget=args.budget, chunk=args.chunk,
                         spec=ARCH[args.arch],
                         use_kd=spec["kd"], use_eq=spec["eq"],
-                        use_replay=spec["replay"])
+                        use_replay=spec["replay"],
+                        kd_group_weight=spec.get("kd_group_weight", 1.0))
                     kd = k_ if kd is None else kd + k_
                     eq = e_ if eq is None else eq + e_
                     replay = r_ if replay is None else replay + r_

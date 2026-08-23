@@ -313,7 +313,7 @@ def fill_memory(memory: SelectionMemory, models, task: str, cfg, f_txt, logit_sc
 def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
                     budget=DEFAULT_BUDGET, chunk=DEFAULT_CHUNK, q_tau=None,
                     spec=None, use_kd=True, use_eq=True, use_replay=True,
-                    eq_mode="hinge"):
+                    eq_mode="hinge", kd_group_weight=1.0):
     """對一筆記憶體 entry 算出 (L_KD, L_eq, L_replay)；關掉的項回傳 None。
 
     L_replay 就是 L_diag 跑在從 M 取回的舊樣本上 —— replay 是資料機制，
@@ -334,7 +334,8 @@ def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
     if use_kd:
         cand = entry.cand_idx.to(torch.long)
         kd = l_kd(entry.r_old.to(last.r.dtype), last.r,
-                  entry.s_old.to(last.s.dtype), last.s.index_select(0, cand))
+                  entry.s_old.to(last.s.dtype), last.s.index_select(0, cand),
+                  group_weight=kd_group_weight)
     if use_eq:
         _idx, pos = selected_from_entry(entry, budget)
         u_old = float(entry.u_old.index_select(0, pos).sum())

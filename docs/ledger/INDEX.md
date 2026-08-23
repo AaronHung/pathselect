@@ -30,6 +30,7 @@
 | [019](DR-019.md) | E1 判讀：防禦成立，記憶體效率主張定為 2× | ACTIVE | 四條可宣稱；中段 128/256 的弱證據須揭露；牌一改為稀缺端假設驅動 |
 | [020](DR-020.md) | win count 三級規則與 A3 非單調的定性 | ACTIVE | 5/5 systematic、4/5 directional inconclusive、≤3/5 within noise；2× 為跨容量陳述 |
 | [021](DR-021.md) | 架構一致性：CL 主線改用階層選取器 | ACTIVE | 主表 flat 與架構圖 Group→Patch 脫節；G1 判準已 pre-register |
+| [022](DR-022.md) | group-level distillation 從未被測試；G1 增臂隔離 | ACTIVE | flat 下 group 項影響恰為零；EXP2.md 加誠實聲明；hier-A5nG 首次驗證 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。
