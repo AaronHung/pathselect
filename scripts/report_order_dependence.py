@@ -80,11 +80,15 @@ def main() -> int:
                      f"{w}/{len(d)} | {verdict(w, len(d))} |")
         L.append("")
 
-    L += ["## ⚠️ 翻轉的結論", "",
-          "以下比較在兩個 order 上**方向相反**，論文必須報告，不得只挑有利的那個。",
-          "", "| 對照 | 指標 | reverse | main | 是否翻轉 |", "|---|---|---|---|---|"]
-    FLIPS = [("A5", "A4"), ("A2", "A1"), ("A5", "A3")]
-    for x, y in FLIPS:
+    # 量級門檻：一側幾乎為零時不算翻轉，而是「一邊有效、一邊無效」
+    NEGLIGIBLE_PP = 0.5
+    L += ["## 跨順序的穩定性", "",
+          "方向相反才算**翻轉**；若一側的效果量小於 "
+          f"{NEGLIGIBLE_PP} pp（幾乎為零），標為「一邊有效、一邊無效」而非翻轉 —— "
+          "兩者的論文含義不同。", "",
+          "| 對照 | 指標 | reverse | main | 判定 |", "|---|---|---|---|---|"]
+    CMP = [("A5", "A4"), ("A5", "A3"), ("A3", "A1")]
+    for x, y in CMP:
         for key, label, higher in METRICS[:2]:
             if any((o, a) not in M for o in TAGS for a in (x, y)):
                 continue
@@ -92,14 +96,25 @@ def main() -> int:
             for order in TAGS:
                 d = [M[(order, x)][s][key] - M[(order, y)][s][key] for s in common]
                 row[order] = statistics.mean(d) * 100
-            flip = "**是**" if row["reverse"] * row["main"] < 0 else "否"
-            L.append(f"| {x} − {y} | {label} | {row['reverse']:+.2f} pp | "
-                     f"{row['main']:+.2f} pp | {flip} |")
+            rv, mn = row["reverse"], row["main"]
+            if min(abs(rv), abs(mn)) < NEGLIGIBLE_PP:
+                weak = "main" if abs(mn) < abs(rv) else "reverse"
+                strong = "reverse" if weak == "main" else "main"
+                call = f"{strong} 有效、{weak} 無效"
+            elif rv * mn < 0:
+                call = "**翻轉**"
+            else:
+                call = "跨順序穩定"
+            L.append(f"| {x} − {y} | {label} | {rv:+.2f} pp | {mn:+.2f} pp | {call} |")
     L += ["",
           "### 讀法", "",
-          "- **eq 的貢獻非跨順序穩定**：A5 − A4 在兩個 order 上方向相反"
-          "（reverse +2.43 / main −0.67 task-IL；class-IL 亦然）。這是本檔最主要的發現。",
-          "- **replay 的效果跨順序穩定**：A3 相對 A1 在兩個 order 上都是大幅改善。",
+          "- **唯一乾淨的翻轉是 A5 − A4**（task-IL 與 class-IL 皆翻轉）："
+          "reverse 上 eq 有正貢獻、main 上是負的。**eq 的貢獻非跨順序穩定。**"
+          "這是本檔最主要的發現。",
+          "- **A5 − A3 是「reverse 有效、main 無效」，不是翻轉**：main 側的 "
+          "class-IL 差值幾乎為零（量級小於 0.5 pp），把它寫成翻轉會誇大。",
+          "- **A3 − A1 跨順序穩定**：replay 相對 SeqFT 在兩個 order 上都是大幅改善，"
+          "方向與量級都一致。這是本專案最穩固的結果。",
           "",
           "這是 CL 的真實現象（任務難度與順序位置交互作用），不是實作瑕疵。", "",
           "### ⚠️ A2 − A1 不是順序效應，是 seed 變異", "",

@@ -33,6 +33,7 @@
 | [021](DR-021.md) | 架構一致性：CL 主線改用階層選取器 | ACTIVE | 主表 flat 與架構圖 Group→Patch 脫節；G1 判準已 pre-register |
 | [022](DR-022.md) | group-level distillation 從未被測試；G1 增臂隔離 | ACTIVE | flat 下 group 項影響恰為零；EXP2.md 加誠實聲明；hier-A5nG 首次驗證 |
 | [023](DR-023.md) | n<5 批次的統計警語升格為憲法條文 | ACTIVE | 規則本體移入 docs/CONSTITUTION.md §1.2；報告產生器自動加註 |
+| [024](DR-024.md) | 跨批次配對與撤回程序入憲 | ACTIVE | 憲法 §1.3 共同子集不代表母體、§2.4 撤回不算失分隱瞞才算 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

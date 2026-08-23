@@ -37,23 +37,24 @@ reverse = esca → rcc → brca → lung；main = lung → brca → rcc → esca
 | A4 | 12.77 | 10.65 | -2.12 ± 5.84 | 2/3 | within noise |
 | A5 | 11.05 | 11.85 | +0.80 ± 4.42 | 1/3 | within noise |
 
-## ⚠️ 翻轉的結論
+## 跨順序的穩定性
 
-以下比較在兩個 order 上**方向相反**，論文必須報告，不得只挑有利的那個。
+方向相反才算**翻轉**；若一側的效果量小於 0.5 pp（幾乎為零），標為「一邊有效、一邊無效」而非翻轉 —— 兩者的論文含義不同。
 
-| 對照 | 指標 | reverse | main | 是否翻轉 |
+| 對照 | 指標 | reverse | main | 判定 |
 |---|---|---|---|---|
-| A5 − A4 | task-IL final avg | +2.43 pp | -0.67 pp | **是** |
-| A5 − A4 | class-IL final avg | +2.04 pp | -1.88 pp | **是** |
-| A2 − A1 | task-IL final avg | +5.02 pp | +13.83 pp | 否 |
-| A2 − A1 | class-IL final avg | +7.92 pp | +18.89 pp | 否 |
-| A5 − A3 | task-IL final avg | +1.38 pp | +1.24 pp | 否 |
-| A5 − A3 | class-IL final avg | +3.14 pp | -0.05 pp | **是** |
+| A5 − A4 | task-IL final avg | +2.43 pp | -0.67 pp | **翻轉** |
+| A5 − A4 | class-IL final avg | +2.04 pp | -1.88 pp | **翻轉** |
+| A5 − A3 | task-IL final avg | +1.38 pp | +1.24 pp | 跨順序穩定 |
+| A5 − A3 | class-IL final avg | +3.14 pp | -0.05 pp | reverse 有效、main 無效 |
+| A3 − A1 | task-IL final avg | +12.76 pp | +14.21 pp | 跨順序穩定 |
+| A3 − A1 | class-IL final avg | +36.90 pp | +34.28 pp | 跨順序穩定 |
 
 ### 讀法
 
-- **eq 的貢獻非跨順序穩定**：A5 − A4 在兩個 order 上方向相反（reverse +2.43 / main −0.67 task-IL；class-IL 亦然）。這是本檔最主要的發現。
-- **replay 的效果跨順序穩定**：A3 相對 A1 在兩個 order 上都是大幅改善。
+- **唯一乾淨的翻轉是 A5 − A4**（task-IL 與 class-IL 皆翻轉）：reverse 上 eq 有正貢獻、main 上是負的。**eq 的貢獻非跨順序穩定。**這是本檔最主要的發現。
+- **A5 − A3 是「reverse 有效、main 無效」，不是翻轉**：main 側的 class-IL 差值幾乎為零（量級小於 0.5 pp），把它寫成翻轉會誇大。
+- **A3 − A1 跨順序穩定**：replay 相對 SeqFT 在兩個 order 上都是大幅改善，方向與量級都一致。這是本專案最穩固的結果。
 
 這是 CL 的真實現象（任務難度與順序位置交互作用），不是實作瑕疵。
 
