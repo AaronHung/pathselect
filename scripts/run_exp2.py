@@ -52,7 +52,14 @@ from selector.train import (continual_terms, fill_memory, total_loss,    # noqa:
 from selector.utility import sequential_utility_total                    # noqa: E402
 
 OUT_ROOT = REPO_ROOT / "outputs" / "exp2"
-L3B = dict(use_query=False, use_state=False, hierarchy=False)
+#: 架構組態。**只有 hierarchy 這一個開關不同** —— q_tau 與 state 一律關閉，
+#: 這一輪只驗證階層，不同時打開三件事（Gate 1 的教訓：同時開就無法歸因）。
+ARCH = {
+    "flat": dict(use_query=False, use_state=False, hierarchy=False),
+    "hier": dict(use_query=False, use_state=False, hierarchy=True),
+}
+DEFAULT_ARCH = "flat"
+L3B = ARCH["flat"]      # 向後相容的別名
 ORDERS = {
     "reverse": ["tcga_esca", "tcga_rcc", "tcga_brca", "tcga_lung"],
     "main": ["tcga_lung", "tcga_brca", "tcga_rcc", "tcga_esca"],
@@ -165,14 +172,15 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng):
                 rec.Z, rec.label, ctx.q0, ctx.f_txt, ctx.logit_scale, f_g, f_p,
                 grouping=grp, budget=args.budget, chunk=args.chunk,
                 prior_kind=args.prior, beta_s=args.beta_s, beta_u=args.beta_u,
-                **L3B)
+                **ARCH[args.arch])
 
             kd = eq = replay = None
             if len(memory) and (spec["kd"] or spec["eq"] or spec["replay"]):
                 for entry in memory.sample(args.replay_k, rng):
                     k_, e_, r_ = continual_terms(
                         entry, ctx.cfg, (f_g, f_p), ctx.f_txt, ctx.logit_scale,
-                        ctx.tissue, budget=args.budget, chunk=args.chunk, spec=L3B,
+                        ctx.tissue, budget=args.budget, chunk=args.chunk,
+                        spec=ARCH[args.arch],
                         use_kd=spec["kd"], use_eq=spec["eq"],
                         use_replay=spec["replay"])
                     kd = k_ if kd is None else kd + k_
@@ -202,7 +210,7 @@ def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
         rec, grp = ctx.get(task, "test", i)
         from selector.rounds import run_rounds
         res = run_rounds(rec.Z, grp, ctx.q0, f_g, f_p, budget=args.budget,
-                         chunk=args.chunk, **L3B)
+                         chunk=args.chunk, **ARCH[args.arch])
         idx, s = res.selected, res.records[-1].s
         w = softmax_weights(s, idx)
         logits = conch_classify(rec.Z.index_select(0, idx), w,
@@ -223,6 +231,7 @@ def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
             "weights_uniform": [round(1.0 / max(idx.numel(), 1), 6)] * idx.numel(),
             "group_quota": quota, "n_patch": int(rec.Z.shape[0]),
             "mem_capacity": args.mem_capacity or MEMORY_CAPACITY,
+            "arch": args.arch, "prior": args.prior,
             "utility_total": u_total, "B": args.budget,
             **(diag or {}),
         })
@@ -270,7 +279,7 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
         if spec["replay"] or spec["kd"] or spec["eq"]:
             added = fill_memory(memory, models, task, ctx.cfg, ctx.f_txt,
                                 ctx.logit_scale, ctx.tissue, budget=args.budget,
-                                chunk=args.chunk, spec=L3B,
+                                chunk=args.chunk, spec=ARCH[args.arch],
                                 max_slides=args.mem_slides)
             print(f"       記憶體 +{added} → |M|={len(memory)}", flush=True)
         for t in tasks[:stage + 1]:
@@ -308,6 +317,8 @@ def main() -> int:
     ap.add_argument("--mem-capacity", type=int, default=None,
                     help="|M| 上限；超過 CONTRACT-3 的 512 需要本旗標顯式指定")
     ap.add_argument("--max-train", type=int, default=0)
+    ap.add_argument("--arch", choices=list(ARCH), default=DEFAULT_ARCH,
+                    help="flat = 只用 Patch Selector；hier = Group → 配額 → Patch")
     ap.add_argument("--tag", default="main")
     ap.add_argument("--no-resume", action="store_true")
     ap.add_argument("--report-only", action="store_true")
@@ -329,6 +340,7 @@ def main() -> int:
 
     print(f"Exp2  arms={arms}  order={args.order}  seeds={seeds}  "
           f"B={args.budget} c={args.chunk} epochs={args.epochs} "
+          f"arch={args.arch} prior={args.prior} "
           f"beta_u={args.beta_u} replay_k={args.replay_k} "
           f"λ=({args.lambda_kd},{args.lambda_eq},{args.lambda_replay})", flush=True)
 
@@ -336,6 +348,10 @@ def main() -> int:
     for arm in arms:
         for seed in seeds:
             suffix = f"_M{args.mem_capacity}" if args.mem_capacity else ""
+            if args.arch != DEFAULT_ARCH:
+                suffix += f"_{args.arch}"
+            if args.prior != MAINLINE_PRIOR:
+                suffix += f"_{args.prior}"
             tag = f"{arm}_{args.order}_seed{seed}{suffix}"
             path = out_dir / "per_slide" / f"{tag}.json"
             if path.exists() and not args.no_resume:
