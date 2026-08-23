@@ -30,6 +30,11 @@ REPORTS = {
     "report_order_dependence.py": ("outputs/exp2/order_main/per_slide",
                                    "outputs/exp2/ORDER_DEPENDENCE.md",
                                    ["## 跨順序的穩定性", "### 讀法"]),
+    "report_b1_landing.py": ("outputs/exp2/ablation/per_slide",
+                             "outputs/exp2/ablation/B1_LANDING.md",
+                             ["## KD 與 replay 保存的是不同的東西",
+                              "### 預測落點", "### seed 4 的 rcc：逐筆落點",
+                              "### ⚠️ B1 同時是最不穩的一臂"]),
 }
 
 

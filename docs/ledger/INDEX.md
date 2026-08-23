@@ -42,6 +42,7 @@
 | [030](DR-030.md) | 回報內容必須存在於 committed 產物中 | ACTIVE | 憲法 §2.8；臨時算出的數字必須先寫進產物再回報 |
 | [031](DR-031.md) | E1 記憶體曲線以階層版完整重跑（方案 A），排在最後 | ACTIVE | 曲線不可假設可移植；每個 \|M\| 都要報結構性指標 |
 | [032](DR-032.md) | 長 job 必須有存活訊號；批次不得用變數當命令 | ACTIVE | zsh 不做 word splitting；outputs/_status/<job>.json |
+| [033](DR-033.md) | B1 的論文定位：KD 與 replay 保存不同的東西 | ACTIVE | KD 保選取行為、replay 保任務歸屬；B1 是最不穩的一臂 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

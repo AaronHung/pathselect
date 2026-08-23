@@ -90,6 +90,18 @@ A3 − A1 在 reverse 與 main 上都是大幅改善，方向與量級一致
 
 head 是 frozen 的，所以跨任務洩漏只能來自選取改變（DR-012）。這是架構的直接後果。
 
+### C-24 KD 與 replay 保存的是不同的東西（DR-033）
+
+**KD 保住選取行為，replay 保住證據的任務歸屬，兩者不可互相取代。**
+
+支撐：B1（只 KD）5-seed 落點分析 —— Jaccard 0.0725 與 A3（只 replay）的 0.0669
+相當，但洩漏率 0.3231 是 A5 的 3.2 倍；A5 − B1 在 class-IL 為 systematic（5/5）
+而 task-IL 僅 directional（4/5）。frozen head 使歸因封閉（DR-012）。
+
+⚠️ 引用時必須同時報 **B1 是最不穩的一臂**（class-IL seed std ±0.1042，全場最大）。
+
+證據檔：`outputs/exp2/ablation/B1_LANDING.md`
+
 ### C-23 per-task specialist 不是 task-IL 的上界
 
 R1 每 task 只用自己的資料，replay 臂實質可及跨任務資料；R1 的參考意義在 class-IL
