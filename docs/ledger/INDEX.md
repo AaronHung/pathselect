@@ -1,7 +1,8 @@
 # Decision Ledger — INDEX（L1 現況表）
 
 > 未來重啟分析時的第一句話：
-> 「先讀 `docs/ledger/INDEX.md` 與 `GRAVEYARD.md`，再讀 status=ACTIVE 的 DR 卡。
+> 「先讀 `docs/ledger/INDEX.md` 與 [`docs/CONSTITUTION.md`](../CONSTITUTION.md)，
+> 再讀 `GRAVEYARD.md` 與 status=ACTIVE 的 DR 卡。
 > L4 原始對話只在需要考古時進入。」
 
 **規則 3 —— 狀態只有三種**：`ACTIVE` / `SUPERSEDED-BY DR-0xx` / `PARKED`。
@@ -31,6 +32,7 @@
 | [020](DR-020.md) | win count 三級規則與 A3 非單調的定性 | ACTIVE | 5/5 systematic、4/5 directional inconclusive、≤3/5 within noise；2× 為跨容量陳述 |
 | [021](DR-021.md) | 架構一致性：CL 主線改用階層選取器 | ACTIVE | 主表 flat 與架構圖 Group→Patch 脫節；G1 判準已 pre-register |
 | [022](DR-022.md) | group-level distillation 從未被測試；G1 增臂隔離 | ACTIVE | flat 下 group 項影響恰為零；EXP2.md 加誠實聲明；hier-A5nG 首次驗證 |
+| [023](DR-023.md) | n<5 批次的統計警語升格為憲法條文 | ACTIVE | 規則本體移入 docs/CONSTITUTION.md §1.2；報告產生器自動加註 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。
