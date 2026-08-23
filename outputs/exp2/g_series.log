@@ -1,0 +1,16 @@
+=== 前批已結束，開始 G 系列 ===
+=== G1: 階層版 CL 主線（A3, A5 × hier × |M|=512 × 5 seeds）===
+Exp2  arms=['A3', 'A5', 'A5nG']  order=reverse  seeds=[0, 1, 2, 3, 4]  B=8 c=1 epochs=5 arch=hier prior=discriminative beta_u=0.1 replay_k=1 λ=(1.0,1.0,1.0)
+  ▶ A3 (+ Replay) seed=0
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=1.7487
+      epoch 2/5 n=120 mean_loss=1.2226
+      epoch 3/5 n=120 mean_loss=0.7829
+      epoch 4/5 n=120 mean_loss=0.7340
+      epoch 5/5 n=120 mean_loss=0.5833
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8000
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=1.9204
+      epoch 2/5 n=616 mean_loss=1.3550
+      epoch 3/5 n=616 mean_loss=1.0555

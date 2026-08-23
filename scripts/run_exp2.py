@@ -94,7 +94,10 @@ ARMS = OrderedDict([
 SLIDE_CACHE = 256
 #: E2：臂間比較一律配對統計（PI 裁定 4）。不報 p 值。
 PAIRED_COMPARISONS = [("A5", "A3"), ("A5", "A1"), ("A4", "A3"),
-                      ("A5", "A4"), ("A5", "R2")]
+                      ("A5", "A4"), ("A5", "R2"),
+                      # 元件消融（只在該 tag 有這些臂時才出現）
+                      ("A5", "B1"), ("A5", "B2"), ("B2", "B1"), ("B2", "A3"),
+                      ("A5", "A5nG")]
 #: 配對比較看的四個指標，以及「越大越好 / 越小越好」
 PAIRED_METRICS = [("final_task_il", "task-IL final avg", True),
                   ("final_class_il", "class-IL final avg", True),
@@ -563,6 +566,12 @@ def write_paired(M, arms, seeds) -> list[str]:
          "",
          "**不報 p 值** —— n=5 的政策沿用（DR-016），顯著性檢定在這個樣本數下會誤導。",
          ""]
+    n_seeds = len(seeds)
+    if n_seeds < 5:
+        L += [f"⚠️ **本批只有 {n_seeds} seeds，三級規則是為 n=5 校準的。**"
+              f"{n_seeds}/{n_seeds} 的證據強度明顯低於 5/5，"
+              "本批的 systematic 標籤應讀作「方向一致」而非「已定案」；"
+              "任何要寫進論文的主張都必須回到 5-seed 的批次確認。", ""]
     for key, label, higher_better in PAIRED_METRICS:
         L += [f"### {label}（{'越大越好' if higher_better else '越小越好'}）", "",
               "| 對照 | 逐 seed 配對差值 | 配對 mean ± std | win count |",

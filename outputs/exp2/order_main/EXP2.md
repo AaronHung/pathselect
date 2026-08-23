@@ -108,7 +108,21 @@ n（test）：lung 95、brca 93、rcc 76、esca 15。⚠️ esca n=15，一張 s
 
 ## Paired comparisons（E2）
 
-臂間比較一律**配對**：同一個 seed 相減，再對 5 個差值取 mean ± std。win count = 5 個 seed 裡有幾個往「較好」的方向。**不報 p 值。**
+臂間比較一律**配對**：同一個 seed 相減，再對差值取 mean ± std。
+
+### 方法學註記：win count 三級規則（DR-020）
+
+win count = 幾個 seed 往「較好」的方向。判讀只有三級，全文一律使用這三個詞，不混用：
+
+| win count | 名稱 | 判讀 |
+|---|---|---|
+| 5/5 | **systematic** | 系統性差異 |
+| 4/5 | **directional, inconclusive** | 方向一致但證據不足以定案 |
+| ≤3/5 | **within noise** | 落在雜訊內 |
+
+**不報 p 值** —— n=5 的政策沿用（DR-016），顯著性檢定在這個樣本數下會誤導。
+
+⚠️ **本批只有 3 seeds，三級規則是為 n=5 校準的。**3/3 的證據強度明顯低於 5/5，本批的 systematic 標籤應讀作「方向一致」而非「已定案」；任何要寫進論文的主張都必須回到 5-seed 的批次確認。
 
 ### task-IL final avg（越大越好）
 
