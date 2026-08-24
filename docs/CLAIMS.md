@@ -44,6 +44,19 @@ class-IL **+3.71 ± 2.66（5/5）**，皆 systematic。DR-022 的結論已作廢
 group-KD 保存的是**組織層配額分佈**、patch-KD 保存的是**具體 patch 身份**，
 兩層分工不同 —— 這是架構圖 Panel I 兩層設計的直接證據。
 
+### C-26 「規格寫了、架構圖畫了、但從未生效」的元件 ❌ 不可當作已驗證
+
+**同一家族目前有三例。論文的 limitation 必須逐一列出。**
+
+| 元件 | 規格 / 圖上有 | 實際狀態 |
+|---|---|---|
+| **group-level KD** | Panel I 的兩層蒸餾 | flat 下 F_g 輸出不影響選取，該項對所有指標影響恰為零；**階層版重測後有效**（DR-035） |
+| **q_τ task conditioning** | 方法輸入的一部分 | 實作且有用到，但跨器官 benchmark 上 98.2/98.6% 線性可分 → 結構性冗餘（DR-008 / G-05） |
+| **group-level semantic prior** | L_sem 原始規格是兩項：KL(B(r_j)‖B(p_j^sem)) + KL(B(s_i)‖B(p_i^sem)) | **只實作了 patch 項**。`l_sem()` 沒有 r 參數、沒有第二個 KL；訓練中從未計算 group prior。已用 mutation 實測確認：把 group prototype 擾動 5 倍，L_sem 數值**位元不變**（反向對照：擾動 patch 特徵會變） |
+
+⚠️ **這三例的共同教訓**：架構圖與規格書不是實作的證據。
+宣稱任何機制有效之前，必須用**替換或擾動**證明關掉它會改變輸出（憲法 §2.2 / §2.6）。
+
 ### C-04 task conditioning（q_τ）
 
 S1 顯示跨器官任務 98.2 / 98.6% 線性可分，q_τ 在此 benchmark 結構性冗餘。

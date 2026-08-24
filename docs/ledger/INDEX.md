@@ -45,8 +45,9 @@
 | [033](DR-033.md) | B1 的論文定位：KD 與 replay 保存不同的東西 | ACTIVE | KD 保選取行為、replay 保任務歸屬；B1 是最不穩的一臂 |
 | [034](DR-034.md) | 報告腳本的 fixture 必須涵蓋所有遍歷維度 | ACTIVE | 跨 tag 蒐集要過濾所有語意欄位；狀態檔要主動讀 |
 | [035](DR-035.md) | group-level distillation 首次有效驗證 | ACTIVE | task-IL +3.95、class-IL +3.71 皆 5/5；效果不在 Jaccard 上 |
-| [036](DR-036.md) | L_sem 在 class-IL 上無可測效果 | ACTIVE | 降級為弱正則；⚠️ 結論只適用階層架構 |
+| [036](DR-036.md) | L_sem 在 class-IL 上無可測效果 | SUPERSEDED-BY DR-038 | 措辭含循環論證，由 DR-038 承載修正 |
 | [037](DR-037.md) | 階層的價值在於放大方法優勢 | ACTIVE | flat +0.74/+0.75 → hier +3.28；DR-021 的論據補強 |
+| [038](DR-038.md) | L_sem 的措辭修正與範圍限定 | ACTIVE | 「在階層架構下」移除不損害準確率；刪去循環論證那句 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

@@ -56,7 +56,9 @@ discriminative − none = **-0.02 pp**，win **3/5**（within noise）。
 
 > **L_sem 移除不損害準確率。** class-IL 上三臂全部 within noise；task-IL 上 discriminative 相對 max_sim 為 +0.76 pp（5/5 systematic）但量級極小。**不得宣稱 L_sem 改善準確率。**
 
-可以宣稱的替代說法：semantic prior 作為**弱正則**，其移除不損害準確率 ——這與 β_s 刻意設為 0.1 的設計一致。**HistoSelect 的貢獻在於分組結構，而非語意先驗。**
+可以宣稱的替代說法：semantic prior 作為**弱正則**，**在階層架構下**其移除不損害準確率 —— 這與 β_s 刻意設為 0.1 的設計一致。
+
+⚠️ DR-038 已刪去 DR-036 原本的「HistoSelect 的貢獻在於分組結構而非語意先驗」一句：那是**循環論證** —— 我們正是在「分組結構壓過 patch 分數」的架構裡測 patch 層先驗。
 
 **選 discriminative 為主線的理由不受影響**（DR-007）：max_sim 實質上就是simple similarity，正是指導教授指名批評之處。本次結果反而給了新支持 ——兩者效果相當，而我們選了不是 similarity 的那個。
 
@@ -72,6 +74,14 @@ L_sem 只錨定 **patch 分數 s**（`semantic_prior(Z, ...)`，程式中沒有 
 | hier | r 先決定各組名額，s 只在組內排序 | **被稀釋** |
 
 **所以 prior 與選取架構並非正交，階層下的 null 不可外推到 flat。**
+
+#### 更根本的一點：group 層語意先驗從未實作
+
+L_sem 的原始規格是**兩項**：KL(B(r_j) ‖ B(p_j^sem)) + KL(B(s_i) ‖ B(p_i^sem))。實作中 `l_sem()` **只有 patch 項** —— 沒有 r 參數、沒有第二個 KL，訓練中也從未計算 group prior。
+
+已用 mutation 實測確認：把 group prototype 擾動 5 倍，**L_sem 的數值位元不變**（0.0226687789 → 0.0226687789）；反向對照擾動 patch 特徵則會變（0.022669 → 0.020234），證明擾動本身有效。
+
+因此本節測到的「L_sem 無效」，測的是**半邊的 L_sem**。
 目前沒有 flat 的 prior 消融資料（flat 全部是 discriminative）。要外推需補跑 none / max_sim × flat × 5 seeds = 10 輪（約 4.7 h）。
 
 逐 slide 預測：`outputs/exp2/prior/per_slide/*.json`
