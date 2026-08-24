@@ -39,42 +39,50 @@ def verdict(wins, n):
 
 def main() -> int:
     cfg = load_config()
-    M, seed_sets = {}, []
+    M, per_arm_seeds = {}, {}
     for order, tag in TAGS.items():
         recs = load(tag, order)
         if not recs:
             print(f"缺 {order} 的資料"); return 1
-        seeds = sorted({r["seed"] for r in recs})
-        seed_sets.append(set(seeds))
         for arm in ARMS_CMP:
             sub = [r for r in recs if r["arm"] == arm]
-            if sub:
-                M[(order, arm)] = {s: arm_metrics(sub, arm, ORDERS[order], s,
-                                                  cfg["tasks"]) for s in seeds}
-    common = sorted(set.intersection(*seed_sets))
-    print(f"兩個 order 共同的 seeds：{common}")
+            if not sub:
+                continue
+            seeds = sorted({r["seed"] for r in sub})
+            per_arm_seeds[(order, arm)] = set(seeds)
+            M[(order, arm)] = {s: arm_metrics(sub, arm, ORDERS[order], s,
+                                              cfg["tasks"]) for s in seeds}
+    # ⚠️ 共同 seeds 必須**逐 arm** 計算：main order 只有 A3/A5 補到 5 seeds，
+    # 其餘仍是 3 seeds。在 order 層取聯集會讓 A1 之類的臂被要求提供不存在的 seed。
+    common_of = {arm: sorted(per_arm_seeds.get(("reverse", arm), set())
+                             & per_arm_seeds.get(("main", arm), set()))
+                 for arm in ARMS_CMP}
+    print("各 arm 的共同 seeds：" + "、".join(
+        f"{a}={common_of[a]}" for a in ARMS_CMP if common_of[a]))
 
     L = ["# 順序依賴（獨立成節）", "",
          "CL 的結論不必然跨任務順序成立。本檔把翻轉的部分獨立列出，"
          "**不當雜訊帶過**（CONSTITUTION §3.2）。", "",
          f"reverse = {' → '.join(t.replace('tcga_', '') for t in ORDERS['reverse'])}"
          f"；main = {' → '.join(t.replace('tcga_', '') for t in ORDERS['main'])}。",
-         f"配對只用兩個 order **共同有的 seeds {common}**（reverse 另有 seeds 3,4，"
-         "此處不納入，以免混入不同樣本）。", "",
+         "配對**逐 arm** 使用該臂在兩個 order 都有的 seeds（表中標 n）—— "
+         "main order 只有 A3/A5 補到 5 seeds，其餘仍是 3 seeds，"
+         "在 order 層取聯集會混入不存在的樣本（憲法 §1.3）。", "",
          "## 各臂在兩個 order 上的表現", ""]
     for key, label, higher in METRICS:
         L += [f"### {label}", "",
               "| 臂 | reverse | main | main − reverse（配對） | win | 判定 |",
               "|---|---|---|---|---|---|"]
         for arm in ARMS_CMP:
-            if ("reverse", arm) not in M or ("main", arm) not in M:
+            cm = common_of.get(arm) or []
+            if ("reverse", arm) not in M or ("main", arm) not in M or not cm:
                 continue
-            rv = [M[("reverse", arm)][s][key] for s in common]
-            mn = [M[("main", arm)][s][key] for s in common]
+            rv = [M[("reverse", arm)][s][key] for s in cm]
+            mn = [M[("main", arm)][s][key] for s in cm]
             d = [a - b for a, b in zip(mn, rv)]
             w = sum((x > 0) if higher else (x < 0) for x in d)
             sd = statistics.stdev(d) if len(d) > 1 else 0.0
-            L.append(f"| {arm} | {statistics.mean(rv) * 100:.2f} | "
+            L.append(f"| {arm} (n={len(cm)}) | {statistics.mean(rv) * 100:.2f} | "
                      f"{statistics.mean(mn) * 100:.2f} | "
                      f"{statistics.mean(d) * 100:+.2f} ± {sd * 100:.2f} | "
                      f"{w}/{len(d)} | {verdict(w, len(d))} |")
@@ -92,9 +100,12 @@ def main() -> int:
         for key, label, higher in METRICS[:2]:
             if any((o, a) not in M for o in TAGS for a in (x, y)):
                 continue
+            cm = sorted(set(common_of.get(x) or []) & set(common_of.get(y) or []))
+            if not cm:
+                continue
             row = {}
             for order in TAGS:
-                d = [M[(order, x)][s][key] - M[(order, y)][s][key] for s in common]
+                d = [M[(order, x)][s][key] - M[(order, y)][s][key] for s in cm]
                 row[order] = statistics.mean(d) * 100
             rv, mn = row["reverse"], row["main"]
             if min(abs(rv), abs(mn)) < NEGLIGIBLE_PP:

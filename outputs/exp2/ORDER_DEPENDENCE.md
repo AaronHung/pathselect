@@ -3,7 +3,7 @@
 CL 的結論不必然跨任務順序成立。本檔把翻轉的部分獨立列出，**不當雜訊帶過**（CONSTITUTION §3.2）。
 
 reverse = esca → rcc → brca → lung；main = lung → brca → rcc → esca。
-配對只用兩個 order **共同有的 seeds [0, 1, 2]**（reverse 另有 seeds 3,4，此處不納入，以免混入不同樣本）。
+配對**逐 arm** 使用該臂在兩個 order 都有的 seeds（表中標 n）—— main order 只有 A3/A5 補到 5 seeds，其餘仍是 3 seeds，在 order 層取聯集會混入不存在的樣本（憲法 §1.3）。
 
 ## 各臂在兩個 order 上的表現
 
@@ -11,31 +11,31 @@ reverse = esca → rcc → brca → lung；main = lung → brca → rcc → esca
 
 | 臂 | reverse | main | main − reverse（配對） | win | 判定 |
 |---|---|---|---|---|---|
-| A1 | 77.24 | 74.48 | -2.76 ± 1.47 | 0/3 | **systematic** |
-| A2 | 82.26 | 88.31 | +6.05 ± 4.64 | 3/3 | **systematic** |
-| A3 | 90.00 | 88.69 | -1.31 ± 3.12 | 1/3 | within noise |
-| A4 | 88.96 | 90.60 | +1.64 ± 2.42 | 2/3 | within noise |
-| A5 | 91.39 | 89.93 | -1.46 ± 1.49 | 1/3 | within noise |
+| A1 (n=3) | 77.24 | 74.48 | -2.76 ± 1.47 | 0/3 | **systematic** |
+| A2 (n=3) | 82.26 | 88.31 | +6.05 ± 4.64 | 3/3 | **systematic** |
+| A3 (n=5) | 90.73 | 89.59 | -1.13 ± 2.41 | 2/5 | within noise |
+| A4 (n=3) | 88.96 | 90.60 | +1.64 ± 2.42 | 2/3 | within noise |
+| A5 (n=5) | 91.47 | 90.35 | -1.12 ± 1.40 | 2/5 | within noise |
 
 ### class-IL final avg
 
 | 臂 | reverse | main | main − reverse（配對） | win | 判定 |
 |---|---|---|---|---|---|
-| A1 | 41.04 | 45.77 | +4.72 ± 8.73 | 2/3 | within noise |
-| A2 | 48.97 | 64.65 | +15.69 ± 16.29 | 2/3 | within noise |
-| A3 | 77.95 | 80.05 | +2.10 ± 3.59 | 2/3 | within noise |
-| A4 | 79.05 | 81.88 | +2.83 ± 5.84 | 1/3 | within noise |
-| A5 | 81.09 | 80.00 | -1.08 ± 4.03 | 1/3 | within noise |
+| A1 (n=3) | 41.04 | 45.77 | +4.72 ± 8.73 | 2/3 | within noise |
+| A2 (n=3) | 48.97 | 64.65 | +15.69 ± 16.29 | 2/3 | within noise |
+| A3 (n=5) | 77.78 | 80.97 | +3.19 ± 3.23 | 4/5 | directional, inconclusive |
+| A4 (n=3) | 79.05 | 81.88 | +2.83 ± 5.84 | 1/3 | within noise |
+| A5 (n=5) | 82.39 | 80.69 | -1.70 ± 3.04 | 1/5 | within noise |
 
 ### 跨任務洩漏率
 
 | 臂 | reverse | main | main − reverse（配對） | win | 判定 |
 |---|---|---|---|---|---|
-| A1 | 50.90 | 39.46 | -11.45 ± 14.80 | 2/3 | within noise |
-| A2 | 43.47 | 27.65 | -15.82 ± 15.30 | 2/3 | within noise |
-| A3 | 13.34 | 12.10 | -1.24 ± 3.03 | 2/3 | within noise |
-| A4 | 12.77 | 10.65 | -2.12 ± 5.84 | 2/3 | within noise |
-| A5 | 11.05 | 11.85 | +0.80 ± 4.42 | 1/3 | within noise |
+| A1 (n=3) | 50.90 | 39.46 | -11.45 ± 14.80 | 2/3 | within noise |
+| A2 (n=3) | 43.47 | 27.65 | -15.82 ± 15.30 | 2/3 | within noise |
+| A3 (n=5) | 14.21 | 11.40 | -2.81 ± 3.03 | 4/5 | directional, inconclusive |
+| A4 (n=3) | 12.77 | 10.65 | -2.12 ± 5.84 | 2/3 | within noise |
+| A5 (n=5) | 10.05 | 11.54 | +1.49 ± 3.49 | 1/5 | within noise |
 
 ## 跨順序的穩定性
 
@@ -45,8 +45,8 @@ reverse = esca → rcc → brca → lung；main = lung → brca → rcc → esca
 |---|---|---|---|---|
 | A5 − A4 | task-IL final avg | +2.43 pp | -0.67 pp | **翻轉** |
 | A5 − A4 | class-IL final avg | +2.04 pp | -1.88 pp | **翻轉** |
-| A5 − A3 | task-IL final avg | +1.38 pp | +1.24 pp | 跨順序穩定 |
-| A5 − A3 | class-IL final avg | +3.14 pp | -0.05 pp | reverse 有效、main 無效 |
+| A5 − A3 | task-IL final avg | +0.74 pp | +0.75 pp | 跨順序穩定 |
+| A5 − A3 | class-IL final avg | +4.61 pp | -0.28 pp | reverse 有效、main 無效 |
 | A3 − A1 | task-IL final avg | +12.76 pp | +14.21 pp | 跨順序穩定 |
 | A3 − A1 | class-IL final avg | +36.90 pp | +34.28 pp | 跨順序穩定 |
 

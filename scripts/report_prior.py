@@ -41,11 +41,18 @@ def verdict(wins, n):
             else "directional, inconclusive")
 
 
-def collect(arch: str) -> dict:
-    """從所有相關 tag 蒐集 A5 的記錄，依 prior 分組。"""
+def collect(arch: str, allocation: str = "per_budget") -> dict:
+    """從所有相關 tag 蒐集 A5 的記錄，依 prior 分組。
+
+    ⚠️ **必須同時過濾 allocation。** `hier` tag 裡是 G1 的 per_chunk 紀錄
+    （階層退化成單組選取，88.6%），`hier2` 才是 per_budget 的主線。
+    早期紀錄沒有 allocation 欄位，缺欄位一律視為 per_chunk。
+    2026-08-24 曾因缺這道過濾，把 G1 的退化紀錄當成 discriminative 主線臂，
+    產出「主線遠差於 none/max_sim」的假結論。
+    """
     out = {p: [] for p in PRIORS}
     roots = [REPO_ROOT / "outputs" / "exp2" / t / "per_slide"
-             for t in ("prior", "hier", "main")]
+             for t in ("prior", "hier2", "main")]
     seen = set()
     for d in roots:
         if not d.is_dir():
@@ -55,6 +62,8 @@ def collect(arch: str) -> dict:
                 if (r["arm"] != "A5" or r["order"] != "reverse"
                         or r.get("mem_capacity", 512) != 512
                         or r.get("arch", "flat") != arch):
+                    continue
+                if arch == "hier" and r.get("allocation", "per_chunk") != allocation:
                     continue
                 pr = r.get("prior", MAINLINE)
                 key = (pr, r["seed"], r["stage"], r["task"], r["slide_id"])
@@ -80,7 +89,8 @@ def main() -> int:
          for p in have}
 
     L = ["# G2 — semantic prior 三臂消融（L_sem）", "",
-         f"arm = A5、arch = **{arch}**、reverse order、|M| = 512、seeds {seeds}、"
+         f"arm = A5、arch = **{arch}**（allocation = per_budget）、reverse order、"
+         f"|M| = 512、seeds {seeds}、"
          "beta_s = 0.1、其餘設定與主表相同（λ 全 1.0，不調）。", "",
          f"**{MAINLINE} 是 pre-registered 主線（DR-007）。**"
          "若 max_sim 或 none 勝出，照實報 —— 那是有價值的發現"

@@ -224,11 +224,41 @@ per-task specialist（獨立訓練）與 joint offline 的 forgetting 由構造�
 > 證據鉤子：2026-08-23 的 pipeline **在第一行就死**，log 只有一行錯誤，
 > 沒有任何完成或失敗標記，是 PI 手動看 log 才發現。
 
+#### 附帶：狀態檔要主動讀，不是寫了就算
+
+§3.7 的狀態檔在 2026-08-24 正確標記了 `failed`，但**沒有人讀它**，
+pipeline 死了 6 小時無人察覺。
+
+> **每次回報前，先讀 `outputs/_status/*.json`，並在回報開頭一行說明所有 job 的
+> 當前狀態。** 這是零成本的，但它是唯一能讓自己發現 job 死掉的機制。
+
 #### 附帶：zsh 不對未加引號的變數做 word splitting
 
 `R="python foo.py"; $R` 在 **bash 會展開成兩個詞、在 zsh 會被當成一個檔名**。
 批次腳本**不得用變數當命令**，每一行都要是完整可執行的命令。
 這正是上述 pipeline 第一行就死的直接原因（不是相對路徑問題 —— `cd` 有生效）。
+
+### §3.6b 報告腳本的 fixture 必須涵蓋所有遍歷維度（來源 [DR-034](ledger/DR-034.md)）
+
+§3.6 要求「用最小資料跑完 main()」，但**最小資料若只涵蓋單一維度，
+出錯的那行根本不可達**。
+
+> **報告腳本的測試 fixture 必須涵蓋該腳本實際會遍歷的所有維度**
+> （order / arch / prior / arm / 記憶體容量 / seed 數不齊 等）。
+> 只用單一維度的 fixture 不算通過。
+> 新增測試前先確認：拿掉被測的那個 key，測試是否會紅（mutation check）。
+
+> 證據鉤子：同類錯誤第四次。`report_order_dependence.py` 的
+> `KeyError: 'final_task_il'` 只在「兩個 order 且各 arm 的 seed 數不齊」時才會踩到 ——
+> 單 order fixture 下不可達，§3.6 的測試全綠卻擋不住。
+
+#### 附帶：跨 tag 蒐集必須過濾**所有**識別維度
+
+同日另一個更危險的例子：`report_prior.py` 跨 tag 蒐集時只過濾了 `arch`，
+沒過濾 `allocation`，於是把 **G1 的退化紀錄**（per_chunk，階層 88.6% 單組）
+當成 discriminative 主線臂，產出「主線遠差於 none / max_sim 共 −17.5 pp」的
+**假結論**。修正後三臂實際上都在雜訊內。
+**跨 tag / 跨批次蒐集時，每一個會改變語意的欄位都必須明確過濾，缺欄位一律視為舊語意。**
 
 ### §3.5 批次腳本的失敗語意（來源 [DR-027](ledger/DR-027.md)）
 

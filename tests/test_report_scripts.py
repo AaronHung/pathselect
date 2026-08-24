@@ -50,3 +50,51 @@ def test_report_script_runs_and_emits_sections(script):
     assert len(text) > 500, f"{out} 產物過短（{len(text)} 字元）"
     missing = [h for h in sections if h not in text]
     assert not missing, f"{out} 缺章節：{missing}"
+
+
+# ── §3.6b：fixture 必須涵蓋腳本實際遍歷的所有維度 ──────────────────────────
+
+def test_order_dependence_handles_uneven_seed_counts():
+    """§3.6b：兩個 order 的各 arm seed 數不齊時也要能跑。
+
+    ⚠️ 這正是 2026-08-24 的 KeyError 現場：main order 只有 A3/A5 補到 5 seeds，
+    其餘仍 3 seeds；共同 seeds 若在 order 層取聯集，A1 就會被要求提供不存在的 seed。
+    單 order 的 fixture 走不到這行。
+    """
+    import json
+    from collections import defaultdict
+
+    counts = defaultdict(set)
+    for tag, order in (("main", "reverse"), ("order_main", "main")):
+        d = REPO_ROOT / "outputs" / "exp2" / tag / "per_slide"
+        if not d.is_dir():
+            pytest.skip(f"缺資料：{tag}")
+        for f in d.glob("*.json"):
+            for r in json.loads(f.read_text()):
+                if (r["order"] == order and r.get("arch", "flat") == "flat"
+                        and r.get("mem_capacity", 512) == 512):
+                    counts[(order, r["arm"])].add(r["seed"])
+    sizes = {len(v) for v in counts.values()}
+    assert len(sizes) > 1, f"fixture 未涵蓋 seed 數不齊的情況：{sizes}"
+
+    r = subprocess.run([sys.executable, "scripts/report_order_dependence.py"],
+                       capture_output=True, text=True, cwd=REPO_ROOT)
+    assert r.returncode == 0, f"seed 數不齊時失敗：\n{r.stderr[-1500:]}"
+    text = (REPO_ROOT / "outputs" / "exp2" / "ORDER_DEPENDENCE.md").read_text()
+    assert "(n=" in text, "表格未標出各 arm 的實際 n"
+
+
+def test_prior_report_excludes_degenerate_hierarchy_records():
+    """§3.6b 附帶：跨 tag 蒐集必須過濾 allocation。
+
+    `hier` tag 是 G1 的 per_chunk 紀錄（階層退化 88.6% 單組），
+    `hier2` 才是 per_budget 主線。不過濾就會把退化紀錄當成主線臂。
+    """
+    from scripts.report_prior import collect
+
+    groups = collect("hier")
+    if not groups.get("discriminative"):
+        pytest.skip("缺 prior 資料")
+    bad = [r for r in groups["discriminative"]
+           if r.get("allocation", "per_chunk") != "per_budget"]
+    assert not bad, f"discriminative 混進了 {len(bad)} 筆非 per_budget 的紀錄"
