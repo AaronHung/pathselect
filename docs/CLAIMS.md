@@ -57,6 +57,16 @@ group-KD 保存的是**組織層配額分佈**、patch-KD 保存的是**具體 p
 ⚠️ **這三例的共同教訓**：架構圖與規格書不是實作的證據。
 宣稱任何機制有效之前，必須用**替換或擾動**證明關掉它會改變輸出（憲法 §2.2 / §2.6）。
 
+**2026-08-24 更新（DR-039）**：三例全部進入實測（G5 狀態、G4 q_tau、G3 group L_sem）。
+在 `outputs/exp2/arch/ARCH_COMPLETENESS.md` 落判之前，本表的狀態欄仍然有效 ——
+**「已實作」不等於「已驗證有效」**。特別注意：
+
+- `selector/sem_loss.py` 的兩層 L_sem 是 **G3 的消融維度**，`beta_g=0` 時與
+  `selector/train.py::l_sem` 位元相同。**主方法維持 patch-only**，主表不因 G3 改動。
+- G5 的前置 no-op 檢查已通過（`outputs/exp2/arch/noop_check.json`）：state 打開後
+  c=1 八輪與 c=8 一輪的選取集合不再恆等。但**通過 no-op 檢查只代表該元件進入計算，
+  不代表它有用** —— 有用與否由 pre-registered 判準決定。
+
 ### C-04 task conditioning（q_τ）
 
 S1 顯示跨器官任務 98.2 / 98.6% 線性可分，q_τ 在此 benchmark 結構性冗餘。

@@ -49,6 +49,8 @@
 | [037](DR-037.md) | 階層的價值在於放大方法優勢 | ACTIVE | flat +0.74/+0.75 → hier +3.28；DR-021 的論據補強 |
 | [038](DR-038.md) | L_sem 的措辭修正與範圍限定 | ACTIVE | 「在階層架構下」移除不損害準確率；刪去循環論證那句 |
 
+| [039](DR-039.md) | 架構完整性三實驗（G3/G4/G5）的 pre-registration | ACTIVE | q_tau / 狀態迴圈 / group L_sem 全部未經測試；判準先於結果寫定 |
+
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。
 

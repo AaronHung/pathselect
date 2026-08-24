@@ -1,0 +1,28 @@
+{
+ "prompt_id": "G345-ARCH-COMPLETENESS-20260824",
+ "criterion": "state 開啟後，c=1 八輪與 c=8 一輪的選取集合必須不同",
+ "config": {
+  "n_trials": 20,
+  "n_patch": 300,
+  "budget": 8,
+  "arch": "hier",
+  "allocation": "per_budget",
+  "note": "synthetic slide + 未訓練的隨機初始化模型"
+ },
+ "state_off": {
+  "use_state": false,
+  "n_trials": 20,
+  "same_set": 20,
+  "same_order": 0,
+  "is_no_op": true
+ },
+ "state_on": {
+  "use_state": true,
+  "n_trials": 20,
+  "same_set": 16,
+  "same_order": 0,
+  "is_no_op": false
+ },
+ "verdict": "PASS",
+ "caveat": "未訓練權重下 state 的影響偏小（同集合 16/20）。這是下界，不是效果量的估計；訓練後應以真實 slide 重做一次。"
+}
