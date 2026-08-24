@@ -31,7 +31,7 @@
 | [019](DR-019.md) | E1 判讀：防禦成立，記憶體效率主張定為 2× | ACTIVE | 四條可宣稱；中段 128/256 的弱證據須揭露；牌一改為稀缺端假設驅動 |
 | [020](DR-020.md) | win count 三級規則與 A3 非單調的定性 | ACTIVE | 5/5 systematic、4/5 directional inconclusive、≤3/5 within noise；2× 為跨容量陳述 |
 | [021](DR-021.md) | 架構一致性：CL 主線改用階層選取器 | ACTIVE | 主表 flat 與架構圖 Group→Patch 脫節；G1 判準已 pre-register |
-| [022](DR-022.md) | group-level distillation 從未被測試；G1 增臂隔離 | ACTIVE | flat 下 group 項影響恰為零；EXP2.md 加誠實聲明；hier-A5nG 首次驗證 |
+| [022](DR-022.md) | group-level distillation 從未被測試；G1 增臂隔離 | SUPERSEDED-BY DR-035 | 退化階層下的「未顯示效果」結論已作廢 |
 | [023](DR-023.md) | n<5 批次的統計警語升格為憲法條文 | ACTIVE | 規則本體移入 docs/CONSTITUTION.md §1.2；報告產生器自動加註 |
 | [024](DR-024.md) | 跨批次配對與撤回程序入憲 | ACTIVE | 憲法 §1.3 共同子集不代表母體、§2.4 撤回不算失分隱瞞才算 |
 | [025](DR-025.md) | 配額口徑改為對整個 budget；chunked loop 在無 state 下為 no-op | ACTIVE | per-chunk 在 c=1 必然退化；DR-021 判準沿用不改；新增 CLAIMS.md |
@@ -44,6 +44,9 @@
 | [032](DR-032.md) | 長 job 必須有存活訊號；批次不得用變數當命令 | ACTIVE | zsh 不做 word splitting；outputs/_status/<job>.json |
 | [033](DR-033.md) | B1 的論文定位：KD 與 replay 保存不同的東西 | ACTIVE | KD 保選取行為、replay 保任務歸屬；B1 是最不穩的一臂 |
 | [034](DR-034.md) | 報告腳本的 fixture 必須涵蓋所有遍歷維度 | ACTIVE | 跨 tag 蒐集要過濾所有語意欄位；狀態檔要主動讀 |
+| [035](DR-035.md) | group-level distillation 首次有效驗證 | ACTIVE | task-IL +3.95、class-IL +3.71 皆 5/5；效果不在 Jaccard 上 |
+| [036](DR-036.md) | L_sem 在 class-IL 上無可測效果 | ACTIVE | 降級為弱正則；⚠️ 結論只適用階層架構 |
+| [037](DR-037.md) | 階層的價值在於放大方法優勢 | ACTIVE | flat +0.74/+0.75 → hier +3.28；DR-021 的論據補強 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

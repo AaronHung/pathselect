@@ -142,7 +142,33 @@ def main() -> int:
               f"{MAINLINE} − none = **{statistics.mean(d) * 100:+.2f} pp**，"
               f"win **{wins}/{len(d)}**（{verdict(wins, len(d))}）。",
               "", "判讀由 PI 進行；此處只陳述數字。", ""]
-    L += ["逐 slide 預測：`outputs/exp2/prior/per_slide/*.json`", ""]
+    L += ["## 結論（DR-036）", "",
+          "> **L_sem 移除不損害準確率。** class-IL 上三臂全部 within noise；"
+          "task-IL 上 discriminative 相對 max_sim 為 +0.76 pp（5/5 systematic）"
+          "但量級極小。**不得宣稱 L_sem 改善準確率。**",
+          "",
+          "可以宣稱的替代說法：semantic prior 作為**弱正則**，其移除不損害準確率 ——"
+          "這與 β_s 刻意設為 0.1 的設計一致。**HistoSelect 的貢獻在於分組結構，"
+          "而非語意先驗。**",
+          "",
+          "**選 discriminative 為主線的理由不受影響**（DR-007）：max_sim 實質上就是"
+          "simple similarity，正是指導教授指名批評之處。本次結果反而給了新支持 ——"
+          "兩者效果相當，而我們選了不是 similarity 的那個。",
+          "",
+          "⚠️ 須同時報：**max_sim 的洩漏率最低（9.74，對照 discriminative 12.20）**。",
+          "",
+          "### ⚠️ 範圍限定：本結論只適用階層架構", "",
+          "L_sem 只錨定 **patch 分數 s**（`semantic_prior(Z, ...)`，程式中沒有 group 層"
+          "的 prior 項）。因此它的槓桿依架構而異：", "",
+          "| 架構 | patch 分數對最終選取的作用 | L_sem 的槓桿 |",
+          "|---|---|---|",
+          "| flat | s 單獨決定選哪 B 個 patch | **完整** |",
+          "| hier | r 先決定各組名額，s 只在組內排序 | **被稀釋** |",
+          "",
+          "**所以 prior 與選取架構並非正交，階層下的 null 不可外推到 flat。**",
+          "目前沒有 flat 的 prior 消融資料（flat 全部是 discriminative）。"
+          "要外推需補跑 none / max_sim × flat × 5 seeds = 10 輪（約 4.7 h）。", "",
+          "逐 slide 預測：`outputs/exp2/prior/per_slide/*.json`", ""]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(L) + "\n")
     print(f"→ {OUT}")

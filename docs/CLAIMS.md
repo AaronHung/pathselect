@@ -34,10 +34,15 @@ G1 的 `per_chunk` 配額在 c=1 時退化為單組選取（88.6%），測到的
 **G1'（`per_budget`）已通過結構性把關**：單組比例 2.4%、平均用到 4.31 組。
 **階層已採用為主線**，可正常宣稱。
 
-### C-03 group-level distillation 有效或無效
+### ~~C-03 group-level distillation~~ ✅ 已解除（G1'-b，DR-035）
 
-DR-022 的首次驗證是在退化的階層下做的，**兩個方向都不能宣稱**。
-**解除條件**：G1'-b 重測。
+在通過結構性把關的階層上（單組 2.4%）重測：**group-KD 有效**，
+`hier-A5 − hier-A5nG` 於 task-IL **+3.95 ± 2.50（5/5）**、
+class-IL **+3.71 ± 2.66（5/5）**，皆 systematic。DR-022 的結論已作廢。
+
+⚠️ 宣稱時必須同時說明：**效果不顯示在 Jaccard**（+0.02，2/5）。
+group-KD 保存的是**組織層配額分佈**、patch-KD 保存的是**具體 patch 身份**，
+兩層分工不同 —— 這是架構圖 Panel I 兩層設計的直接證據。
 
 ### C-04 task conditioning（q_τ）
 
@@ -89,6 +94,21 @@ A3 − A1 在 reverse 與 main 上都是大幅改善，方向與量級一致
 ### C-22 洩漏 100% 可歸因於選取漂移
 
 head 是 frozen 的，所以跨任務洩漏只能來自選取改變（DR-012）。這是架構的直接後果。
+
+### C-25 L_sem 改善準確率 ❌ 不可宣稱（DR-036）
+
+G2 三臂（階層版 5 seeds）在 class-IL 上**全部落在雜訊內**
+（discriminative − none = **−0.02 pp，3/5**）。task-IL 上
+discriminative − max_sim = +0.76 pp（5/5）但量級極小。
+
+**可以宣稱的替代說法**：semantic prior 作為**弱正則**，其移除不損害準確率
+（與 β_s 刻意設小的設計一致）；HistoSelect 的貢獻在於**分組結構**而非語意先驗。
+選 discriminative 的理由是**避免 simple similarity**（DR-007），不是效能。
+
+⚠️ 必須同時報 **max_sim 的洩漏率最低（9.74）**。
+⚠️ **範圍限定**：此結論**只適用階層架構**。L_sem 只錨定 patch 分數，
+階層下 group 配額先決定名額、patch 分數只在組內排序，槓桿被稀釋；
+flat 下 patch 分數單獨決定選取。**不可外推到 flat**（目前無 flat 的 prior 消融資料）。
 
 ### C-24 KD 與 replay 保存的是不同的東西（DR-033）
 

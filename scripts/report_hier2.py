@@ -167,9 +167,23 @@ def main() -> int:
             L.append(f"- **{label}**：{statistics.mean(d) * sc:+.2f}"
                      f"（{wins}/{len(d)}，{verdict(wins, len(d))}）")
         L += ["",
-              "⚠️ 若 group 項無作用（≤3/5 且差值小），照實報 —— 論文會把 L_distill "
-              "誠實寫成 patch-level，並在 limitation 說明 group-level 在此設定下"
-              "未顯示效果。**不調 λ 搶救。**", ""]
+              "### 兩層蒸餾的分工（DR-035）", "",
+              "group-KD 在**兩個準確率軸上都是 systematic**，但在 **Jaccard 上不是**"
+              "（+0.02，2/5）。兩者不矛盾 —— 它們保存的對象不同：", "",
+              "| 蒸餾層 | 保存的對象 | 可觀測指標 |",
+              "|---|---|---|",
+              "| **group-KD**（KL(r_old ‖ r_new)） | **組織層配額分佈** —— "
+              "各 tissue group 分到幾個名額 | 準確率（task-IL / class-IL） |",
+              "| **patch-KD**（KL(s_old ‖ s_new)） | **具體 patch 身份** —— "
+              "選到哪幾個 patch | selection Jaccard |",
+              "",
+              "所以拿掉 group 項會讓準確率掉，但**選到的 patch 集合幾乎不變** ——"
+              "配額變了、組內挑誰沒變。**這是架構圖 Panel I 兩層設計的直接證據**："
+              "若兩層蒸餾保存的是同一件事，拿掉一層應該同時動到兩個指標。",
+              "",
+              "⚠️ DR-022 曾在**退化階層**（per_chunk，84.5% 單組）下測得四項全部"
+              "within noise / directional，該結論已作廢（SUPERSEDED-BY DR-035）——"
+              "當每張 slide 實質只用一個 group 時，配額分佈本來就沒有東西可保存。", ""]
 
     # 結構性診斷：階層是否退化成單一 group（DR-025 / 憲法 §2.5）
     import collections
