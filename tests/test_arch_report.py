@@ -97,18 +97,24 @@ def test_primary_metrics_are_the_two_accuracy_axes():
 TASKS = ["tcga_esca", "tcga_rcc", "tcga_brca", "tcga_lung"]
 
 
-def records(arm, arch, seed, correct):
-    """造一批 per-slide 記錄。correct 控制學完 T4 後判對的比例。"""
+def records(arm, arch, seed, correct, correct_class=None):
+    """造一批 per-slide 記錄。
+
+    correct 控制學完 T4 後 **task-IL** 判對的比例；correct_class 若給定則單獨控制
+    **class-IL** —— 兩軸必須可以分開動，否則測不出「兩軸皆須滿足」這條規則。
+    """
+    cc = correct if correct_class is None else correct_class
     out = []
     for stage in range(4):
         for i, t in enumerate(TASKS[:stage + 1]):
             lo = 2 * ["tcga_esca", "tcga_rcc", "tcga_brca", "tcga_lung"].index(t)
             for k in range(10):
                 hit = k < (10 if stage < 3 else correct)
+                hit_c = k < (10 if stage < 3 else cc)
                 out.append({
                     "arm": arm, "order": "reverse", "seed": seed, "stage": stage,
                     "task": t, "slide_id": f"{t}_{k}", "true": lo,
-                    "pred_class_il": lo if hit else (lo + 2) % 8,
+                    "pred_class_il": lo if hit_c else (lo + 2) % 8,
                     "pred_task_il": lo if hit else lo + 1,
                     "selected_idx": list(range(k, k + 8)),
                     "group_quota": [1] * 8, "n_patch": 3000, "B": 8,
@@ -218,3 +224,83 @@ def test_baseline_excludes_degenerate_per_chunk_records(sandbox):
         (base_dir / f"A5_{s}_perchunk.json").write_text(json.dumps(bad))
     assert A.main() == 0
     assert base_row() == clean, "基準列被 per_chunk 退化記錄改變了"
+
+
+# ── PI 裁定 1：判準讀法分兩類 ───────────────────────────────────────────────
+
+def test_verdict_rule_is_any_for_g5_and_both_for_g4_g3():
+    """G5 決定描述性用字（單軸）；G4/G3 決定效能宣稱（雙軸）。"""
+    assert A.VERDICT_RULE == {"G5": "any", "G4": "both", "G3": "both"}
+    assert set(A.VERDICT_RULE) == {k for k, *_ in A.EXPERIMENTS}
+
+
+def test_both_rule_requires_every_axis():
+    pairs = {"final_task_il": (0.02, 5, 5), "final_class_il": (0.0, 2, 5)}
+    assert A.verdict(pairs, "any")[0] == "PASS"
+    assert A.verdict(pairs, "both")[0] == "FAIL"
+
+
+def test_both_rule_passes_when_both_axes_hit():
+    pairs = {"final_task_il": (0.02, 5, 5), "final_class_il": (0.01, 4, 5)}
+    assert A.verdict(pairs, "both")[0] == "PASS"
+
+
+def test_both_rule_reports_which_axis_worked():
+    """單軸通過而另一軸不動 → 照實報「僅在 X 軸有效」，不計為通過。"""
+    _v, reasons = A.verdict({"final_task_il": (0.02, 5, 5),
+                             "final_class_il": (0.0, 2, 5)}, "both")
+    assert any("僅在 task-IL final avg 有效" in r for r in reasons)
+    assert not any("僅在" in r for r in A.verdict(
+        {"final_task_il": (0.02, 5, 5), "final_class_il": (0.01, 5, 5)}, "both")[1])
+
+
+def test_both_rule_fails_when_an_axis_is_missing():
+    assert A.verdict({"final_task_il": (0.02, 5, 5)}, "both")[0] == "FAIL"
+
+
+def test_unknown_rule_is_rejected():
+    with pytest.raises(ValueError, match="unknown rule"):
+        A.verdict({"final_task_il": (0.02, 5, 5)}, "either")
+
+
+def test_end_to_end_applies_the_per_experiment_rule(sandbox):
+    """同一組差值，在 G5（any）下通過、在 G4（both）下不通過。"""
+    base_dir, exp_dir, md = sandbox
+    for s in range(5):
+        (base_dir / f"A5_{s}.json").write_text(json.dumps(records("A5", "hier", s, 5)))
+        # task-IL 變好、class-IL 不動 → any 通過、both 不通過
+        one = dict(correct=7, correct_class=5)
+        (exp_dir / f"g5_{s}.json").write_text(
+            json.dumps(records("A5", "hier_state", s, **one)))
+        (exp_dir / f"g4_{s}.json").write_text(
+            json.dumps(records("A5", "hier_query", s, **one)))
+        (exp_dir / f"g3_{s}.json").write_text(
+            json.dumps(records("A5g", "hier", s, 7, 7)))
+    assert A.main() == 0
+    text = md.read_text(encoding="utf-8")
+    assert "| G5 | +state | **PASS** |" in text, "G5 採單軸規則，應通過"
+    assert "| G4 | +q_tau | **FAIL** |" in text, "G4 採雙軸規則，class-IL 不動應不通過"
+    assert "| G3 | +group L_sem | **PASS** |" in text, "G3 兩軸皆改善，應通過"
+    assert "僅在 task-IL final avg 有效" in text
+
+
+def test_report_states_the_amendment_is_pre_result(sandbox):
+    base_dir, _e, md = sandbox
+    for s in range(5):
+        (base_dir / f"A5_{s}.json").write_text(json.dumps(records("A5", "hier", s, 5)))
+    # no-op 讀法只有在檢查產物存在時才會渲染 —— fixture 必須涵蓋這個維度（§3.6b）
+    (A.OUT_DIR / "noop_check.json").write_text(json.dumps({
+        "criterion": "c", "config": {"n_trials": 20, "budget": 8, "arch": "hier",
+                                     "note": "n"},
+        "state_off": {"same_set": 20, "same_order": 0, "is_no_op": True},
+        "state_on": {"same_set": 16, "same_order": 0, "is_no_op": False},
+        "verdict": "PASS", "caveat": "c",
+        "query_zero": {"query": "zeros", "same_set": 20, "is_no_op": True},
+        "query_real": {"query": "real", "same_set": 16, "is_no_op": False},
+        "query_verdict": "PASS", "query_note": "n"}))
+    assert A.main() == 0
+    text = md.read_text(encoding="utf-8")
+    assert "事前修訂" in text and "G345-CRITERIA-20260824" in text
+    for frag in ("### ⚠️ 這個數字怎麼讀（PI 裁定 2）", "下界", "不可讀成",
+                 "以訓練後的模型在真實 slide 上的重測為準"):
+        assert frag in text, f"no-op 下界的讀法缺「{frag}」（PI 裁定 2）"

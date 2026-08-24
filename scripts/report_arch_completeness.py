@@ -67,9 +67,16 @@ PRE_REGISTERED = {
     },
 }
 
-#: G5 的判準寫明「任一準確率軸」；G4 / G3 只寫「為正」。本報告對三者採同一讀法，
-#: 因為主要指標在通用設定裡就定義為 task-IL 與 class-IL 兩個 final avg。
-AXIS_RULE = "任一準確率軸（task-IL 或 class-IL final avg）滿足即算通過"
+#: 判準讀法分兩類（PI 裁定 1，G345-CRITERIA-20260824；修訂於任何結果產出之前）。
+#:   G5    → "any"：任一準確率軸 win>=4/5 且為正即通過。G5 決定的是 "stateful" 這個
+#:           **描述性用字**，機制存在性只需單軸一致增益即可支持。
+#:   G4/G3 → "both"：task-IL 與 class-IL **兩軸皆** win>=4/5 且為正才通過。兩者決定的是
+#:           **元件對方法有貢獻的效能宣稱**。前例：A5−A3 在 flat 下 class-IL 5/5 而
+#:           task-IL 3/5，採單軸即會誤宣稱勝出，DR-015 正確擋下。
+#: 單軸通過而另一軸不動 → 照實報為「僅在 X 軸有效」，**不計為通過**。
+VERDICT_RULE = {"G5": "any", "G4": "both", "G3": "both"}
+AXIS_RULE = ("G5 = 任一準確率軸滿足即通過（描述性用字）；"
+             "G4 / G3 = task-IL 與 class-IL 兩軸皆須滿足（效能宣稱）")
 
 
 def load(root: Path, arm: str, arch: str) -> list[dict]:
@@ -93,21 +100,34 @@ def tier(wins: int, n: int) -> str:
     return "within noise"
 
 
-def verdict(pairs: dict) -> tuple[str, list[str]]:
+def verdict(pairs: dict, rule: str = "any") -> tuple[str, list[str]]:
     """依 pre-registered 判準自動落判。
 
     pairs: {metric_key: (mean_diff, wins, n)}。
-    通過條件 = 任一準確率軸 win >= 4/5 **且** 配對平均為正。
+    單軸滿足 = win >= 4/5 **且** 配對平均為正 **且** n >= 5。
+    rule="any"  → 任一軸滿足即通過（G5）
+    rule="both" → 兩軸皆須滿足（G4 / G3）
     """
-    reasons, ok = [], False
+    if rule not in ("any", "both"):
+        raise ValueError(f"unknown rule: {rule}")
+    reasons, hits = [], {}
     for key, label in PRIMARY:
         if key not in pairs:
+            reasons.append(f"{label}：無資料 → 不滿足")
+            hits[label] = False
             continue
         mean, wins, n = pairs[key]
         hit = wins >= 4 and mean > 0 and n >= 5
-        ok = ok or hit
+        hits[label] = hit
         reasons.append(f"{label}：配對 {mean * 100:+.2f} pp、win {wins}/{n}"
                        f"（{tier(wins, n)}）→ {'滿足' if hit else '不滿足'}")
+    ok = any(hits.values()) if rule == "any" else all(hits.values())
+    reasons.append(f"落判規則：{'任一軸滿足即通過' if rule == 'any' else '兩軸皆須滿足'}"
+                   f" → {'PASS' if ok else 'FAIL'}")
+    if rule == "both" and any(hits.values()) and not ok:
+        only = [lab for lab, h in hits.items() if h]
+        reasons.append(f"⚠️ **僅在 {'、'.join(only)} 有效**，另一軸不動 —— "
+                       f"照實報告，不計為通過（PI 裁定 1）。")
     return ("PASS" if ok else "FAIL"), reasons
 
 
@@ -162,9 +182,15 @@ def main() -> int:
          "λ 全 1.0。**每個實驗只動一個變因**，對照組沿用 G1' 已有的 hier-A5 存檔"
          "（不重跑）。",
          "",
-         f"**判準讀法**：{AXIS_RULE}。G5 的原文明寫「任一準確率軸」；G4 / G3 只寫"
-         "「為正」，本報告對三者採同一讀法，因為通用設定已把主要指標定義為"
-         "task-IL 與 class-IL 兩個 final avg。",
+         f"**判準讀法（PI 裁定 1）**：{AXIS_RULE}。"
+         "G5 決定的是 \"stateful\" 這個**描述性用字**，機制存在性只需單軸一致增益"
+         "即可支持；G4 / G3 決定的是**元件對方法有貢獻的效能宣稱**，門檻較高。"
+         "前例：A5−A3 在 flat 下 class-IL 5/5 而 task-IL 3/5，採單軸即會誤宣稱勝出，"
+         "DR-015 正確擋下。**單軸通過而另一軸不動 → 照實報為「僅在 X 軸有效」，"
+         "不計為通過。**",
+         "",
+         "⚠️ 此讀法為**事前修訂**（PROMPT G345-CRITERIA-20260824），"
+         "時間早於任何 G345 結果產出，非事後調整。",
          ""]
 
     # ── G5 no-op 檢查 ──
@@ -186,7 +212,18 @@ def main() -> int:
               "",
               f"**判定：{noop['verdict']}** —— G5 可以進行。",
               "",
-              f"⚠️ {noop['caveat']}",
+              "### ⚠️ 這個數字怎麼讀（PI 裁定 2）", "",
+              f"「{n - on['same_set']}/{n} 的選取集合改變」是**下界，不是效果量**。",
+              "",
+              "- 這批用的是**未訓練的隨機初始化權重**與 synthetic slide。state 對選取的"
+              "影響取決於 F_g / F_p 學到多重視 e_t 與 B_tilde 這兩段輸入；隨機權重下"
+              "該敏感度沒有理由代表訓練後的敏感度。",
+              f"- **不可讀成「state 只影響 {100 * (n - on['same_set']) // n}% 的選取」。**"
+              " 本檢查回答的是二元問題「state 有沒有進入計算」，不是「影響多大」。",
+              "- **以訓練後的模型在真實 slide 上的重測為準。** 該重測在 G5 跑完後進行，"
+              "結果會補進本節；在那之前，效果量沒有可引用的估計。",
+              "",
+              f"（原始 caveat：{noop['caveat']}）",
               "",
               f"產物：`outputs/exp2/arch/noop_check.json`",
               ""]
@@ -264,7 +301,7 @@ def main() -> int:
             L.append(f"| {label} | {', '.join(f'{x * scale:+.3f}' for x in d)} | "
                      f"{mean * scale:+.3f} ± {sd * scale:.3f}{unit} | {wins}/{n} | "
                      f"{tier(wins, n)} |")
-        v, reasons = verdict(pr)
+        v, reasons = verdict(pr, VERDICT_RULE[k])
         L += ["", "**pre-registered 判準（原文，先於結果寫定）**：", "",
               f"- 通過 → {PRE_REGISTERED[k]['pass']}",
               f"- 未通過 → {PRE_REGISTERED[k]['fail']}", "",
