@@ -24,5 +24,21 @@
   "is_no_op": false
  },
  "verdict": "PASS",
+ "query_zero": {
+  "query": "zeros(512)（run_exp2 現行 ctx.q0）",
+  "n_trials": 20,
+  "same_set": 20,
+  "same_order": 20,
+  "is_no_op": true
+ },
+ "query_real": {
+  "query": "真正的 task query（非零）",
+  "n_trials": 20,
+  "same_set": 16,
+  "same_order": 11,
+  "is_no_op": false
+ },
+ "query_verdict": "PASS",
+ "query_note": "use_query=False 的實作是把 query 欄位填零（selector/model.py:44），而 run_exp2.Ctx.q0 = zeros(512)。因此只打開 use_query 而不接真正的 q_tau，結果與關閉時位元相同 —— G4 必須由 run_arch_completeness.wire_task_queries 接上 TaskQueryBank 才成立。",
  "caveat": "未訓練權重下 state 的影響偏小（同集合 16/20）。這是下界，不是效果量的估計；訓練後應以真實 slide 重做一次。"
 }

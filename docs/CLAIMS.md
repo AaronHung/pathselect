@@ -66,6 +66,11 @@ group-KD 保存的是**組織層配額分佈**、patch-KD 保存的是**具體 p
 - G5 的前置 no-op 檢查已通過（`outputs/exp2/arch/noop_check.json`）：state 打開後
   c=1 八輪與 c=8 一輪的選取集合不再恆等。但**通過 no-op 檢查只代表該元件進入計算，
   不代表它有用** —— 有用與否由 pre-registered 判準決定。
+- **q_tau 差一點成為第四例（DR-040）**：`run_exp2.Ctx.q0` 是 `zeros(512)`，而
+  `use_query=False` 的實作是把 query 欄位填零 —— 只打開開關而不接 `TaskQueryBank`，
+  輸入與關閉時位元相同（實測 20/20）。G4 已改為自己接線後才跑。
+  ⚠️ 既有結果不受影響：`run_exp1.py` 用的是真 query，而 `run_exp2.py` 從未開啟
+  use_query，零向量從未進入任何已發表的數字。
 
 ### C-04 task conditioning（q_τ）
 

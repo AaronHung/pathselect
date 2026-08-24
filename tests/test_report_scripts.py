@@ -33,8 +33,9 @@ REPORTS = {
     # 輸入是 G1' 的基準存檔；G3/G4/G5 自己的資料未齊時報告仍須能跑（標 PENDING）
     "report_arch_completeness.py": ("outputs/exp2/hier2/per_slide",
                                     "outputs/exp2/arch/ARCH_COMPLETENESS.md",
-                                    ["## G5 前置：no-op 檢查", "## 主表",
-                                     "## 配對比較與落判", "## 總結"]),
+                                    ["## G5 前置：no-op 檢查",
+                                     "## G4 前置：q_tau 是否真的進入計算",
+                                     "## 主表", "## 配對比較與落判", "## 總結"]),
     "report_b1_landing.py": ("outputs/exp2/ablation/per_slide",
                              "outputs/exp2/ablation/B1_LANDING.md",
                              ["## KD 與 replay 保存的是不同的東西",

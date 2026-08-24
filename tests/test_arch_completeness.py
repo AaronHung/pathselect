@@ -225,3 +225,128 @@ def test_main_wires_the_group_loss_only_for_g3(monkeypatch):
     G.main(["g3"])
     assert R.train_step is not base, "G3 沒有接上 group L_sem"
     assert R.train_step.__wrapped_beta_g__ == G.DEFAULT_BETA_G
+
+
+# ── G4：q_tau 接線 ──────────────────────────────────────────────────────────
+
+class FakeBank:
+    def __init__(self, m): self.m = m
+    def get(self, t): return self.m[t]
+
+
+TASKS4 = ["tcga_esca", "tcga_rcc", "tcga_brca", "tcga_lung"]
+
+
+def test_check_query_leakage_accepts_distinct_deterministic_queries():
+    torch.manual_seed(0)
+    bank = FakeBank({t: F.normalize(torch.randn(D), dim=-1) for t in TASKS4})
+    out = G.check_query_leakage(bank, TASKS4)
+    assert out["n_tasks"] == 4 and len(out["pairwise_cos"]) == 6
+
+
+def test_check_query_leakage_rejects_two_tasks_sharing_a_query():
+    torch.manual_seed(0)
+    q = F.normalize(torch.randn(D), dim=-1)
+    bank = FakeBank({t: (q if t in TASKS4[:2] else F.normalize(torch.randn(D), dim=-1))
+                     for t in TASKS4})
+    with pytest.raises(AssertionError, match="位元相同"):
+        G.check_query_leakage(bank, TASKS4)
+
+
+def test_zero_query_makes_use_query_a_bit_identical_no_op():
+    """G4 若不接線就是由構造保證的 null（憲法 §2.5）。
+
+    `use_query=False` 的實作是把 query 欄位填零，而 run_exp2.Ctx.q0 = zeros(512)
+    —— 兩者輸入完全一樣。這條測試把「為什麼一定要接 TaskQueryBank」釘死。
+    """
+    from selector.rounds import run_rounds
+
+    def sel(seed, use_query, q):
+        Z, _f, grp = fixture(seed)
+        torch.manual_seed(100 + seed)
+        f_g, f_p = make_models()
+        f_g.eval(); f_p.eval()
+        with torch.no_grad():
+            return run_rounds(Z, grp, q, f_g, f_p, budget=8, chunk=1,
+                              allocation="per_budget", use_query=use_query,
+                              use_state=False, hierarchy=True).selected.tolist()
+
+    # ⚠️ 逐組判定會失真：真 query 只在少數 slide 上改變選取（實測約 4/20），
+    #    單一組抽到「相同」是常態。要判的是**整批不是 no-op**。
+    zero_same = real_same = 0
+    for seed in range(10):
+        off = sel(seed, False, torch.zeros(D))
+        zero_same += sel(seed, True, torch.zeros(D)) == off
+        torch.manual_seed(7000 + seed)
+        real_same += sel(seed, True, F.normalize(torch.randn(D), dim=-1)) == off
+    assert zero_same == 10, f"零向量下必須全部位元相同，實得 {zero_same}/10"
+    assert real_same < 10, "真 query 完全沒有改變任何一組的選取 → G4 仍是 no-op"
+
+
+def test_wire_task_queries_patches_all_four_call_sites(monkeypatch):
+    torch.manual_seed(0)
+    qs = {t: F.normalize(torch.randn(D), dim=-1) for t in TASKS4}
+    monkeypatch.setattr(G, "wire_task_queries", G.wire_task_queries)
+    import selector.task_query as tq
+    monkeypatch.setattr(tq, "TaskQueryBank", lambda cfg, device="cpu": FakeBank(qs))
+
+    before = (R.train_stage, R.evaluate, R.fill_memory, R.continual_terms)
+    bank = G.wire_task_queries({"tasks": TASKS4})
+    after = (R.train_stage, R.evaluate, R.fill_memory, R.continual_terms)
+    assert all(a is not b for a, b in zip(before, after)), "有注入點沒被包到"
+    assert bank.get(TASKS4[0]) is qs[TASKS4[0]]
+
+
+def test_wired_evaluate_sets_and_restores_the_task_query(monkeypatch):
+    torch.manual_seed(0)
+    qs = {t: F.normalize(torch.randn(D), dim=-1) for t in TASKS4}
+    import selector.task_query as tq
+    monkeypatch.setattr(tq, "TaskQueryBank", lambda cfg, device="cpu": FakeBank(qs))
+
+    seen = {}
+    monkeypatch.setattr(R, "evaluate", lambda ctx, m, task, *a, **k: seen.update(
+        q=ctx.q0.clone()) or [])
+    monkeypatch.setattr(R, "train_stage", lambda *a, **k: {})
+    G.wire_task_queries({"tasks": TASKS4})
+
+    class C:
+        q0 = torch.zeros(D)
+    ctx = C()
+    R.evaluate(ctx, None, "tcga_rcc")
+    assert torch.equal(seen["q"], qs["tcga_rcc"]), "沒有換成該 task 的 q_tau"
+    assert torch.equal(ctx.q0, torch.zeros(D)), "q0 沒有還原"
+
+
+def test_wired_train_stage_refuses_multi_task_stages(monkeypatch):
+    torch.manual_seed(0)
+    qs = {t: F.normalize(torch.randn(D), dim=-1) for t in TASKS4}
+    import selector.task_query as tq
+    monkeypatch.setattr(tq, "TaskQueryBank", lambda cfg, device="cpu": FakeBank(qs))
+    monkeypatch.setattr(R, "train_stage", lambda *a, **k: {})
+    monkeypatch.setattr(R, "evaluate", lambda *a, **k: [])
+    G.wire_task_queries({"tasks": TASKS4})
+
+    class C:
+        q0 = torch.zeros(D)
+    with pytest.raises(AssertionError, match="只支援單一 task"):
+        R.train_stage(C(), "A5", None, TASKS4, 0, None, None, None)
+
+
+def test_wired_continual_terms_uses_the_entry_own_task(monkeypatch):
+    """舊樣本要用**它自己 task** 的 q_tau，不是當前 task 的。"""
+    torch.manual_seed(0)
+    qs = {t: F.normalize(torch.randn(D), dim=-1) for t in TASKS4}
+    import selector.task_query as tq
+    monkeypatch.setattr(tq, "TaskQueryBank", lambda cfg, device="cpu": FakeBank(qs))
+    seen = {}
+    monkeypatch.setattr(R, "continual_terms",
+                        lambda entry, cfg, *a, **k: seen.update(q=k.get("q_tau")))
+    monkeypatch.setattr(R, "train_stage", lambda *a, **k: {})
+    monkeypatch.setattr(R, "evaluate", lambda *a, **k: [])
+    monkeypatch.setattr(R, "fill_memory", lambda *a, **k: 0)
+    G.wire_task_queries({"tasks": TASKS4})
+
+    class E:
+        tau = "tcga_brca"
+    R.continual_terms(E(), {}, None, None, None, None)
+    assert torch.equal(seen["q"], qs["tcga_brca"])

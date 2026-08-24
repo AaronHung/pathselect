@@ -23,6 +23,17 @@
 
 產物：`outputs/exp2/arch/noop_check.json`
 
+## G4 前置：q_tau 是否真的進入計算
+
+use_query=False 的實作是把 query 欄位填零（selector/model.py:44），而 run_exp2.Ctx.q0 = zeros(512)。因此只打開 use_query 而不接真正的 q_tau，結果與關閉時位元相同 —— G4 必須由 run_arch_completeness.wire_task_queries 接上 TaskQueryBank 才成立。
+
+| use_query=True 時餵入的 q_tau | 與 use_query=False 的選取集合相同 | 判讀 |
+|---|---|---|
+| zeros(512)（run_exp2 現行 ctx.q0） | 20/20 | **位元相同 → 由構造保證的 null** |
+| 真正的 task query（非零） | 16/20 | **非 no-op**，q_tau 確實進入計算 |
+
+**判定：PASS** —— G4 必須先接上 TaskQueryBank 才成立。
+
 ## 主表
 
 | 臂 | 說明 | seeds | task-IL final avg | class-IL final avg | 跨任務洩漏率 | selection Jaccard | group 配額 KL |

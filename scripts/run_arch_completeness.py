@@ -94,6 +94,69 @@ def wrap_train_step(beta_g: float):
     return wrapped
 
 
+def check_query_leakage(bank, tasks) -> dict:
+    """PI 對 G4 的閘門：同 task 內 q_tau 位元相同、跨 task 不同。"""
+    for t in tasks:
+        assert torch.equal(bank.get(t), bank.get(t)), f"{t} 的 q_tau 不是決定性的"
+    for i, a in enumerate(tasks):
+        for b in tasks[i + 1:]:
+            assert not torch.equal(bank.get(a), bank.get(b)), \
+                f"{a} 與 {b} 的 q_tau 位元相同 —— 任務身分沒有進入 query"
+    return {"n_tasks": len(tasks),
+            "pairwise_cos": {f"{a}|{b}": round(float(bank.get(a) @ bank.get(b)), 6)
+                             for i, a in enumerate(tasks) for b in tasks[i + 1:]}}
+
+
+def wire_task_queries(cfg):
+    """G4：把真正的 q_tau 接上。
+
+    ⚠️ 這是 G4 能不能成立的關鍵 —— `run_exp2.Ctx` 的 `q0` 是 **torch.zeros(512)**，
+       所有實驗一律傳這個零向量。只把 use_query=True 打開的話，selector 收到的
+       是常數零，q_tau 不帶任何任務資訊，G4 會變成**由構造保證的 null**（憲法 §2.5）。
+
+    四個注入點，都在 run_exp2 的模組全域，呼叫時查找，不必改檔：
+      train_stage / evaluate  → 該 stage / 該 task 自己的 q_tau
+      fill_memory             → 寫入記憶體時用該 task 的 q_tau
+      continual_terms         → 用 **entry.tau** 的 q_tau（舊樣本屬於它自己的 task）
+    """
+    from selector.task_query import TaskQueryBank
+
+    bank = TaskQueryBank(cfg)
+    orig_stage, orig_eval = R.train_stage, R.evaluate
+    orig_fill, orig_terms = R.fill_memory, R.continual_terms
+
+    def stage(ctx, arm, models, tasks, seed, args, memory, rng):
+        # A5 是 sequential，每個 stage 只訓練一個 task；joint 需要逐 sample 的
+        # q_tau，單一 ctx.q0 表達不了 —— 直接擋下，不要靜默用錯的 query。
+        assert len(tasks) == 1, f"G4 只支援單一 task 的 stage，收到 {tasks}"
+        old = ctx.q0
+        ctx.q0 = bank.get(tasks[0])
+        try:
+            return orig_stage(ctx, arm, models, tasks, seed, args, memory, rng)
+        finally:
+            ctx.q0 = old
+
+    def evaluate(ctx, models, task, *a, **kw):
+        old = ctx.q0
+        ctx.q0 = bank.get(task)
+        try:
+            return orig_eval(ctx, models, task, *a, **kw)
+        finally:
+            ctx.q0 = old
+
+    def fill_memory(memory, models, task, cfg_, *a, **kw):
+        kw.setdefault("q_tau", bank.get(task))
+        return orig_fill(memory, models, task, cfg_, *a, **kw)
+
+    def terms(entry, cfg_, *a, **kw):
+        kw.setdefault("q_tau", bank.get(entry.tau))
+        return orig_terms(entry, cfg_, *a, **kw)
+
+    R.train_stage, R.evaluate = stage, evaluate
+    R.fill_memory, R.continual_terms = fill_memory, terms
+    return bank
+
+
 def build_argv(exp: str, seeds: str, extra: list[str]) -> list[str]:
     common = ["--order", "reverse", "--seeds", seeds,
               "--allocation", "per_budget", "--tag", OUT_TAG]
@@ -114,6 +177,14 @@ def main(argv=None) -> int:
     args, extra = ap.parse_known_args(argv)
 
     inject_arch()
+    if args.exp == "g4":
+        from selector.text_encoder import load_config
+        cfg = load_config()
+        bank = wire_task_queries(cfg)
+        diag = check_query_leakage(bank, list(cfg["tasks"]))
+        print(f"G4：q_tau 已接上（run_exp2 預設是 zeros(512)）。leakage 檢查通過，"
+              f"{diag['n_tasks']} 個 task 兩兩不同。", flush=True)
+        print(f"  兩兩 cos：{diag['pairwise_cos']}", flush=True)
     if args.exp == "g3":
         inject_g3_arm()
         R.train_step = wrap_train_step(args.beta_g)

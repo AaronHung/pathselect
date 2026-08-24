@@ -146,7 +146,8 @@ def test_end_to_end_emits_pass_and_fail(sandbox):
         (exp_dir / f"g3_{s}.json").write_text(json.dumps(records("A5g", "hier", s, 5)))
     assert A.main() == 0
     text = md.read_text(encoding="utf-8")
-    for h in ("## G5 前置：no-op 檢查", "## 主表", "## 配對比較與落判", "## 總結"):
+    for h in ("## G5 前置：no-op 檢查", "## G4 前置：q_tau 是否真的進入計算",
+              "## 主表", "## 配對比較與落判", "## 總結"):
         assert h in text, f"缺章節 {h}"
     assert "PENDING" not in text, "合成資料齊全時不該出現 PENDING"
     assert "| G5 | +state | **PASS** |" in text

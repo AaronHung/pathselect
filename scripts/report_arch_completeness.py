@@ -193,6 +193,25 @@ def main() -> int:
     else:
         L += ["⚠️ 尚未執行（`python scripts/check_state_noop.py`）。", ""]
 
+    # ── G4 前置：q_tau 接線 ──
+    L += ["## G4 前置：q_tau 是否真的進入計算", ""]
+    if noop and "query_zero" in noop:
+        z, r = noop["query_zero"], noop["query_real"]
+        n = noop["config"]["n_trials"]
+        L += [noop["query_note"],
+              "",
+              "| use_query=True 時餵入的 q_tau | 與 use_query=False 的選取集合相同 | 判讀 |",
+              "|---|---|---|",
+              f"| {z['query']} | {z['same_set']}/{n} |"
+              f" {'**位元相同 → 由構造保證的 null**' if z['is_no_op'] else '非 no-op'} |",
+              f"| {r['query']} | {r['same_set']}/{n} |"
+              f" {'**非 no-op**，q_tau 確實進入計算' if not r['is_no_op'] else '**仍為 no-op**'} |",
+              "",
+              f"**判定：{noop['query_verdict']}** —— G4 必須先接上 TaskQueryBank 才成立。",
+              ""]
+    else:
+        L += ["⚠️ 尚未執行。", ""]
+
     # ── 主表 ──
     heads = [lab for _, lab in PRIMARY] + [lab for _, lab, _ in SECONDARY]
     L += ["## 主表", "",
