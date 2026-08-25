@@ -453,3 +453,279 @@ Exp2  arms=['A5']  order=reverse  seeds=[0, 1, 2, 3, 4]  B=8 c=1 epochs=5 arch=h
        eval tcga_esca  class-IL=0.8667 task-IL=0.9333
        eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
     ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.0913
+      epoch 2/5 n=763 mean_loss=0.7939
+      epoch 3/5 n=763 mean_loss=0.7138
+      epoch 4/5 n=763 mean_loss=0.5468
+      epoch 5/5 n=763 mean_loss=0.5952
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9605 task-IL=0.9605
+       eval tcga_brca  class-IL=0.8817 task-IL=0.8925
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.4144
+      epoch 2/5 n=774 mean_loss=0.9586
+      epoch 3/5 n=774 mean_loss=1.0523
+      epoch 4/5 n=774 mean_loss=0.9843
+      epoch 5/5 n=774 mean_loss=0.8127
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=1.0000
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9605
+       eval tcga_brca  class-IL=0.9140 task-IL=0.9140
+       eval tcga_lung  class-IL=0.9053 task-IL=0.9053
+  ▶ A5 (Ours (Replay+KD+eq)) seed=4
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.9840
+      epoch 2/5 n=120 mean_loss=0.0942
+      epoch 3/5 n=120 mean_loss=0.1185
+      epoch 4/5 n=120 mean_loss=0.0989
+      epoch 5/5 n=120 mean_loss=0.0522
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.4992
+      epoch 2/5 n=616 mean_loss=0.3778
+      epoch 3/5 n=616 mean_loss=0.1765
+      epoch 4/5 n=616 mean_loss=0.1843
+      epoch 5/5 n=616 mean_loss=0.1683
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.2657
+      epoch 2/5 n=763 mean_loss=0.8826
+      epoch 3/5 n=763 mean_loss=0.8294
+      epoch 4/5 n=763 mean_loss=0.7255
+      epoch 5/5 n=763 mean_loss=0.6001
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9605 task-IL=0.9737
+       eval tcga_brca  class-IL=0.9032 task-IL=0.9032
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.4576
+      epoch 2/5 n=774 mean_loss=0.9745
+      epoch 3/5 n=774 mean_loss=1.0389
+      epoch 4/5 n=774 mean_loss=0.9511
+      epoch 5/5 n=774 mean_loss=0.7957
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.6000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9605
+       eval tcga_brca  class-IL=0.8602 task-IL=0.8710
+       eval tcga_lung  class-IL=0.8421 task-IL=0.8737
+
+→ /Users/aaron/research/02_pathselect/outputs/exp2/arch/EXP2.md
+[check] tag=arch 期望 5 份、實得 5 份
+[check] ✅ 產物齊全
+[heartbeat] 2026-08-25T20:57:27+08:00 stage=3/4 G3 group L_sem beta_g=0.1（5 輪）
+[status] pipeline_g345: running stage=3/4 G3 group L_sem 5 輪
+G3：group L_sem 已接上，beta_g=0.1
+→ run_exp2 --arms A5g --arch hier --order reverse --seeds 0,1,2,3,4 --allocation per_budget --tag arch
+Exp2  arms=['A5g']  order=reverse  seeds=[0, 1, 2, 3, 4]  B=8 c=1 epochs=5 arch=hier alloc=per_budget prior=discriminative beta_u=0.1 replay_k=1 λ=(1.0,1.0,1.0)
+  ▶ A5g (Ours + group-level L_sem（G3）) seed=0
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.3523
+      epoch 2/5 n=120 mean_loss=0.0953
+      epoch 3/5 n=120 mean_loss=0.0684
+      epoch 4/5 n=120 mean_loss=0.0938
+      epoch 5/5 n=120 mean_loss=0.0926
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.7435
+      epoch 2/5 n=616 mean_loss=0.4956
+      epoch 3/5 n=616 mean_loss=0.3936
+      epoch 4/5 n=616 mean_loss=0.3775
+      epoch 5/5 n=616 mean_loss=0.3170
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9605
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.3950
+      epoch 2/5 n=763 mean_loss=1.1442
+      epoch 3/5 n=763 mean_loss=0.9470
+      epoch 4/5 n=763 mean_loss=0.9189
+      epoch 5/5 n=763 mean_loss=1.0317
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.9333 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8710 task-IL=0.9355
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.8979
+      epoch 2/5 n=774 mean_loss=1.4573
+      epoch 3/5 n=774 mean_loss=1.2039
+      epoch 4/5 n=774 mean_loss=1.2726
+      epoch 5/5 n=774 mean_loss=1.1276
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9605
+       eval tcga_brca  class-IL=0.7527 task-IL=0.8387
+       eval tcga_lung  class-IL=0.8000 task-IL=0.8316
+  ▶ A5g (Ours + group-level L_sem（G3）) seed=1
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.4900
+      epoch 2/5 n=120 mean_loss=0.0773
+      epoch 3/5 n=120 mean_loss=0.1237
+      epoch 4/5 n=120 mean_loss=0.0516
+      epoch 5/5 n=120 mean_loss=0.0456
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.6902
+      epoch 2/5 n=616 mean_loss=0.3735
+      epoch 3/5 n=616 mean_loss=0.4114
+      epoch 4/5 n=616 mean_loss=0.3391
+      epoch 5/5 n=616 mean_loss=0.5120
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.1707
+      epoch 2/5 n=763 mean_loss=0.9782
+      epoch 3/5 n=763 mean_loss=0.9382
+      epoch 4/5 n=763 mean_loss=0.8750
+      epoch 5/5 n=763 mean_loss=0.8630
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9605
+       eval tcga_brca  class-IL=0.7957 task-IL=0.8817
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=2.1695
+      epoch 2/5 n=774 mean_loss=1.5559
+      epoch 3/5 n=774 mean_loss=1.4315
+      epoch 4/5 n=774 mean_loss=1.4490
+      epoch 5/5 n=774 mean_loss=1.3275
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.6667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9737
+       eval tcga_brca  class-IL=0.8280 task-IL=0.8925
+       eval tcga_lung  class-IL=0.8737 task-IL=0.9053
+  ▶ A5g (Ours + group-level L_sem（G3）) seed=2
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.3801
+      epoch 2/5 n=120 mean_loss=0.0758
+      epoch 3/5 n=120 mean_loss=0.0958
+      epoch 4/5 n=120 mean_loss=0.0915
+      epoch 5/5 n=120 mean_loss=0.0689
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.6415
+      epoch 2/5 n=616 mean_loss=0.3747
+      epoch 3/5 n=616 mean_loss=0.3896
+      epoch 4/5 n=616 mean_loss=0.3162
+      epoch 5/5 n=616 mean_loss=0.3707
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.2941
+      epoch 2/5 n=763 mean_loss=0.9210
+      epoch 3/5 n=763 mean_loss=1.0085
+      epoch 4/5 n=763 mean_loss=0.9091
+      epoch 5/5 n=763 mean_loss=0.8511
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.6000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9605
+       eval tcga_brca  class-IL=0.8817 task-IL=0.8817
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=2.0949
+      epoch 2/5 n=774 mean_loss=1.5800
+      epoch 3/5 n=774 mean_loss=1.5024
+      epoch 4/5 n=774 mean_loss=1.3481
+      epoch 5/5 n=774 mean_loss=1.3000
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.6667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9737
+       eval tcga_brca  class-IL=0.8280 task-IL=0.9032
+       eval tcga_lung  class-IL=0.8421 task-IL=0.8526
+  ▶ A5g (Ours + group-level L_sem（G3）) seed=3
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.6012
+      epoch 2/5 n=120 mean_loss=0.0812
+      epoch 3/5 n=120 mean_loss=0.1144
+      epoch 4/5 n=120 mean_loss=0.0583
+      epoch 5/5 n=120 mean_loss=0.0616
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.7701
+      epoch 2/5 n=616 mean_loss=0.5306
+      epoch 3/5 n=616 mean_loss=0.4633
+      epoch 4/5 n=616 mean_loss=0.3932
+      epoch 5/5 n=616 mean_loss=0.4430
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9605
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.2633
+      epoch 2/5 n=763 mean_loss=0.9442
+      epoch 3/5 n=763 mean_loss=1.0120
+      epoch 4/5 n=763 mean_loss=0.8787
+      epoch 5/5 n=763 mean_loss=0.9842
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9605
+       eval tcga_brca  class-IL=0.8387 task-IL=0.8710
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.9934
+      epoch 2/5 n=774 mean_loss=1.6137
+      epoch 3/5 n=774 mean_loss=1.4197
+      epoch 4/5 n=774 mean_loss=1.4009
+      epoch 5/5 n=774 mean_loss=1.3842
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.6667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9605
+       eval tcga_brca  class-IL=0.8387 task-IL=0.8925
+       eval tcga_lung  class-IL=0.8842 task-IL=0.8842
+  ▶ A5g (Ours + group-level L_sem（G3）) seed=4
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=1.0384
+      epoch 2/5 n=120 mean_loss=0.0863
+      epoch 3/5 n=120 mean_loss=0.1729
+      epoch 4/5 n=120 mean_loss=0.0965
+      epoch 5/5 n=120 mean_loss=0.0705
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.6773
+      epoch 2/5 n=616 mean_loss=0.5006
+      epoch 3/5 n=616 mean_loss=0.4943
+      epoch 4/5 n=616 mean_loss=0.3202
+      epoch 5/5 n=616 mean_loss=0.3702
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9605
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.3097
+      epoch 2/5 n=763 mean_loss=1.0170
+      epoch 3/5 n=763 mean_loss=0.9847
+      epoch 4/5 n=763 mean_loss=0.9811
+      epoch 5/5 n=763 mean_loss=1.0108
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9605
+       eval tcga_brca  class-IL=0.8172 task-IL=0.8602
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=2.2288
+      epoch 2/5 n=774 mean_loss=1.8727
+      epoch 3/5 n=774 mean_loss=1.5466
+      epoch 4/5 n=774 mean_loss=1.5387
+      epoch 5/5 n=774 mean_loss=1.2053
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8065 task-IL=0.8817
+       eval tcga_lung  class-IL=0.8105 task-IL=0.8421
+
+→ /Users/aaron/research/02_pathselect/outputs/exp2/arch/EXP2.md
+[check] tag=arch 期望 5 份、實得 5 份
+[check] ✅ 產物齊全
+[heartbeat] 2026-08-25T23:21:32+08:00 stage=4/4 產生 ARCH_COMPLETENESS.md
+[status] pipeline_g345: running stage=4/4 產生報告
+→ /Users/aaron/research/02_pathselect/outputs/exp2/arch/ARCH_COMPLETENESS.md
+  G5 + E_t / B_t 狀態條件化: FAIL
+  G4 + q_tau 任務條件化: FAIL
+  G3 + group 層 L_sem (beta_g=0.1): FAIL
+[freeze] 結束 HEAD=52593fc
+[status] pipeline_g345: done stage=4/4 G5/G4/G3 完成，報告已產出
+########## G345 完成（產物已檢查、報告已產出）##########

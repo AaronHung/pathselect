@@ -50,8 +50,8 @@ use_query=False 的實作是把 query 欄位填零（selector/model.py:44），�
 |---|---|---|---|---|---|---|---|
 | base | hier-A5 基準（G1'） | 5 | 0.9089 ± 0.0077 | 0.8119 ± 0.0162 | 0.1220 ± 0.0237 | 0.1419 ± 0.0482 | 0.0191 ± 0.0031 |
 | G5 | + E_t / B_t 狀態條件化 | 5 | 0.9039 ± 0.0228 | 0.8223 ± 0.0286 | 0.1032 ± 0.0243 | 0.1547 ± 0.0194 | 0.0429 ± 0.0265 |
-| G4 | + q_tau 任務條件化 | — | — | — | — | — | — |
-| G3 | + group 層 L_sem (beta_g=0.1) | — | — | — | — | — | — |
+| G4 | + q_tau 任務條件化 | 5 | 0.9120 ± 0.0214 | 0.8704 ± 0.0357 | 0.0627 ± 0.0314 | 0.2165 ± 0.0408 | 0.0284 ± 0.0248 |
+| G3 | + group 層 L_sem (beta_g=0.1) | 5 | 0.9037 ± 0.0150 | 0.8234 ± 0.0038 | 0.0958 ± 0.0212 | 0.1297 ± 0.0048 | 0.0143 ± 0.0033 |
 
 前兩欄是 pre-registered 的主要指標；後三欄為次要診斷。final avg 算全部 4 個 task；Jaccard 與配額 KL 只算前 3 個（CL 慣例）。
 
@@ -86,19 +86,63 @@ use_query=False 的實作是把 query 欄位填零（selector/model.py:44），�
 
 ### G4　+ q_tau 任務條件化
 
-⚠️ 尚未有資料。
+共同 seeds：[0, 1, 2, 3, 4]（n=5）
+
+| 指標 | 逐 seed 配對差值 | 配對 mean ± std | win count | 三級判讀 |
+|---|---|---|---|---|
+| task-IL final avg | -3.279, -0.330, +0.789, +4.380, -0.001 | +0.312 ± 2.747 pp | 2/5 | within noise |
+| class-IL final avg | +7.774, +8.795, +5.707, +7.089, -0.120 | +5.849 ± 3.520 pp | 4/5 | directional, inconclusive |
+| 跨任務洩漏率 | -9.124, -10.791, -3.514, -5.779, -0.407 | -5.923 ± 4.189 pp | 5/5 | systematic |
+| selection Jaccard | +0.125, -0.020, -0.008, +0.184, +0.092 | +0.075 ± 0.087 | 3/5 | within noise |
+| group 配額 KL | +0.050, +0.019, -0.011, -0.009, -0.002 | +0.009 ± 0.025 | 3/5 | within noise |
+
+**pre-registered 判準（原文，先於結果寫定）**：
+
+- 通過 → win >= 4/5 且為正 → 圖上保留 q_tau，"task-conditioned" 一詞成立
+- 未通過 → <= 3/5 → 圖上把 q_tau 標為 optional 或移除，論文寫：在跨器官任務序列中任務身分可由視覺特徵推得（S1，98.2/98.6%），顯式語意條件化在 patch 排序與群組配額兩個層級皆未提供增益。這是有機制解釋的 null，不是失敗。同器官設定列入 future work。
+
+**落判依據**：
+
+- task-IL final avg：配對 +0.31 pp、win 2/5（within noise）→ 不滿足
+- class-IL final avg：配對 +5.85 pp、win 4/5（directional, inconclusive）→ 滿足
+- 落判規則：兩軸皆須滿足 → FAIL
+- ⚠️ **僅在 class-IL final avg 有效**，另一軸不動 —— 照實報告，不計為通過（PI 裁定 1）。
+
+**判定：FAIL** → <= 3/5 → 圖上把 q_tau 標為 optional 或移除，論文寫：在跨器官任務序列中任務身分可由視覺特徵推得（S1，98.2/98.6%），顯式語意條件化在 patch 排序與群組配額兩個層級皆未提供增益。這是有機制解釋的 null，不是失敗。同器官設定列入 future work。
 
 ### G3　+ group 層 L_sem (beta_g=0.1)
 
-⚠️ 尚未有資料。
+共同 seeds：[0, 1, 2, 3, 4]（n=5）
+
+| 指標 | 逐 seed 配對差值 | 配對 mean ± std | win count | 三級判讀 |
+|---|---|---|---|---|
+| task-IL final avg | -2.677, -0.538, +1.464, +1.650, -2.517 | -0.524 ± 2.079 pp | 2/5 | within noise |
+| class-IL final avg | +3.113, +2.133, -1.558, +0.690, +1.408 | +1.157 ± 1.763 pp | 4/5 | directional, inconclusive |
+| 跨任務洩漏率 | -5.461, -4.337, +3.021, -0.444, -5.855 | -2.615 ± 3.809 pp | 4/5 | directional, inconclusive |
+| selection Jaccard | +0.008, -0.077, -0.046, +0.048, +0.006 | -0.012 ± 0.049 | 3/5 | within noise |
+| group 配額 KL | -0.010, -0.000, -0.003, -0.008, -0.003 | -0.005 ± 0.004 | 5/5 | systematic |
+
+**pre-registered 判準（原文，先於結果寫定）**：
+
+- 通過 → win >= 4/5 且為正 → 報告為有效變體，論文寫「完整兩層 L_sem 帶來 __ pp 增益」
+- 未通過 → <= 3/5 → 論文寫有數據的發現：在 classification 設定下 group 層語意先驗不提供增益，因為 q_tau 在任務內為常數，cos(g_j, q_tau) 退化為 8 個群組的靜態排序；HistoSelect 的 q 為逐問題變動，此差異來自 query 性質而非機制本身。
+
+**落判依據**：
+
+- task-IL final avg：配對 -0.52 pp、win 2/5（within noise）→ 不滿足
+- class-IL final avg：配對 +1.16 pp、win 4/5（directional, inconclusive）→ 滿足
+- 落判規則：兩軸皆須滿足 → FAIL
+- ⚠️ **僅在 class-IL final avg 有效**，另一軸不動 —— 照實報告，不計為通過（PI 裁定 1）。
+
+**判定：FAIL** → <= 3/5 → 論文寫有數據的發現：在 classification 設定下 group 層語意先驗不提供增益，因為 q_tau 在任務內為常數，cos(g_j, q_tau) 退化為 8 個群組的靜態排序；HistoSelect 的 q 為逐問題變動，此差異來自 query 性質而非機制本身。
 
 ## 總結
 
 | 實驗 | 變因 | 判定 | 對架構圖的處置 |
 |---|---|---|---|
 | G5 | + E_t / B_t 狀態條件化 | **FAIL** | 移除 Panel E 與 "stateful"，改寫為 budgeted top-K selection |
-| G4 | + q_tau 任務條件化 | **PENDING** | — |
-| G3 | + group 層 L_sem (beta_g=0.1) | **PENDING** | — |
+| G4 | + q_tau 任務條件化 | **FAIL** | q_tau 標為 optional 或移除；寫成有機制解釋的 null |
+| G3 | + group 層 L_sem (beta_g=0.1) | **FAIL** | 維持 patch-only；寫成有數據的發現 |
 
 ⚠️ G3 不論結果如何都**不回頭改主表** —— DR-007 pre-register 的是「用哪個 prior」，不是「用哪幾層」；本實驗是新增的消融維度。
 
