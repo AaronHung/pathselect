@@ -49,7 +49,7 @@ use_query=False 的實作是把 query 欄位填零（selector/model.py:44），�
 | 臂 | 說明 | seeds | task-IL final avg | class-IL final avg | 跨任務洩漏率 | selection Jaccard | group 配額 KL |
 |---|---|---|---|---|---|---|---|
 | base | hier-A5 基準（G1'） | 5 | 0.9089 ± 0.0077 | 0.8119 ± 0.0162 | 0.1220 ± 0.0237 | 0.1419 ± 0.0482 | 0.0191 ± 0.0031 |
-| G5 | + E_t / B_t 狀態條件化 | 3 | 0.9050 ± 0.0150 | 0.8365 ± 0.0167 | 0.0924 ± 0.0272 | 0.1622 ± 0.0073 | 0.0291 ± 0.0132 |
+| G5 | + E_t / B_t 狀態條件化 | 5 | 0.9039 ± 0.0228 | 0.8223 ± 0.0286 | 0.1032 ± 0.0243 | 0.1547 ± 0.0194 | 0.0429 ± 0.0265 |
 | G4 | + q_tau 任務條件化 | — | — | — | — | — | — |
 | G3 | + group 層 L_sem (beta_g=0.1) | — | — | — | — | — | — |
 
@@ -61,15 +61,15 @@ use_query=False 的實作是把 query 欄位填零（selector/model.py:44），�
 
 ### G5　+ E_t / B_t 狀態條件化
 
-共同 seeds：[0, 1, 2]（n=3）
+共同 seeds：[0, 1, 2, 3, 4]（n=5）
 
 | 指標 | 逐 seed 配對差值 | 配對 mean ± std | win count | 三級判讀 |
 |---|---|---|---|---|
-| task-IL final avg | -0.280, -2.720, +1.123 | -0.626 ± 1.945 pp | 1/3 | within noise |
-| class-IL final avg | +4.489, +4.946, -1.295 | +2.713 ± 3.478 pp | 2/3 | directional, inconclusive |
-| 跨任務洩漏率 | -3.914, -8.268, +2.418 | -3.255 ± 5.374 pp | 2/3 | directional, inconclusive |
-| selection Jaccard | +0.052, -0.039, -0.022 | -0.003 ± 0.048 | 1/3 | within noise |
-| group 配額 KL | +0.022, +0.016, -0.003 | +0.012 ± 0.013 | 1/3 | within noise |
+| task-IL final avg | -0.280, -2.720, +1.123, -2.731, +2.122 | -0.497 ± 2.206 pp | 2/5 | within noise |
+| class-IL final avg | +4.489, +4.946, -1.295, -4.426, +1.512 | +1.045 ± 3.959 pp | 3/5 | within noise |
+| 跨任務洩漏率 | -3.914, -8.268, +2.418, +0.291, +0.083 | -1.878 ± 4.242 pp | 2/5 | within noise |
+| selection Jaccard | +0.052, -0.039, -0.022, +0.080, -0.007 | +0.013 ± 0.051 | 2/5 | within noise |
+| group 配額 KL | +0.022, +0.016, -0.003, +0.065, +0.019 | +0.024 ± 0.025 | 1/5 | within noise |
 
 **pre-registered 判準（原文，先於結果寫定）**：
 
@@ -78,8 +78,8 @@ use_query=False 的實作是把 query 欄位填零（selector/model.py:44），�
 
 **落判依據**：
 
-- task-IL final avg：配對 -0.63 pp、win 1/3（within noise）→ 不滿足
-- class-IL final avg：配對 +2.71 pp、win 2/3（directional, inconclusive）→ 不滿足
+- task-IL final avg：配對 -0.50 pp、win 2/5（within noise）→ 不滿足
+- class-IL final avg：配對 +1.05 pp、win 3/5（within noise）→ 不滿足
 - 落判規則：任一軸滿足即通過 → FAIL
 
 **判定：FAIL** → <= 3/5 或為負 → 從架構圖移除 Panel E 與 "stateful" 一詞，改寫為 budgeted top-K selection under a shared frozen head，並在 limitation 說明：在此設定下狀態條件化未帶來可測增益。不得調參搶救。

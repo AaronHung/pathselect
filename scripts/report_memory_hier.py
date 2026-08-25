@@ -174,9 +174,8 @@ def main() -> int:
         L.append("")
 
     valid_caps = [c for c in caps if c not in invalid]
-    L += cross_capacity_section(Mh, seeds, valid_caps)
-    L += efficiency_section(Mh, seeds, valid_caps)
-    L += dr019_section(Mh, seeds, valid_caps)
+    for section in SECTION_ORDER:
+        L += section(Mh, seeds, valid_caps)
     L += ["逐 slide 預測：`outputs/exp2/memory_hier/per_slide/*.json`", ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(L) + "\n")
@@ -207,7 +206,7 @@ def paired(M, seeds, a1, c1, a2, c2, key, higher):
 
 def cross_capacity_section(M, seeds, valid_caps) -> list[str]:
     """效率主張是跨容量比較 —— 未配對的均值比較不足以支撐（PI 裁定，DR-042）。"""
-    L = ["## 跨容量配對比較（效率主張的依據）", "",
+    L = ["## 跨容量配對比較（輔助主張的明細）", "",
          "「A5@小 |M| 追平 A3@大 |M|」是**跨容量**比較，但兩者跑在**同一組 seeds** 上，"
          "所以可以配對。**未配對的均值比較不足以支撐效率主張。**", "",
          "win count 方向為「較省的臂較好」。三級規則同 DR-020。", ""]
@@ -240,19 +239,61 @@ def _systematic(M, seeds, a1, c1, a2, c2, key, higher):
     return (w == n and n >= 5 and good), r
 
 
-def efficiency_section(M, seeds, valid_caps) -> list[str]:
-    """效率主張改建在 task-IL；倍數只宣稱到配對結果支持的程度（DR-042）。"""
-    L = ["## 記憶體效率主張（階層版，改建在 task-IL）", "",
-         "⚠️ **本節取代先前基於 class-IL 的「8×」宣稱，該宣稱已撤回。** 兩個理由：",
-         "",
-         "1. 原錨點 |M|=128 的 class-IL 配對是 **4/5 directional**，且 "
-         "**std(7.71) > mean(7.72)** —— 用它當效率主張的支點站不住。",
-         "2. flat 版的防禦「A3 在 256 後不再改善」**不適用於階層版** —— "
-         "階層版 A3 的 class-IL 曲線到 1024 仍在上升，尚未飽和，"
-         "所以「A3 再加記憶體也沒用」這條路在階層下不能走。",
-         "",
-         "改建在 **task-IL**：A3 雖然單調上升，但 A5 − A3 在 5 個容量中有 4 個為 "
-         "systematic（見上方 task-IL 表），是這批資料裡最穩的軸。", ""]
+def claims_section(M, seeds, valid_caps) -> list[str]:
+    """記憶體主張（DR-042 修訂 A）。
+
+    **主從關係**：主要主張是**同容量**比較 —— 一句話、證據更強、不需要跨容量比較，
+    而且它就是對「把 |M| 開大就好」最直接的回答。跨容量的效率倍數是**輔助主張**，
+    需要三層限定才能成立，因此放在後面。
+    """
+    # ── 主要主張（同容量）──
+    per_cap = {}
+    for cap in valid_caps:
+        r = paired(M, seeds, "A5", cap, "A3", cap, "final_task_il", True)
+        if r is not None:
+            per_cap[cap] = r
+    n_sys = sum(1 for _d, mean, _sd, w, n in per_cap.values()
+                if w == n and n >= 5 and mean > 0)
+    n_pos = sum(1 for _d, mean, *_ in per_cap.values() if mean > 0)
+    top = max(valid_caps) if valid_caps else None
+
+    L = ["## 記憶體主張", "",
+         "**主要主張是同容量比較，效率倍數是輔助主張。** 前者一句話講完、證據更強，"
+         "而且它就是對「把 \\|M\\| 開大就好」最直接的回答；後者需要三層限定。", "",
+         "### 主要主張（同容量，不需跨容量比較）", ""]
+    if per_cap:
+        L += [f"**在所有測試的記憶體預算（{min(valid_caps)}–{max(valid_caps)}）下，"
+              f"我方在 task-IL 上皆優於 replay-only；{len(per_cap)} 個容量中 "
+              f"{n_sys} 個為 systematic（5/5 seeds），"
+              f"含最大的 {top}（{per_cap[top][1] * 100:+.2f}）。**",
+              "",
+              f"逐容量配對差值（A5 − A3，task-IL）：{n_pos}/{len(per_cap)} 個容量為正。", "",
+              "| \\|M\\| | A5 − A3（task-IL 配對） | win count | 三級判讀 |",
+              "|---|---|---|---|"]
+        for cap in valid_caps:
+            if cap not in per_cap:
+                continue
+            _d, mean, sd, w, n = per_cap[cap]
+            L.append(f"| {cap} | {mean * 100:+.2f} ± {sd * 100:.2f} pp | {w}/{n} | "
+                     f"{verdict(w, n)} |")
+        L += ["",
+              "→ **「把記憶體開大就好」這條路走不通** —— A3 即使拿到 "
+              f"\\|M\\|={top}（已超出 CONTRACT-3 的 512），task-IL 仍然輸給 A5。"
+              "這個結論不依賴任何跨容量比較。", ""]
+    else:
+        L += ["⚠️ 資料不足。", ""]
+
+    # ── 輔助主張（跨容量效率倍數）──
+    L += ["### 輔助主張（跨容量效率倍數）", "",
+          "⚠️ **本節取代先前基於 class-IL 的「8×」宣稱，該宣稱已撤回。** 兩個理由：",
+          "",
+          "1. 原錨點 \\|M\\|=128 的 class-IL 配對是 **4/5 directional**，且 "
+          "**std(7.71) > mean(7.72)** —— 用它當效率主張的支點站不住。",
+          "2. flat 版的防禦「A3 在 256 後不再改善」**不適用於階層版** —— "
+          "階層版 A3 的 class-IL 曲線到 1024 仍在上升，尚未飽和，"
+          "所以「A3 再加記憶體也沒用」這條路在階層下不能走。",
+          "",
+          "改建在 **task-IL**（與主要主張同一軸）。", ""]
 
     # 找配對結果支持的最大倍數（task-IL 為主）
     wins = []
@@ -276,14 +317,24 @@ def efficiency_section(M, seeds, valid_caps) -> list[str]:
     if wins:
         k, a1, c1, a2, c2, r = max(wins, key=lambda x: x[0])
         _d, mean, sd, w, n = r
+        r8 = paired(M, seeds, a1, c1, "A3", max(valid_caps), "final_task_il", True)
         L += [f"→ **在測試範圍內達 {k}× 記憶體效率**："
               f"{a1}@{c1} 相對 {a2}@{c2} 的 task-IL 配對差值為 "
               f"{mean * 100:+.2f} ± {sd * 100:.2f} pp（{w}/{n}，systematic）。",
               "",
-              "⚠️ **A3 的曲線在測試範圍內未飽和**（class-IL 到 1024 仍在上升）。"
-              f"因此 {k}× 是**測試範圍內的下界**，"
-              "**不是 A3 需求的上界** —— 真正需要多大的 |M| 才能讓 A3 追平 A5，"
-              "本批資料無法回答。", ""]
+              "**引用時必須同時寫出三個限定：**", ""]
+        L += [f"- **(a) 錨點為 {a2}@{c2}。** 對 {a2}@{max(valid_caps)}（即 "
+              f"{max(valid_caps) // c1}×）只有 {r8[3]}/{r8[4]}"
+              f"（{verdict(r8[3], r8[4])}），**{max(valid_caps) // c1}× 不成立**。"
+              if r8 else f"- **(a) 錨點為 {a2}@{c2}。**"]
+        L += ["- **(b) A3 的曲線在測試範圍內未飽和**（class-IL 到 1024 仍在上升）。"
+              f"因此 {k}× 是**測試範圍內的下界**，**不是 A3 需求的上界** —— "
+              "真正需要多大的 \\|M\\| 才能讓 A3 追平 A5，本批資料無法回答。"]
+        cl = paired(M, seeds, "A5", max(valid_caps), "A3", max(valid_caps),
+                    "final_class_il", True)
+        L += [f"- **(c) 本主張限於 task-IL。** class-IL 在 \\|M\\|={max(valid_caps)} 時"
+              f"優勢落入雜訊（{cl[1] * 100:+.2f} pp，{cl[3]}/{cl[4]}），不支持大容量端的優勢。"
+              if cl else "- **(c) 本主張限於 task-IL。**", ""]
     else:
         L += ["→ **沒有任何跨容量配對達到 5/5 systematic，效率倍數無法宣稱。**", ""]
 
@@ -371,6 +422,13 @@ def dr019_section(M, seeds, valid_caps) -> list[str]:
           "當防禦，階層版**不能**。效率主張因此必須改建在配對證據上，"
           "而不是「對手已飽和」這個前提。", ""]
     return L
+
+
+#: 章節順序本身就是 PI 的裁定（DR-042 修訂 A）：**同容量的主要主張在前、
+#: 跨容量的效率倍數在後**。主要主張一句話講完、證據更強，且直接回答
+#: 「把 |M| 開大就好」；輔助主張需要三層限定。順序調換會改變論文的敘事重心，
+#: 所以把它抽成常數讓測試守得住。
+SECTION_ORDER = [claims_section, cross_capacity_section, dr019_section]
 
 
 if __name__ == "__main__":

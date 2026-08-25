@@ -75,30 +75,28 @@ def test_multiplier_requires_five_of_five():
     M = _M({("A5", 128): [0.90, 0.90, 0.90, 0.90, 0.80],
             ("A3", 512): const(0.85), ("A3", 1024): const(0.99),
             ("A5", 64): const(0.50)})
-    text = "\n".join(R.efficiency_section(M, SEEDS, [64, 128, 512, 1024]))
+    text = "\n".join(R.claims_section(M, SEEDS, [64, 128, 512, 1024]))
     assert "沒有任何跨容量配對達到 5/5" in text
-    assert "× 記憶體效率" not in text.split("### class-IL")[0].replace(
-        "記憶體效率主張", "")
 
 
 def test_multiplier_takes_the_largest_supported_ratio():
     """兩個比較都 5/5 時取倍數較大者。"""
     M = _M({("A5", 64): const(0.95), ("A5", 128): const(0.95),
             ("A3", 512): const(0.85), ("A3", 1024): const(0.85)})
-    text = "\n".join(R.efficiency_section(M, SEEDS, [64, 128, 512, 1024]))
+    text = "\n".join(R.claims_section(M, SEEDS, [64, 128, 512, 1024]))
     assert "在測試範圍內達 16× 記憶體效率" in text
 
 
 def test_efficiency_section_always_states_the_unsaturated_caveat():
     M = _M({("A5", 64): const(0.95), ("A5", 128): const(0.95),
             ("A3", 512): const(0.85), ("A3", 1024): const(0.85)})
-    text = "\n".join(R.efficiency_section(M, SEEDS, [64, 128, 512, 1024]))
+    text = "\n".join(R.claims_section(M, SEEDS, [64, 128, 512, 1024]))
     assert "未飽和" in text and "測試範圍內的下界" in text and "不是 A3 需求的上界" in text
 
 
 def test_efficiency_section_records_the_retraction():
     M = _M({("A5", 128): const(0.9), ("A3", 512): const(0.8)})
-    text = "\n".join(R.efficiency_section(M, SEEDS, [128, 512]))
+    text = "\n".join(R.claims_section(M, SEEDS, [128, 512]))
     assert "「8×」宣稱，該宣稱已撤回" in text
     assert "std(7.71) > mean(7.72)" in text
 
@@ -111,7 +109,7 @@ def test_efficiency_is_built_on_task_il_not_class_il():
               ("A3", 512): {"final_task_il": const(0.85),
                             "final_class_il": const(0.10),
                             "mean_leak": const(0.1), "mean_jaccard": const(0.1)}})
-    text = "\n".join(R.efficiency_section(M, SEEDS, [128, 512]))
+    text = "\n".join(R.claims_section(M, SEEDS, [128, 512]))
     assert "沒有任何跨容量配對達到 5/5" in text
 
 
@@ -210,6 +208,78 @@ def test_unsaturated_caveat_is_the_full_sentence_not_just_the_word():
     """⚠️ 只斷言「未飽和」會被誤放行 —— 該詞在本節開頭的理由 2 也出現過。"""
     M = _M({("A5", 64): const(0.95), ("A5", 128): const(0.95),
             ("A3", 512): const(0.85), ("A3", 1024): const(0.85)})
-    text = "\n".join(R.efficiency_section(M, SEEDS, [64, 128, 512, 1024]))
-    assert "**A3 的曲線在測試範圍內未飽和**" in text
+    text = "\n".join(R.claims_section(M, SEEDS, [64, 128, 512, 1024]))
+    assert "**(b) A3 的曲線在測試範圍內未飽和**" in text
     assert "class-IL 到 1024 仍在上升" in text
+
+
+# ── PI 裁定：主從關係倒轉（DR-042 修訂 A）─────────────────────────────────
+
+def test_primary_claim_comes_before_the_multiplier():
+    """同容量主張在前、效率倍數在後 —— 順序本身就是裁定的一部分。"""
+    M = _M({("A5", c): const(0.90) for c in [64, 128, 512, 1024]}
+           | {("A3", c): const(0.85) for c in [64, 128, 512, 1024]})
+    text = "\n".join(R.claims_section(M, SEEDS, [64, 128, 512, 1024]))
+    i_main = text.index("### 主要主張（同容量，不需跨容量比較）")
+    i_aux = text.index("### 輔助主張（跨容量效率倍數）")
+    assert i_main < i_aux, "主要主張必須排在輔助主張之前"
+    assert text.index("## 記憶體主張") < i_main
+
+
+def test_primary_claim_states_the_largest_capacity_explicitly():
+    """對「把 |M| 開大就好」的回答，關鍵在最大容量那一格。"""
+    M = _M({("A5", c): const(0.90) for c in [64, 128, 512, 1024]}
+           | {("A3", c): const(0.85) for c in [64, 128, 512, 1024]})
+    text = "\n".join(R.claims_section(M, SEEDS, [64, 128, 512, 1024]))
+    assert "含最大的 1024" in text
+    assert "「把記憶體開大就好」這條路走不通" in text
+    assert "這個結論不依賴任何跨容量比較" in text
+
+
+def test_primary_claim_counts_systematic_capacities_correctly():
+    a5 = {64: [.90] * 5, 128: [.90] * 5, 256: [.90, .90, .90, .90, .70],
+          512: [.90] * 5, 1024: [.90] * 5}
+    a3 = {c: [.85] * 5 for c in a5}
+    M = _M({("A5", c): v for c, v in a5.items()}
+           | {("A3", c): v for c, v in a3.items()})
+    text = "\n".join(R.claims_section(M, SEEDS, sorted(a5)))
+    assert "5 個容量中 4 個為 systematic" in text
+
+
+def test_auxiliary_claim_carries_all_three_qualifiers():
+    M = _M({("A5", 128): const(0.90), ("A5", 64): const(0.50),
+            ("A3", 512): const(0.85), ("A3", 1024): const(0.95)})
+    text = "\n".join(R.claims_section(M, SEEDS, [64, 128, 512, 1024]))
+    assert "**引用時必須同時寫出三個限定：**" in text
+    assert "**(a) 錨點為 A3@512。**" in text
+    assert "(b) A3 的曲線在測試範圍內未飽和" in text
+    assert "(c) 本主張限於 task-IL。" in text
+
+
+def test_qualifier_a_uses_the_ratio_against_the_largest_capacity():
+    """(a) 要說的是「8× 不成立」（1024/128），不是別的倍數。"""
+    M = _M({("A5", 128): const(0.90), ("A5", 64): const(0.50),
+            ("A3", 512): const(0.85), ("A3", 1024): const(0.95)})
+    text = "\n".join(R.claims_section(M, SEEDS, [64, 128, 512, 1024]))
+    assert "對 A3@1024（即 8×）" in text and "**8× 不成立**" in text
+
+
+def test_document_section_order_puts_claims_before_cross_capacity_detail():
+    """文件層級的順序：主張段在跨容量明細之前（DR-042 修訂 A）。
+
+    ⚠️ 只測 claims_section 內部的主/輔順序不夠 —— 把 claims_section 整段移到
+    cross_capacity_section 後面，內部順序仍然正確，敘事重心卻反了。
+    """
+    assert [f.__name__ for f in R.SECTION_ORDER] == [
+        "claims_section", "cross_capacity_section", "dr019_section"]
+
+
+def test_generated_report_keeps_that_order():
+    """再從實際產物確認一次（憲法 §2.8：回報的東西要在產物裡）。"""
+    md = ROOT / "outputs" / "exp2" / "memory_hier" / "MEMORY_HIER.md"
+    if not md.exists():
+        pytest.skip("尚未產生 MEMORY_HIER.md")
+    text = md.read_text(encoding="utf-8")
+    assert (text.index("## 記憶體主張")
+            < text.index("## 跨容量配對比較")
+            < text.index("## DR-019 的四條可宣稱在階層版是否成立"))
