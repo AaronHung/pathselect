@@ -28,7 +28,7 @@
 | [016](DR-016.md) | 配對統計 + win count，不報 p 值 | ACTIVE | 七臂同 seeds；n=5 政策沿用 |
 | [017](DR-017.md) | E1 記憶體曲線為主要防禦；牌一先實作備援 | ACTIVE | ⏳ 執行中；防「把 \|M\| 開大就好」；utility-gated KD 在手 |
 | [018](DR-018.md) | 寫作策略：完整版母本優先，venue 視圖後導出 | ACTIVE | 不為任何 venue 砍 idea；去風險由 checklist/ledger/SEEDS 承擔 |
-| [019](DR-019.md) | E1 判讀：防禦成立，記憶體效率主張定為 2× | ACTIVE | 四條可宣稱；中段 128/256 的弱證據須揭露；牌一改為稀缺端假設驅動 |
+| [019](DR-019.md) | E1 判讀：防禦成立，記憶體效率主張定為 2× | SUPERSEDED-BY DR-042 | 四條可宣稱；中段 128/256 的弱證據須揭露；牌一改為稀缺端假設驅動 |
 | [020](DR-020.md) | win count 三級規則與 A3 非單調的定性 | ACTIVE | 5/5 systematic、4/5 directional inconclusive、≤3/5 within noise；2× 為跨容量陳述 |
 | [021](DR-021.md) | 架構一致性：CL 主線改用階層選取器 | ACTIVE | 主表 flat 與架構圖 Group→Patch 脫節；G1 判準已 pre-register |
 | [022](DR-022.md) | group-level distillation 從未被測試；G1 增臂隔離 | SUPERSEDED-BY DR-035 | 退化階層下的「未顯示效果」結論已作廢 |
@@ -54,6 +54,8 @@
 | [040](DR-040.md) | G4 必須自己接上 q_tau；run_exp2 一律餵零向量 | ACTIVE | zeros(512) + 「關閉=填零」⇒ 位元相同 20/20，否則 G4 是保證的 null |
 
 | [041](DR-041.md) | 接線缺口為第四例；§2.9 升格為必須 | ACTIVE | 四例皆非 PI 發現；機制生效性實測改為實驗啟動前的門檻 |
+
+| [042](DR-042.md) | 效率主張改建在 task-IL，倍數 8× → **4×** | ACTIVE | 跨容量配對只有 A5@128−A3@512 為 5/5；A3 曲線未飽和，4× 是下界 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

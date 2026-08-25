@@ -173,34 +173,204 @@ def main() -> int:
                          f"{(h_ - f_) * 100:+.2f} pp |")
         L.append("")
 
-    # 記憶體效率主張（階層版）
     valid_caps = [c for c in caps if c not in invalid]
-    best = [(c, mean_of(Mh, "A3", c, seeds, "final_class_il")) for c in valid_caps]
-    best = [(c, v) for c, v in best if v is not None]
-    L += ["## 記憶體效率主張（階層版）", ""]
-    if best:
-        bc, bv = max(best, key=lambda x: x[1])
-        hit = next((c for c in valid_caps
-                    if (v := mean_of(Mh, "A5", c, seeds, "final_class_il")) is not None
-                    and v >= bv), None)
-        L += [f"A3 的 class-IL 全域最佳 = **{bv:.4f}**（|M|={bc}）。",
-              "",
-              (f"→ **A5 在 |M|={hit} 達到 A3 的全域最佳 → "
-               f"{bc // hit if hit and bc >= hit else 1}× 記憶體效率。**"
-               if hit is not None else
-               "→ A5 在所有有效容量下都沒有達到 A3 的全域最佳。"),
-              "",
-              "各 |M| 的 class-IL：",
-              "- A3：" + "、".join(f"{c}→{v:.4f}" for c, v in best),
-              "- A5：" + "、".join(
-                  f"{c}→{v:.4f}" for c in valid_caps
-                  if (v := mean_of(Mh, "A5", c, seeds, "final_class_il")) is not None),
-              ""]
+    L += cross_capacity_section(Mh, seeds, valid_caps)
+    L += efficiency_section(Mh, seeds, valid_caps)
+    L += dr019_section(Mh, seeds, valid_caps)
     L += ["逐 slide 預測：`outputs/exp2/memory_hier/per_slide/*.json`", ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(L) + "\n")
     print(f"→ {OUT}")
     return 0
+
+
+# ── 跨容量配對（DR-042）────────────────────────────────────────────────────
+
+#: (較省的臂, 其 |M|, 對照臂, 其 |M|)。同一組 seeds，故可配對。
+CROSS = [("A5", 64, "A3", 1024), ("A5", 128, "A3", 1024),
+         ("A5", 64, "A3", 512), ("A5", 128, "A3", 512)]
+
+
+def paired(M, seeds, a1, c1, a2, c2, key, higher):
+    """逐 seed 配對差值。回傳 (diffs, mean, std, wins, n) 或 None。"""
+    if (a1, c1) not in M or (a2, c2) not in M:
+        return None
+    d = [M[(a1, c1)][s][key] - M[(a2, c2)][s][key] for s in seeds
+         if M[(a1, c1)][s].get("per_task") and M[(a2, c2)][s].get("per_task")
+         and M[(a1, c1)][s].get(key) is not None and M[(a2, c2)][s].get(key) is not None]
+    if not d:
+        return None
+    w = sum((x > 0) if higher else (x < 0) for x in d)
+    sd = statistics.stdev(d) if len(d) > 1 else 0.0
+    return d, statistics.mean(d), sd, w, len(d)
+
+
+def cross_capacity_section(M, seeds, valid_caps) -> list[str]:
+    """效率主張是跨容量比較 —— 未配對的均值比較不足以支撐（PI 裁定，DR-042）。"""
+    L = ["## 跨容量配對比較（效率主張的依據）", "",
+         "「A5@小 |M| 追平 A3@大 |M|」是**跨容量**比較，但兩者跑在**同一組 seeds** 上，"
+         "所以可以配對。**未配對的均值比較不足以支撐效率主張。**", "",
+         "win count 方向為「較省的臂較好」。三級規則同 DR-020。", ""]
+    for a1, c1, a2, c2 in CROSS:
+        if c1 not in valid_caps or c2 not in valid_caps:
+            continue
+        L += [f"### {a1}@{c1} − {a2}@{c2}", "",
+              "| 指標 | 逐 seed 配對差值 | 配對 mean ± std | win count | 三級判讀 |",
+              "|---|---|---|---|---|"]
+        for key, label, higher in METRICS:
+            r = paired(M, seeds, a1, c1, a2, c2, key, higher)
+            if r is None:
+                continue
+            d, mean, sd, w, n = r
+            sc = 1 if key == "mean_jaccard" else 100
+            unit = "" if key == "mean_jaccard" else " pp"
+            L.append(f"| {label} | {', '.join(f'{x * sc:+.2f}' for x in d)} | "
+                     f"{mean * sc:+.2f} ± {sd * sc:.2f}{unit} | {w}/{n} | "
+                     f"{verdict(w, n)} |")
+        L.append("")
+    return L
+
+
+def _systematic(M, seeds, a1, c1, a2, c2, key, higher):
+    r = paired(M, seeds, a1, c1, a2, c2, key, higher)
+    if r is None:
+        return False, r
+    _d, mean, _sd, w, n = r
+    good = mean > 0 if higher else mean < 0
+    return (w == n and n >= 5 and good), r
+
+
+def efficiency_section(M, seeds, valid_caps) -> list[str]:
+    """效率主張改建在 task-IL；倍數只宣稱到配對結果支持的程度（DR-042）。"""
+    L = ["## 記憶體效率主張（階層版，改建在 task-IL）", "",
+         "⚠️ **本節取代先前基於 class-IL 的「8×」宣稱，該宣稱已撤回。** 兩個理由：",
+         "",
+         "1. 原錨點 |M|=128 的 class-IL 配對是 **4/5 directional**，且 "
+         "**std(7.71) > mean(7.72)** —— 用它當效率主張的支點站不住。",
+         "2. flat 版的防禦「A3 在 256 後不再改善」**不適用於階層版** —— "
+         "階層版 A3 的 class-IL 曲線到 1024 仍在上升，尚未飽和，"
+         "所以「A3 再加記憶體也沒用」這條路在階層下不能走。",
+         "",
+         "改建在 **task-IL**：A3 雖然單調上升，但 A5 − A3 在 5 個容量中有 4 個為 "
+         "systematic（見上方 task-IL 表），是這批資料裡最穩的軸。", ""]
+
+    # 找配對結果支持的最大倍數（task-IL 為主）
+    wins = []
+    for a1, c1, a2, c2 in CROSS:
+        if c1 not in valid_caps or c2 not in valid_caps:
+            continue
+        ok, r = _systematic(M, seeds, a1, c1, a2, c2, "final_task_il", True)
+        if ok:
+            wins.append((c2 // c1, a1, c1, a2, c2, r))
+    L += ["| 比較 | task-IL 配對 | win count | 倍數 | 是否支持 |",
+          "|---|---|---|---|---|"]
+    for a1, c1, a2, c2 in CROSS:
+        if c1 not in valid_caps or c2 not in valid_caps:
+            continue
+        ok, r = _systematic(M, seeds, a1, c1, a2, c2, "final_task_il", True)
+        _d, mean, sd, w, n = r
+        L.append(f"| {a1}@{c1} − {a2}@{c2} | {mean * 100:+.2f} ± {sd * 100:.2f} pp | "
+                 f"{w}/{n}（{verdict(w, n)}） | {c2 // c1}× | "
+                 f"{'✅' if ok else '❌'} |")
+    L.append("")
+    if wins:
+        k, a1, c1, a2, c2, r = max(wins, key=lambda x: x[0])
+        _d, mean, sd, w, n = r
+        L += [f"→ **在測試範圍內達 {k}× 記憶體效率**："
+              f"{a1}@{c1} 相對 {a2}@{c2} 的 task-IL 配對差值為 "
+              f"{mean * 100:+.2f} ± {sd * 100:.2f} pp（{w}/{n}，systematic）。",
+              "",
+              "⚠️ **A3 的曲線在測試範圍內未飽和**（class-IL 到 1024 仍在上升）。"
+              f"因此 {k}× 是**測試範圍內的下界**，"
+              "**不是 A3 需求的上界** —— 真正需要多大的 |M| 才能讓 A3 追平 A5，"
+              "本批資料無法回答。", ""]
+    else:
+        L += ["→ **沒有任何跨容量配對達到 5/5 systematic，效率倍數無法宣稱。**", ""]
+
+    # class-IL 另外報
+    L += ["### class-IL 另報", "",
+          "| \\|M\\| | A5 − A3 配對 | win count | 三級判讀 |",
+          "|---|---|---|---|"]
+    for cap in valid_caps:
+        r = paired(M, seeds, "A5", cap, "A3", cap, "final_class_il", True)
+        if r is None:
+            continue
+        _d, mean, sd, w, n = r
+        L.append(f"| {cap} | {mean * 100:+.2f} ± {sd * 100:.2f} pp | {w}/{n} | "
+                 f"{verdict(w, n)} |")
+    r = paired(M, seeds, "A5", max(valid_caps), "A3", max(valid_caps),
+               "final_class_il", True)
+    if r is not None:
+        _d, mean, sd, w, n = r
+        L += ["",
+              f"⚠️ **|M| = {max(valid_caps)} 時 A5 對 A3 的 class-IL 優勢落入雜訊**"
+              f"（{mean * 100:+.2f} pp，{w}/{n}）。class-IL 不支持在大容量端的優勢主張。",
+              ""]
+    return L
+
+
+def dr019_section(M, seeds, valid_caps) -> list[str]:
+    """DR-019 的四條可宣稱在階層版逐條重驗（PI 裁定，DR-042）。"""
+    a3 = [(c, mean_of(M, "A3", c, seeds, "final_class_il")) for c in valid_caps]
+    a3 = [(c, v) for c, v in a3 if v is not None]
+    a5_128 = mean_of(M, "A5", 128, seeds, "final_class_il")
+    a3_top = max(a3, key=lambda x: x[1]) if a3 else (None, None)
+    # ①「A3 在 256 之後不再改善」→ 直接測 256 之後有沒有任何容量超過 256
+    a3_at = dict(a3)
+    after = [(c, v) for c, v in a3 if c > 256]
+    improves = bool(after) and a3_at.get(256) is not None and \
+        max(v for _c, v in after) > a3_at[256]
+    # ① 的後半：「含 1024 皆未超過 A5@128」→ A3 的全域最佳必須**低於等於** A5@128
+    stays_below = (a3_top[1] is not None and a5_128 is not None
+                   and a3_top[1] <= a5_128)
+
+    def sd_across(arm, key):
+        v = [mean_of(M, arm, c, seeds, key) for c in valid_caps]
+        v = [x for x in v if x is not None]
+        return statistics.stdev(v) * 100 if len(v) > 1 else float("nan")
+
+    sd_a5, sd_a3 = sd_across("A5", "final_task_il"), sd_across("A3", "final_task_il")
+    r64 = paired(M, seeds, "A5", 64, "A3", 64, "final_task_il", True)
+    per_cap = {c: paired(M, seeds, "A5", c, "A3", c, "final_task_il", True)
+               for c in valid_caps}
+    scarce_max = (r64 is not None
+                  and all(r64[1] >= v[1] for v in per_cap.values() if v is not None))
+
+    rows = [
+        ("① A3 在 256 之後不再改善，含 1024 皆未超過 A5@128",
+         (not improves) and stays_below,
+         (f"A3 的 class-IL 在 256 之後**{'仍在改善' if improves else '不再改善'}**"
+          f"（{'、'.join(f'{c}→{v:.4f}' for c, v in a3)}）；"
+          f"A3 全域最佳 {a3_top[1]:.4f}@{a3_top[0]}，"
+          f"{'低於' if stays_below else '**高於**'} A5@128 的 {a5_128:.4f}"
+          if a3 and a5_128 is not None else "資料不足")),
+        ("② 2× 記憶體效率",
+         None,
+         "已由本檔「記憶體效率主張」一節以**跨容量配對**重新裁定，倍數改依配對結果，"
+         "不沿用 flat 版的數字"),
+        ("③ A5 對記憶體預算穩健而 A3 不穩",
+         sd_a5 < sd_a3,
+         f"task-IL 跨 \\|M\\| 的標準差：A5 {sd_a5:.2f} pp vs A3 {sd_a3:.2f} pp"),
+        ("④ 稀缺端優勢最大",
+         scarce_max,
+         (f"\\|M\\|=64 的 task-IL 配對 {r64[1] * 100:+.2f} pp（{r64[3]}/{r64[4]}），"
+          f"為所有容量中最大" if r64 and scarce_max else
+          (f"\\|M\\|=64 的 task-IL 配對 {r64[1] * 100:+.2f} pp，"
+           f"**不是**所有容量中最大" if r64 else "資料不足"))),
+    ]
+    L = ["## DR-019 的四條可宣稱在階層版是否成立", "",
+         "DR-019 是在 **flat** 架構上裁定的。`hier-A3 − flat-A3 = −3.11 pp`（G1'）"
+         "已證明 replay 在階層下的行為與 flat 不同，因此每一條都必須重驗。"
+         "**不成立的照實報 —— 那本身就是「replay 在階層下行為不同」的證據。**", "",
+         "| DR-019 的可宣稱 | 階層版 | 依據 |", "|---|---|---|"]
+    for claim, ok, why in rows:
+        mark = "**改由本檔重裁**" if ok is None else ("✅ 成立" if ok else "❌ **不成立**")
+        L.append(f"| {claim} | {mark} | {why} |")
+    L += ["",
+          "⚠️ ① 不成立這件事本身是有訊息量的：flat 版可以用「A3 加記憶體也沒用」"
+          "當防禦，階層版**不能**。效率主張因此必須改建在配對證據上，"
+          "而不是「對手已飽和」這個前提。", ""]
+    return L
 
 
 if __name__ == "__main__":
