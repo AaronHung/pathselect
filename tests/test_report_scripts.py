@@ -112,3 +112,18 @@ def test_prior_report_excludes_degenerate_hierarchy_records():
     bad = [r for r in groups["discriminative"]
            if r.get("allocation", "per_chunk") != "per_budget"]
     assert not bad, f"discriminative 混進了 {len(bad)} 筆非 per_budget 的紀錄"
+
+
+# ── 治理文件的數字必須可從產物溯源（DR-043 之後的常設守門）──────────────────
+
+def test_doc_numbers_are_traceable_to_artifacts():
+    """`verify_doc_numbers.py` 必須通過。
+
+    它做兩件事：從 per_slide **重算**配對統計後比對文件的指定段落（Tier 1），
+    以及確認文件引用的數字**同時**存在於被引用的產物裡（Tier 2）。
+    ⚠️ 第一版的兩個條件都寫鬆了（整份文件子字串搜尋、`(not in_doc) or in_art`），
+    六個 mutation 全數漏抓；現行版本已逐一驗證抓得到。
+    """
+    r = subprocess.run([sys.executable, "scripts/verify_doc_numbers.py"],
+                       capture_output=True, text=True, cwd=REPO_ROOT)
+    assert r.returncode == 0, f"數字無法溯源：\n{r.stdout[-3000:]}"

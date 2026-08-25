@@ -35,6 +35,13 @@ task-IL −0.497 ± 2.206（2/5）、class-IL +1.045 ± 3.959（3/5），兩軸�
 **因此「state 有進入計算」不等於「state 有用」** —— 前者只是機制生效性（憲法 §2.9），
 後者要看判準。sequential / stateful 的宣稱**沒有任何實驗支撐**，本條不再有解除路徑。
 
+**訓練後重測（2026-08-26）把這件事推到極端**：用 G5 訓練後的模型在 279 張真實
+test slide 上重做，state 開啟時 **279/279（100%）** 的選取集合改變，平均只有
+**2.81/8** 個 patch 與關閉時重疊。也就是說 state 幾乎**重寫了整個選取**，
+準確率卻兩軸皆未達判準。**「大幅改變選取」與「改善結果」完全脫鉤** ——
+這是本專案對「機制生效 ≠ 機制有用」最強的一個實例。
+（`outputs/exp2/arch/noop_trained.json`；模型經 279/279 逐筆比對確認與正式 G5 一致。）
+
 **用字禁令（DR-043）**：不得使用 **"stateful"、"state-conditioned"、
 "sequential acquisition"** 描述本方法。架構圖移除 Panel E 與 E_t/B_t 輸入；
 "Beyond HistoSelect" 移除 "stateful policy" 一條。

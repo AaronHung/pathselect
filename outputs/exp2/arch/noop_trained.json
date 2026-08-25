@@ -1,0 +1,37 @@
+{
+ "prompt_id": "G345-VERDICT-20260826",
+ "purpose": "PI 裁定 2：未訓練權重下的數字是下界，以訓練後模型在真實 slide 的重測為準。本檔不改變 G5 的落判（FAIL 已定，DR-043）。",
+ "config": {
+  "seed": 0,
+  "arch": "hier_state",
+  "allocation": "per_budget",
+  "budget": 8,
+  "split": "test",
+  "n_slides": 279,
+  "model": "G5 序列訓練後（4 個 stage 全跑完）的最終模型"
+ },
+ "verification_against_g5_dump": {
+  "checked": 279,
+  "identical": 279,
+  "different": 0
+ },
+ "state_on": {
+  "label": "state ON（G5）",
+  "n_slides": 279,
+  "same_set": 0,
+  "same_order": 0,
+  "mean_overlap": 2.806451612903226,
+  "k": 8,
+  "is_no_op": false
+ },
+ "state_off": {
+  "label": "state OFF（主線）",
+  "n_slides": 279,
+  "same_set": 279,
+  "same_order": 120,
+  "mean_overlap": 8.0,
+  "k": 8,
+  "is_no_op": true
+ },
+ "reading": "訓練後在 279 張真實 test slide 上，state 開啟時 c=1 八輪與 c=8 一輪的選取集合相同 0/279（未訓練 synthetic 的對應數字是 16/20）。"
+}

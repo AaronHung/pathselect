@@ -10,3 +10,39 @@ Exp2  arms=['A5']  order=reverse  seeds=[0]  B=8 c=1 epochs=5 arch=hier_state al
        記憶體 +120 → |M|=120
        eval tcga_esca  class-IL=nan task-IL=nan
     ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.6655
+      epoch 2/5 n=616 mean_loss=0.4279
+      epoch 3/5 n=616 mean_loss=0.4729
+      epoch 4/5 n=616 mean_loss=0.4577
+      epoch 5/5 n=616 mean_loss=0.3647
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=nan task-IL=nan
+       eval tcga_rcc   class-IL=nan task-IL=nan
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.0994
+      epoch 2/5 n=763 mean_loss=0.8594
+      epoch 3/5 n=763 mean_loss=0.7964
+      epoch 4/5 n=763 mean_loss=0.8364
+      epoch 5/5 n=763 mean_loss=0.7267
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=nan task-IL=nan
+       eval tcga_rcc   class-IL=nan task-IL=nan
+       eval tcga_brca  class-IL=nan task-IL=nan
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.9933
+      epoch 2/5 n=774 mean_loss=1.3418
+      epoch 3/5 n=774 mean_loss=1.1438
+      epoch 4/5 n=774 mean_loss=1.1630
+      epoch 5/5 n=774 mean_loss=0.9634
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=nan task-IL=nan
+       eval tcga_rcc   class-IL=nan task-IL=nan
+       eval tcga_brca  class-IL=nan task-IL=nan
+       eval tcga_lung  class-IL=nan task-IL=nan
+
+→ /Users/aaron/research/02_pathselect/outputs/exp2/arch_noop_trained/EXP2.md
+在真實 test slide 上比較 c=1×8 vs c=8×1 …
+與 G5 存檔比對：{'checked': 279, 'identical': 279, 'different': 0}
+  state OFF（主線）      集合相同 279/279、順序相同 120/279、平均重疊 8.00/8
+  state ON（G5）       集合相同 0/279、順序相同 0/279、平均重疊 2.81/8
+→ /Users/aaron/research/02_pathselect/outputs/exp2/arch/noop_trained.json
