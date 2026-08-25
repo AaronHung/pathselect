@@ -25,8 +25,29 @@ c=8 跑一輪選出的 patch **集合與順序都位元相同**。
 
 **可以宣稱的替代說法**：budgeted top-K selection under a shared frozen head。
 
-**解除條件**：`use_state=True` 的實驗（L6）跑出來，且證明其選取與 c=8 一次選取
-不同。屆時 sequential 的宣稱只適用於那些實驗。
+~~**解除條件**：`use_state=True` 的實驗（L6）跑出來，且證明其選取與 c=8 一次選取
+不同。~~ **解除條件已消滅（G5 / DR-043）。**
+
+G5（hier-A5 + `use_state=True`，5 seeds）確實打破了 no-op ——
+前置檢查 16/20 集合相同，state 真的進入計算。但依 pre-registered 判準**落判 FAIL**：
+task-IL −0.497 ± 2.206（2/5）、class-IL +1.045 ± 3.959（3/5），兩軸皆未達 4/5。
+
+**因此「state 有進入計算」不等於「state 有用」** —— 前者只是機制生效性（憲法 §2.9），
+後者要看判準。sequential / stateful 的宣稱**沒有任何實驗支撐**，本條不再有解除路徑。
+
+**用字禁令（DR-043）**：不得使用 **"stateful"、"state-conditioned"、
+"sequential acquisition"** 描述本方法。架構圖移除 Panel E 與 E_t/B_t 輸入；
+"Beyond HistoSelect" 移除 "stateful policy" 一條。
+
+### C-27 兩層 L_sem 作為主方法
+
+**主方法維持 patch-only L_sem，不加 group 項。**
+
+G3 落判 FAIL（DR-043）：task-IL −0.524（2/5），僅 class-IL 單軸 4/5。
+`selector/sem_loss.py` 的兩層版本是**消融維度**，不是主方法；
+`beta_g=0` 時與 `selector/train.py::l_sem` 位元相同，主表不受影響。
+
+⚠️ **但配額分佈的效果是可宣稱的** —— 見 [C-29](#c-29)。
 
 ### ~~C-02 hierarchical selection~~ ✅ 已解除（G1'，DR-029）
 
@@ -64,6 +85,23 @@ group-KD 保存的是**組織層配額分佈**、patch-KD 保存的是**具體 p
 **第四層只有實測才會現形** —— q_tau 有實作、有開關、開關也確實被讀取，
 單看任何一處都正常，只有把開/關兩條路跑出來比對才看得到它們位元相同。
 
+**2026-08-26 更新（G345 / DR-043）**：三例全部完成實測，**三者皆落判 FAIL**。
+
+| 元件 | 實測 | 落判 | 處置 |
+|---|---|---|---|
+| E_t/B_t 狀態 | G5 | task-IL 2/5、class-IL 3/5 | 移除 Panel E 與 "stateful"（C-01） |
+| q_tau | G4 | task-IL 2/5、class-IL 4/5（單軸） | 移出主圖、標 optional（C-04） |
+| group 層 L_sem | G3 | task-IL 2/5、class-IL 4/5（單軸） | 主方法維持 patch-only（C-27） |
+
+**這一輪最重要的教訓**：三個元件**都通過了機制生效性檢查**（打開後確實改變輸出），
+但**都沒有通過效能判準**。「機制有生效」與「機制有用」是兩個不同的問題，
+憲法 §2.9 管的是前者，pre-registered 判準管的是後者 —— **不可用前者代替後者**。
+
+⚠️ 但 G4 與 G3 各有一個次要指標是 5/5 systematic（洩漏率、配額 KL），
+必須報告，見 [C-28](#c-28) / [C-29](#c-29)。**落判 FAIL 不等於沒有效果。**
+
+原始說明保留於下：
+
 **2026-08-24 更新（DR-039）**：三例全部進入實測（G5 狀態、G4 q_tau、G3 group L_sem）。
 在 `outputs/exp2/arch/ARCH_COMPLETENESS.md` 落判之前，本表的狀態欄仍然有效 ——
 **「已實作」不等於「已驗證有效」**。特別注意：
@@ -80,9 +118,21 @@ group-KD 保存的是**組織層配額分佈**、patch-KD 保存的是**具體 p
   ⚠️ 既有結果不受影響：`run_exp1.py` 用的是真 query，而 `run_exp2.py` 從未開啟
   use_query，零向量從未進入任何已發表的數字。
 
-### C-04 task conditioning（q_τ）
+### C-04 task conditioning（q_τ）作為效能主張
 
 S1 顯示跨器官任務 98.2 / 98.6% 線性可分，q_τ 在此 benchmark 結構性冗餘。
+
+**2026-08-26 更新（G4 / DR-043）**：先前只有 flat 下的間接證據（L4 vs L3，
+且該比較另有混淆）。G4 在**階層**下做了直接實測（q_tau 進 F_g，直接影響配額），
+依 pre-registered 雙軸判準**落判 FAIL**：task-IL +0.312（2/5）、
+class-IL +5.849（4/5，單軸不足）。
+
+**用字禁令（DR-043）**：不得宣稱 q_tau 帶來準確率增益，不得用 **"task-conditioned"**
+描述本方法。q_tau 移出主圖，標為 optional / ablated。
+
+⚠️ **但 q_tau 對洩漏率的效果是可宣稱的** —— 見 [C-28](#c-28)。
+「不能宣稱準確率增益」與「完全沒有效果」是兩回事，**不要把後者寫進 limitation**。
+
 **解除條件**：同器官多任務 benchmark（SEEDS S-02）。
 
 ---
@@ -116,6 +166,38 @@ main order、元件消融、E3 都只有 3 seeds。其 systematic 標籤只能�
 ---
 
 ## ✅ 可以宣稱
+
+### C-28 q_tau reduces cross-task evidence leakage
+
+**q_tau 使跨任務洩漏率系統性降低 5.92 pp（−5.923 ± 4.189，5/5 systematic）。**
+
+G4（hier-A5 + `use_query=True`，5 seeds，逐 seed 配對）。head 是 frozen 的，
+所以洩漏率的變化 100% 可歸因於**選出的證據**（C-22）—— 顯式的任務語意讓選取
+更集中在該任務自己的組織上。
+
+⚠️ **必須同時附上條件：未轉化為準確率增益。** task-IL +0.312（2/5）、
+class-IL +5.849（4/5，單軸不足以依雙軸判準宣稱）。
+**不得**寫成「q_tau 改善了效能」。正確讀法：q_tau 影響「選什麼」，但那個改變
+沒有變成準確率。
+
+⚠️ 前置條件：`run_exp2.Ctx.q0` 是 `zeros(512)`，此結果來自
+`run_arch_completeness.wire_task_queries` 接上真正的 `TaskQueryBank`（DR-040）。
+
+證據檔：`outputs/exp2/arch/ARCH_COMPLETENESS.md`
+
+### C-29 group-level semantic prior preserves quota distribution
+
+**group 層語意先驗使 group 配額分佈的 KL 系統性降低 0.005（−0.005 ± 0.004，5/5）。**
+
+G3（hier-A5 + `beta_g=0.1`，5 seeds，逐 seed 配對）。配額 KL 量的是「學完某個
+task 時的組織層配額分佈」與「學完全部 task 後」的差距 —— 降低代表**組織層的
+選取結構被保住**。這與 group-KD 的效果同軸（C-03：group-KD 保配額、patch-KD
+保 patch 身份）。
+
+⚠️ **必須同時附上條件：未轉化為準確率增益。** task-IL −0.524（2/5）、
+class-IL +1.157（4/5，單軸不足）。主方法維持 patch-only（C-27）。
+
+證據檔：`outputs/exp2/arch/ARCH_COMPLETENESS.md`
 
 ### C-20 catastrophic forgetting 存在且三軸皆崩
 
