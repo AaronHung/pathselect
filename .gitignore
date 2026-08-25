@@ -1,5 +1,10 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-outputs/**/_probe_features.npz
 outputs/_status/
+
+# 大型產物 —— 針對「未來新增的」。已在歷史裡的 outputs/exp2/seqft/ckpt/ 維持追蹤
+# （DR 卡的 evidence 引用 commit hash，改寫歷史會破壞可追溯性）。
+ckpt/
+*_probe_features.npz
+outputs/**/_probe_features.npz
