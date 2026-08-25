@@ -135,6 +135,26 @@ class-IL +5.849（4/5，單軸不足）。
 
 **解除條件**：同器官多任務 benchmark（SEEDS S-02）。
 
+### C-25 L_sem 改善準確率（DR-036 → DR-038）
+
+G2 三臂（階層版 5 seeds）在 class-IL 上**全部落在雜訊內**
+（discriminative − none = **−0.02 pp，3/5**）。task-IL 上
+discriminative − max_sim = +0.76 pp（5/5）但量級極小。
+
+**可以宣稱的替代說法**（DR-038 裁定後的措辭）：
+**「在階層架構下，語意先驗的移除不損害準確率。」**
+semantic prior 作為**弱正則**（與 β_s 刻意設小的設計一致）。
+選 discriminative 的理由是**避免 simple similarity**（DR-007），不是效能。
+
+⚠️ **已刪除的措辭**：「HistoSelect 的貢獻在於分組結構而非語意先驗」——
+DR-038 判定為**循環論證**（我們正是在「分組結構壓過 patch 分數」的階層架構裡
+測 patch 層先驗），明令刪去。此處記錄刪除本身，避免它從別處回流。
+
+⚠️ 必須同時報 **max_sim 的洩漏率最低（9.74）**。
+⚠️ **範圍限定**：此結論**只適用階層架構**。L_sem 只錨定 patch 分數，
+階層下 group 配額先決定名額、patch 分數只在組內排序，槓桿被稀釋；
+flat 下 patch 分數單獨決定選取。**不可外推到 flat**（目前無 flat 的 prior 消融資料）。
+
 ---
 
 ## ⚠️ 有限度宣稱
@@ -212,21 +232,6 @@ A3 − A1 在 reverse 與 main 上都是大幅改善，方向與量級一致
 ### C-22 洩漏 100% 可歸因於選取漂移
 
 head 是 frozen 的，所以跨任務洩漏只能來自選取改變（DR-012）。這是架構的直接後果。
-
-### C-25 L_sem 改善準確率 ❌ 不可宣稱（DR-036）
-
-G2 三臂（階層版 5 seeds）在 class-IL 上**全部落在雜訊內**
-（discriminative − none = **−0.02 pp，3/5**）。task-IL 上
-discriminative − max_sim = +0.76 pp（5/5）但量級極小。
-
-**可以宣稱的替代說法**：semantic prior 作為**弱正則**，其移除不損害準確率
-（與 β_s 刻意設小的設計一致）；HistoSelect 的貢獻在於**分組結構**而非語意先驗。
-選 discriminative 的理由是**避免 simple similarity**（DR-007），不是效能。
-
-⚠️ 必須同時報 **max_sim 的洩漏率最低（9.74）**。
-⚠️ **範圍限定**：此結論**只適用階層架構**。L_sem 只錨定 patch 分數，
-階層下 group 配額先決定名額、patch 分數只在組內排序，槓桿被稀釋；
-flat 下 patch 分數單獨決定選取。**不可外推到 flat**（目前無 flat 的 prior 消融資料）。
 
 ### C-24 KD 與 replay 保存的是不同的東西（DR-033）
 
