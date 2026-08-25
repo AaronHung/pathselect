@@ -79,6 +79,41 @@ AXIS_RULE = ("G5 = 任一準確率軸滿足即通過（描述性用字）；"
              "G4 / G3 = task-IL 與 class-IL 兩軸皆須滿足（效能宣稱）")
 
 
+def trained_section(t) -> list[str]:
+    """訓練後模型在真實 slide 上的重測（PI 裁定 2 的承諾）。"""
+    if not t:
+        return ["### 訓練後重測", "",
+                "⚠️ **尚未執行** —— PI 裁定 2 承諾以訓練後模型在真實 slide 重測，"
+                "在產物出現之前，效果量沒有可引用的估計。"
+                "執行：`python scripts/g5_trained_noop.py`。", ""]
+    on, off, ver = t["state_on"], t["state_off"], t["verification_against_g5_dump"]
+    n = on["n_slides"]
+    L = ["### 訓練後重測（PI 裁定 2 的承諾，已兌現）", "",
+         f"用 **G5 序列訓練後的最終模型**（seed {t['config']['seed']}，4 個 stage 全跑完）"
+         f"在 **{n} 張真實 test slide** 上重做同一個比較。", ""]
+    if ver.get("checked"):
+        L += [f"⚠️ **模型一致性驗證**：本檔為省時跳過了各 stage 的評估，"
+              f"因此先用 G5 的逐 slide 存檔逐筆比對 —— {ver['checked']} 筆中 "
+              f"{ver['identical']} 筆選取完全相同、{ver['different']} 筆不同。"
+              f"{'✅ 模型與正式 G5 跑出來一致。' if not ver['different'] else '❌ 不一致，下方數字不可採用。'}",
+              ""]
+    L += ["| 設定 | 選取集合相同 | 選取順序相同 | 平均重疊 |",
+          "|---|---|---|---|"]
+    for r in (off, on):
+        L.append(f"| {r['label']} | {r['same_set']}/{r['n_slides']} | "
+                 f"{r['same_order']}/{r['n_slides']} | "
+                 f"{r['mean_overlap']:.2f}/{r['k']} |")
+    diff = n - on["same_set"]
+    L += ["",
+          f"**訓練後**：state 開啟時 {diff}/{n}（{diff / n:.1%}）的 slide 選取集合改變，"
+          f"未訓練 synthetic 的對應數字是 4/20（20%）。",
+          "",
+          "⚠️ **這仍然不改變 G5 的落判** —— 落判看的是準確率判準，本節看的是"
+          "「state 有沒有改變選取」。**改變選取而未改善準確率**，正是 G5 FAIL 的內容"
+          "（DR-043）。", ""]
+    return L
+
+
 def load(root: Path, arm: str, arch: str) -> list[dict]:
     if not root.exists():
         return []
@@ -165,6 +200,8 @@ def main() -> int:
     ctx = Ctx(cfg)
     noop = json.loads((OUT_DIR / "noop_check.json").read_text()) \
         if (OUT_DIR / "noop_check.json").exists() else None
+    trained = json.loads((OUT_DIR / "noop_trained.json").read_text()) \
+        if (OUT_DIR / "noop_trained.json").exists() else None
 
     base = collect(ctx, BASELINE[2], BASELINE[3], BASELINE[4])
     if base is None:
@@ -224,7 +261,9 @@ def main() -> int:
               "結果會補進本節；在那之前，效果量沒有可引用的估計。",
               "",
               f"（原始 caveat：{noop['caveat']}）",
-              "",
+              ""]
+        L += trained_section(trained)
+        L += [
               f"產物：`outputs/exp2/arch/noop_check.json`",
               ""]
     else:

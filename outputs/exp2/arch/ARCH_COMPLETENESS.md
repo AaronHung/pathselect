@@ -31,6 +31,10 @@
 
 （原始 caveat：未訓練權重下 state 的影響偏小（同集合 16/20）。這是下界，不是效果量的估計；訓練後應以真實 slide 重做一次。）
 
+### 訓練後重測
+
+⚠️ **尚未執行** —— PI 裁定 2 承諾以訓練後模型在真實 slide 重測，在產物出現之前，效果量沒有可引用的估計。執行：`python scripts/g5_trained_noop.py`。
+
 產物：`outputs/exp2/arch/noop_check.json`
 
 ## G4 前置：q_tau 是否真的進入計算
