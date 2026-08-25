@@ -200,7 +200,7 @@ status=SUPERSEDED-BY 的卡共 5 張。原卡內文一律不改（append-only，
   用 group prototype 98.57%（`outputs/exp1/diag/TASK_SEPARABILITY.md`）。
   q_τ 有實作、有用到，但提供的是模型早已擁有的資訊。
 - **怎麼處理**：主張 PARK → G-05（復活條件：同器官多任務 benchmark，S-02）；
-  定義凍結不動（DR-008）；G4 在階層下補測（判準：兩軸皆 4/5 才算通過，跑中）。
+  定義凍結不動（DR-008）；G4 在階層下補測（判準：兩軸皆 4/5 才算通過）已於 2026-08-25 落判 **FAIL** —— 僅 class-IL 單軸 4/5，task-IL 2/5。
 
 ### 4.3 group-level semantic prior —— 實作層（根本沒寫）
 
@@ -319,7 +319,6 @@ status=SUPERSEDED-BY 的卡共 5 張。原卡內文一律不改（append-only，
 | # | 項目 | 狀態 | 判準 | 出處 |
 |---|---|---|---|---|
 | 1 | G5 的效果量重測（訓練後模型、真實 slide） | ARCH_COMPLETENESS.md 承諾「G5 跑完後補進本節」；未見產物 —— 不確定是否已排程 | no-op 檢查的 4/20 是下界不是效果量（PI 裁定 2） | `outputs/exp2/arch/ARCH_COMPLETENESS.md` G5 前置節 |
-| 2 | G345 產物與最終報告尚未 commit（含 `A5g_*`、`A5_*_hier_query` seed3/4、更新後的 ARCH_COMPLETENESS.md） | git status 未入庫；憲法 §2.8 要求回報內容存在於 committed 產物 | — | `git status` |
 | 3 | 論文寫作：完整版母本 → venue 視圖 | freeze 9/2、論文 8/31（今日 8/25） | 不為 venue 砍 idea | DR-003、DR-018 |
 
 （G4、G3 已於 2026-08-25 落判，移入上方「已定案」10b/10c。）
