@@ -421,9 +421,12 @@ def arm_metrics(recs, arm, tasks, seed, label_space):
         leak = sum(not (lo <= r["pred_class_il"] <= lo + 1) for r in at_e) / len(at_e)
         q_i = [sum(r["group_quota"][j] for r in at_i) for j in range(NUM_GROUPS)]
         q_e = [sum(r["group_quota"][j] for r in at_e) for j in range(NUM_GROUPS)]
-        n_px = statistics.mean([r["n_patch"] for r in at_e])
         K = at_e[0]["B"]
-        f = min(K, n_px) / n_px
+        # DR-044：隨機重疊參照改為**逐 slide 算後平均**，與 recompute_task_il.py
+        # 及 run_seqft.py 同口徑。觀測 Jaccard 本來就是逐 slide 平均，
+        # 參照用 task 平均 n 算單一值是不同口徑，並排會誤導。
+        ref = statistics.mean([(lambda f: f / (2 - f))(min(K, r["n_patch"]) / r["n_patch"])
+                               for r in at_e])
         out["per_task"][t] = {
             "task_il_at_learn": acc(at_i, "pred_task_il"),
             "task_il_at_end": acc(at_e, "pred_task_il"),
@@ -434,7 +437,7 @@ def arm_metrics(recs, arm, tasks, seed, label_space):
             "leak": leak,
             "jaccard": statistics.mean([jac(a["selected_idx"], b["selected_idx"])
                                         for a, b in pairs]),
-            "jaccard_ref": f / (2 - f),
+            "jaccard_ref": ref,
             "quota_kl": kl_quota(q_i, q_e),
             "sum_u_at_learn": sum(r["utility_total"] for r in at_i),
             "sum_u_at_end": sum(r["utility_total"] for r in at_e),
@@ -470,6 +473,10 @@ def write_report(ctx, recs, arms, order_name, seeds, args, out_dir):
     def col(a, key, fmt="{:.4f}"):
         return ms([M[a][s].get(key) for s in seeds if M[a][s].get("per_task")], fmt)
 
+    def n_seeds(a):
+        """該臂實際有資料的 seed 數 —— 混合批次時必須顯示（憲法 §1.2）。"""
+        return sum(1 for s in seeds if M[a][s].get("per_task"))
+
     L = [
         f"# Exp 2 — CL 方法臂對照（order = {order_name}）",
         "",
@@ -494,23 +501,33 @@ def write_report(ctx, recs, arms, order_name, seeds, args, out_dir):
         "",
         "## 主表",
         "",
-        "| # | 方法臂 | final avg acc (task-IL) | final avg acc (class-IL) | "
+        "| # | 方法臂 | n seeds | final avg acc (task-IL) | final avg acc (class-IL) | "
         "A1 forgetting task-IL (pp) | A1 forgetting class-IL (pp) | Jaccard | "
         "quota KL | 洩漏率 | l_eq fire rate |",
-        "|---|---|---|---|---|---|---|---|---|---|",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for a in arms:
-        L.append(f"| {a} | {ARMS[a]['name']} | {col(a, 'final_task_il')} | "
+        L.append(f"| {a} | {ARMS[a]['name']} | {n_seeds(a)} | {col(a, 'final_task_il')} | "
                  f"{col(a, 'final_class_il')} | {col(a, 'mean_A1_task_il', '{:+.2f}')} | "
                  f"{col(a, 'mean_A1_class_il', '{:+.2f}')} | {col(a, 'mean_jaccard')} | "
                  f"{col(a, 'mean_quota_kl')} | {col(a, 'mean_leak')} | "
                  f"{col(a, 'l_eq_fire_rate')} |")
+    counts = sorted({n_seeds(a) for a in arms})
+    if len(counts) > 1:
+        L += ["",
+              f"⚠️ **本批各臂的 seed 數不一致（{counts}）**，「n seeds」欄為每臂的實際數。"
+              "憲法 §1.2：n<5 的臂其 3/3 只能讀作「方向一致」，不能讀作「已定案」；"
+              "**不同 n 的臂不可直接並排比較均值**。下方 paired 表只在**兩臂共同的 "
+              "seed** 上配對（§1.3）。"]
     L += ["",
           f"**欄位口徑**：final avg acc 算全部 {len(tasks)} 個 task；"
           f"**forgetting、Jaccard、quota KL 只算前 {len(tasks) - 1} 個 task** —— "
           f"最後學的 {short[-1]} 的「學完」與「學完 T4」是同一個時點，"
           "A1 恆為 0、Jaccard 恆為 1，算進去只會稀釋遺忘的量級（CL 慣例）。"
           "洩漏率算全部 4 個 task，因為最後一個 task 的洩漏不是由構造為 0。",
+          "",
+          "**隨機參照口徑（逐 slide；DR-044）**：從該 slide 的 n 個 patch 隨機抽兩次 "
+          "K 個的期望 Jaccard，**逐 slide 算後平均**。與觀測 Jaccard 同口徑。",
           "",
           "⚠️ **R1 / R2 不是 CL baseline**，兩者的 A1 forgetting 由構造為 0，"
           "不能用來宣稱 forgetting。",

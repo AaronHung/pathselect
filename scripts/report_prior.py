@@ -45,7 +45,7 @@ def collect(arch: str, allocation: str = "per_budget") -> dict:
     """從所有相關 tag 蒐集 A5 的記錄，依 prior 分組。
 
     ⚠️ **必須同時過濾 allocation。** `hier` tag 裡是 G1 的 per_chunk 紀錄
-    （階層退化成單組選取，88.6%），`hier2` 才是 per_budget 的主線。
+    （階層退化成單組選取，88.6%；全部 arm 口徑，只算 A5 為 84.5%，DR-045），`hier2` 才是 per_budget 的主線。
     早期紀錄沒有 allocation 欄位，缺欄位一律視為 per_chunk。
     2026-08-24 曾因缺這道過濾，把 G1 的退化紀錄當成 discriminative 主線臂，
     產出「主線遠差於 none/max_sim」的假結論。

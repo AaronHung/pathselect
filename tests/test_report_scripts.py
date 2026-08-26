@@ -101,7 +101,7 @@ def test_order_dependence_handles_uneven_seed_counts():
 def test_prior_report_excludes_degenerate_hierarchy_records():
     """§3.6b 附帶：跨 tag 蒐集必須過濾 allocation。
 
-    `hier` tag 是 G1 的 per_chunk 紀錄（階層退化 88.6% 單組），
+    `hier` tag 是 G1 的 per_chunk 紀錄（階層退化 88.6% 單組；全部 arm 口徑，DR-045），
     `hier2` 才是 per_budget 主線。不過濾就會把退化紀錄當成主線臂。
     """
     from scripts.report_prior import collect

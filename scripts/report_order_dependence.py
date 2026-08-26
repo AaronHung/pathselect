@@ -37,6 +37,35 @@ def verdict(wins, n):
             else "directional, inconclusive")
 
 
+def fire_rate_lines() -> list[str]:
+    """從 ablation 的逐 slide 存檔重算 l_eq fire rate。
+
+    ⚠️ 這個數字原本寫死在腳本裡（0.1142），是 3-seed 時代的舊值，與 5-seed 的
+    `ablation/EXP2.md`（0.1114）對不上。改為重算，並標明 n（DR-020 / 憲法 §1.2）。
+    """
+    src = REPO_ROOT / "outputs" / "exp2" / "ablation" / "per_slide"
+    if not src.is_dir():
+        return ["⚠️ 缺 `outputs/exp2/ablation/per_slide`，無法重算。"]
+    recs = [r for f in sorted(src.glob("*.json")) for r in json.loads(f.read_text())]
+    out = {}
+    for arm in ("B2", "A5"):
+        vals = {}
+        for r in recs:
+            if r["arm"] == arm and r.get("l_eq_fire_rate") is not None:
+                vals[r["seed"]] = r["l_eq_fire_rate"]
+        if vals:
+            out[arm] = (statistics.mean(vals.values()), len(vals))
+    if len(out) < 2:
+        return ["⚠️ 資料不足，無法重算。"]
+    b2, a5 = out["B2"], out["A5"]
+    return [f"B2（只 eq）的 `l_eq_fire_rate` 為 **{b2[0]:.4f}**（n={b2[1]} seeds），"
+            f"A5（三項全開）為 **{a5[0]:.4f}**（n={a5[1]}）—— "
+            f"**B2 的 hinge 被觸發的比例約為 A5 的 {b2[0] / a5[0]:.1f} 倍**。",
+            "",
+            "（本節數字由 `outputs/exp2/ablation/per_slide/*.json` 重算，不寫死；"
+            "先前寫死的 0.1142 是 3-seed 舊值，與 5-seed 產物對不上 —— DR-044 同批修正。）"]
+
+
 def main() -> int:
     cfg = load_config()
     M, per_arm_seeds = {}, {}
@@ -143,9 +172,7 @@ def main() -> int:
           "只用共同子集做配對雖然統計上正確，但**子集可能不代表母體**。"
           "任何跨 order 的宣稱都必須同時檢查該對照在各自 order 的全 seeds 上是否成立。",
           "",
-          "## 觀察：l_eq fire rate", "",
-          "B2（只 eq）的 `l_eq_fire_rate` 為 0.1142，A5（三項全開）為 0.0740 —— "
-          "**B2 的 hinge 被觸發的比例約為 A5 的 1.5 倍**。",
+          "## 觀察：l_eq fire rate", "", *fire_rate_lines(),
           "",
           "⚠️ **這是觀察，不做因果宣稱。** 可能的讀法包括「A5 的 replay 與 KD 已經把 "
           "utility 撐住、使 hinge 較少觸發」，也可能只是兩臂訓練軌跡不同的副產物。"

@@ -40,7 +40,7 @@ S-01 在上方單獨列出，因為它有完整的實驗證據鉤子；以下為
 | S | 種子 | 證據鉤子 | 可能形態 |
 |---|---|---|---|
 | S-02 | 同器官多任務 CL suite（subtype / grade / receptor） | S1：跨器官 98.2/98.6% 線性可分，故本 benchmark 測不出 task conditioning；[GRAVEYARD](GRAVEYARD.md) 中 G-05 q_τ 主張的復活條件 | CVPR 主實驗候選 |
-| S-03 | 行為遺忘作為通用 CL 指標（frozen-evaluator 洩漏率） | frozen head 使洩漏 100% 歸因選取漂移；Jaccard 低於隨機參照；brca 6/6 方向一致 | 獨立 metric / benchmark 論文 |
+| S-03 | 行為遺忘作為通用 CL 指標（frozen-evaluator 洩漏率） | frozen head 使洩漏 100% 歸因選取漂移；Jaccard 低於隨機參照；**行為↔遺忘方向一致 5/6**（2026-08-26 重算，非原記的 6/6；`outputs/exp2/seqft/BEHAVIOUR_VS_FORGETTING.md`） | 獨立 metric / benchmark 論文 |
 | S-04 | 記憶體效率前沿作為 CL 評估軸 | E1 的 \|M\| 掃描設計與 2× 判準 | 評估協定提案 |
 | S-05 | utility-gated KD（牌一） | 已實作 + 位元相同測試；u_old 在 M 中現成 | 方法升級第一格 |
 | S-06 | Selection Memory 多樣性取樣（牌二） | reservoir 介面可替換；group 配額可當覆蓋度量 | 「記憶什麼」而非「記多少」 |
@@ -56,3 +56,13 @@ S-01 在上方單獨列出，因為它有完整的實驗證據鉤子；以下為
 | S-16 | stateful 選取的 per-round utility 監督 | last-round-only 只覆蓋 1/8 決策點 | L6 完整版先決修正 |
 | S-17 | budget 曲線峰值現象（K=8 後下降） | Exp 0 四 task 平均峰值在 K=8；esca 七個 K 全平 | 證據稀釋 vs 冗餘的分析 |
 | S-18 | 研究用程式碼的 mutation-checked 斷言實務（**含科學主張**） | 本專案 68 條 ledger 測試；一次靜默失敗的字串替換（commit 8675021 前）被自身疏失發現；G0 以「替換 F_g 為擾動網路 → 選取位元相同」把「零影響」從推論變成證據，並以 hier 下的反向對照排除「替換本身無效」；另發現「數值不可分辨的違例」（0·kl+patch ≡ patch）會讓 mutation 假通過，須改以計算圖斷言 | research engineering 的方法學短文或附錄 |
+
+---
+
+## 更正紀錄
+
+**S-03（2026-08-26）**：原寫「brca 6/6 方向一致」，但 repo 裡沒有對應產物（憲法 §2.8）。
+依 PROMPT DOSSIER-FIGURES-20260826 §B-⑤ 重算：定義先寫死（Jaccard 最高的 task 是否
+即 forgetting 最小的 task，逐 (order, seed)），實際為 **5/6**，唯一不一致的批次是 `reverse` order 的 seed 0
+（Jaccard 最高是 brca，但 forgetting 最小的是 rcc）。**沒有為了湊 6/6 改定義。**
+產物：`outputs/exp2/seqft/BEHAVIOUR_VS_FORGETTING.md`（`scripts/report_behaviour_vs_forgetting.py`）。

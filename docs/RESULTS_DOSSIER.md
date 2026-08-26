@@ -441,17 +441,17 @@ linear probe 預測 4-way task id（train 訓練、test 評估；多數類基準
 
 ## 7. 核對時發現的 repo 不一致 → 交 Cursor（全部是治理層，不影響任何數字）
 
-| # | 問題 | 位置 | 建議處置 |
-|---|---|---|---|
-| ① | **C-11 仍寫「2× 記憶體效率、A5@128 追 A3 全域最佳（A3@256）、各容量只用 64/512/1024 三格」**——這是 DR-019 的 flat 裁定，DR-019 已 SUPERSEDED-BY DR-042 | `docs/CLAIMS.md` C-11 | 改寫為 DR-042 修訂 A 的主從結構（同容量主、4× 輔、三限定）；2× 降為「flat 限適用」 |
-| ② | **C-12 仍寫「main order、元件消融、E3 都只有 3 seeds」**——B1/B2 已補到 5 seeds（DR-033），main order 的 A3/A5 已 5 seeds | `docs/CLAIMS.md` C-12 | 改為：3-seed 批次現為 E3 與 main order 的 A1/A2/A4/R1/R2 |
-| ③ | **`order_main/EXP2.md` 是 3-seed 的**（表頭 seeds [0,1,2]，A3 0.8869 / A5 0.8993），但 `per_slide/` 已有 A3/A5 seeds 3–4；`ORDER_DEPENDENCE.md` 用的是 5-seed（A3 89.59 / A5 90.35） | `outputs/exp2/order_main/EXP2.md` | 重跑 report 產生器（A3/A5 用 5 seeds、其餘 3 seeds 並加警語），或在檔頭註明以 ORDER_DEPENDENCE 為準 |
-| ④ | **Jaccard 隨機參照口徑不一**：`run_exp2.py` 用 task 平均 n 算一個值（esca 0.00106），`run_seqft.py` / `recompute_task_il.py` 逐 slide 算後平均（esca 0.00225）。觀測 Jaccard 是逐 slide 平均，後者才是同口徑（結論方向不變：esca/rcc 皆低於參照） | `scripts/run_exp2.py:424-437` vs `scripts/recompute_task_il.py::jaccard_reference` | 統一為逐 slide 平均，重產 EXP2.md 的「隨機參照」欄；論文只用一個口徑 |
-| ⑤ | **SEEDS S-03「brca 6/6 方向一致」沒有 committed 產物**（憲法 §2.8） | `docs/ledger/SEEDS.md` S-03 | 要嘛用 seqft per_slide 重算「Jaccard 排序 vs A1 排序」逐 (order, seed) 並 commit 為小產物，要嘛刪去那句 |
-| ⑥ | DR-033 寫「59/76 張被判為 LUAD」；B1_LANDING 實際是 53 LUAD + 6 LUSC = 59 張落到 lung 兩列 | `docs/ledger/DR-033.md`（append-only，不改內文） | 在 DR-033 末尾補一行勘誤註記；論文用「lung 的兩列」 |
-| ⑦ | README 寫測試 1049 條，現為 1077 | `README.md` | 順手改 |
-| ⑧ | B2 的 l_eq fire rate 兩處不同：`ablation/EXP2.md`（5 seeds）0.1114；`ORDER_DEPENDENCE.md` 0.1142 | `outputs/exp2/ORDER_DEPENDENCE.md` 末節 | 以 5-seed 值為準重產，或註明來源批次 |
-| ⑨ | G1 退化的單組比例兩個數字並存：**84.5%** 可從 `HIER.md` 的分佈表算出（1179/1395）；**88.6%** 出現在 CLAIMS C-02、憲法 §3.6b、`report_prior.py`、`tests/test_report_scripts.py`，但 repo 沒有任何產物寫著 88.6 | `docs/CLAIMS.md` C-02 等四處 | 統一為 84.5%（附 1179/1395 的算式），或補 commit 88.6% 的計算產物並說明口徑差異 |
+| # | 問題 | 位置 | 建議處置 | 生效（Cursor，2026-08-26） |
+|---|---|---|---|---|
+| ① | **C-11 仍寫「2× 記憶體效率、A5@128 追 A3 全域最佳（A3@256）、各容量只用 64/512/1024 三格」**——這是 DR-019 的 flat 裁定，DR-019 已 SUPERSEDED-BY DR-042 | `docs/CLAIMS.md` C-11 | 改寫為 DR-042 修訂 A 的主從結構（同容量主、4× 輔、三限定）；2× 降為「flat 限適用」 | ✅ C-11 改寫為主從結構；2× 標為 flat 限適用 |
+| ② | **C-12 仍寫「main order、元件消融、E3 都只有 3 seeds」**——B1/B2 已補到 5 seeds（DR-033），main order 的 A3/A5 已 5 seeds | `docs/CLAIMS.md` C-12 | 改為：3-seed 批次現為 E3 與 main order 的 A1/A2/A4/R1/R2 | ✅ C-12 改為 E3 與 main order 的 A1/A2/A4/R1/R2 |
+| ③ | **`order_main/EXP2.md` 是 3-seed 的**（表頭 seeds [0,1,2]，A3 0.8869 / A5 0.8993），但 `per_slide/` 已有 A3/A5 seeds 3–4；`ORDER_DEPENDENCE.md` 用的是 5-seed（A3 89.59 / A5 90.35） | `outputs/exp2/order_main/EXP2.md` | 重跑 report 產生器（A3/A5 用 5 seeds、其餘 3 seeds 並加警語），或在檔頭註明以 ORDER_DEPENDENCE 為準 | ✅ 重產，加「n seeds」欄與 §1.2 警語；A3 0.8959 / A5 0.9035 與 ORDER_DEPENDENCE 一致 |
+| ④ | **Jaccard 隨機參照口徑不一**：`run_exp2.py` 用 task 平均 n 算一個值（esca 0.00106），`run_seqft.py` / `recompute_task_il.py` 逐 slide 算後平均（esca 0.00225）。觀測 Jaccard 是逐 slide 平均，後者才是同口徑（結論方向不變：esca/rcc 皆低於參照） | `scripts/run_exp2.py:424-437` vs `scripts/recompute_task_il.py::jaccard_reference` | 統一為逐 slide 平均，重產 EXP2.md 的「隨機參照」欄；論文只用一個口徑 | ✅ 統一為逐 slide；11 份 EXP2.md 重產；**結論方向未變**；DR-044 |
+| ⑤ | **SEEDS S-03「brca 6/6 方向一致」沒有 committed 產物**（憲法 §2.8） | `docs/ledger/SEEDS.md` S-03 | 要嘛用 seqft per_slide 重算「Jaccard 排序 vs A1 排序」逐 (order, seed) 並 commit 為小產物，要嘛刪去那句 | ⚠️ 重算為 **5/6，不是 6/6**；S-03 已改為實際數字；產物 BEHAVIOUR_VS_FORGETTING.md |
+| ⑥ | DR-033 寫「59/76 張被判為 LUAD」；B1_LANDING 實際是 53 LUAD + 6 LUSC = 59 張落到 lung 兩列 | `docs/ledger/DR-033.md`（append-only，不改內文） | 在 DR-033 末尾補一行勘誤註記；論文用「lung 的兩列」 | ✅ DR-033 末尾補勘誤註記（內文未改） |
+| ⑦ | README 寫測試 1049 條，現為 1077 | `README.md` | 順手改 | ✅ README 改為 1077 |
+| ⑧ | B2 的 l_eq fire rate 兩處不同：`ablation/EXP2.md`（5 seeds）0.1114；`ORDER_DEPENDENCE.md` 0.1142 | `outputs/exp2/ORDER_DEPENDENCE.md` 末節 | 以 5-seed 值為準重產，或註明來源批次 | ✅ 改為從 5-seed 產物重算：0.1114（n=5） |
+| ⑨ | G1 退化的單組比例兩個數字並存：**84.5%** 可從 `HIER.md` 的分佈表算出（1179/1395）；**88.6%** 出現在 CLAIMS C-02、憲法 §3.6b、`report_prior.py`、`tests/test_report_scripts.py`，但 repo 沒有任何產物寫著 88.6 | `docs/CLAIMS.md` C-02 等四處 | 統一為 84.5%（附 1179/1395 的算式），或補 commit 88.6% 的計算產物並說明口徑差異 | ✅ 88.6% **可重算**（全部 arm，3708/4185）；84.5% = 只算 A5。四處註明口徑；DR-045 |
 
 ---
 
