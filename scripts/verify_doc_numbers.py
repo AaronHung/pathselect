@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import json
+import re
 import statistics
 import sys
 from pathlib import Path
@@ -69,8 +70,25 @@ PAIRED = [
     ]),
 ]
 
-#: G345 的對照組是 G1' 的 hier-A5
+#: 預設對照組：G1' 的 hier-A5。PAIRED 的第 6 欄可覆寫成任意 (dir, arm, arch)。
 BASELINE = ("exp2/hier2", "A5", "hier")
+
+#: 額外的 Tier 1 配對（PROMPT DOSSIER-FIGURES §A4）：對照組不是預設 baseline 的組合。
+#: (說明, dirA, armA, archA, key, [(文件, 錨點)], (dirB, armB, archB))
+PAIRED_CUSTOM = [
+    ("hier A5−A3 task-IL", "exp2/hier2", "A5", "hier", "final_task_il",
+     [("docs/RESULTS_DOSSIER.md", "| **hier-A5 − hier-A3** |")],
+     ("exp2/hier2", "A3", "hier")),
+    ("hier A5−A3 class-IL", "exp2/hier2", "A5", "hier", "final_class_il",
+     [("docs/RESULTS_DOSSIER.md", "| **hier-A5 − hier-A3** |")],
+     ("exp2/hier2", "A3", "hier")),
+    ("group-KD task-IL", "exp2/hier2", "A5", "hier", "final_task_il",
+     [("docs/RESULTS_DOSSIER.md", "| task-IL | **+3.95 ± 2.50** |")],
+     ("exp2/hier2", "A5nG", "hier")),
+    ("group-KD class-IL", "exp2/hier2", "A5", "hier", "final_class_il",
+     [("docs/RESULTS_DOSSIER.md", "| class-IL | **+3.71 ± 2.66** |")],
+     ("exp2/hier2", "A5nG", "hier")),
+]
 
 #: Tier 2：(說明, 文件, 該數字, 被引用的產物)
 #: ⚠️ 條件是 **文件有 且 產物也有**。第一版寫成 (not in_doc) or in_art ——
@@ -87,6 +105,50 @@ QUOTED = [
      "exp2/memory_hier/MEMORY_HIER.md"),
 ]
 
+#: RESULTS_DOSSIER 的 38 條（PROMPT DOSSIER-FIGURES-20260826 §A2）。
+#: ⚠️ 總表用 U+2212（−），產物用 ASCII（-）。**正規化在檢查器裡做，不改總表的數字。**
+DOSSIER = "docs/RESULTS_DOSSIER.md"
+QUOTED += [
+    ("Exp0 K=1 差距", DOSSIER, "+34.48", "exp0/BASELINES.md"),
+    ("Exp0 K=8 差距", DOSSIER, "+21.90", "exp0/BASELINES.md"),
+    ("Exp0 K=64 差距", DOSSIER, "+20.14", "exp0/BASELINES.md"),
+    ("Exp0 峰值", DOSSIER, "0.8797", "exp0/BASELINES.md"),
+    ("eff_K/K @64", DOSSIER, "0.375", "exp0/EFFECTIVE_K.md"),
+    ("S1 slide 平均", DOSSIER, "0.9821", "exp1/diag/TASK_SEPARABILITY.md"),
+    ("S1 prototype", DOSSIER, "0.9857", "exp1/diag/TASK_SEPARABILITY.md"),
+    ("S1 patch", DOSSIER, "0.8930", "exp1/diag/TASK_SEPARABILITY.md"),
+    ("A1 class-IL forgetting", DOSSIER, "+51.93", "exp2/main/EXP2.md"),
+    ("A1 task-IL forgetting", DOSSIER, "+11.09", "exp2/main/EXP2.md"),
+    ("A1 洩漏率", DOSSIER, "0.4408", "exp2/main/EXP2.md"),
+    ("A1 esca 洩漏 @T4", DOSSIER, "0.7467", "exp2/main/EXP2.md"),
+    ("A5−A3 flat task-IL", DOSSIER, "+0.74 ± 1.93", "exp2/main/EXP2.md"),
+    ("A5−A3 flat class-IL", DOSSIER, "+4.61 ± 2.29", "exp2/main/EXP2.md"),
+    ("A4−A3 task-IL", DOSSIER, "-1.04 ± 0.15", "exp2/main/EXP2.md"),
+    ("A5−B1 class-IL", DOSSIER, "+22.40 ± 13.06", "exp2/ablation/EXP2.md"),
+    ("B1 洩漏率", DOSSIER, "0.3231", "exp2/ablation/B1_LANDING.md"),
+    ("β_u 配對", DOSSIER, "+1.12 ± 0.50", "exp2/ablation/BETA_U.md"),
+    ("G1 判準", DOSSIER, "-18.69 ± 10.41", "exp2/hier/HIER.md"),
+    ("hier A5−A3 task-IL", DOSSIER, "+3.28 ± 2.40", "exp2/hier2/HIER2.md"),
+    ("hier A5−A3 class-IL", DOSSIER, "+5.76 ± 3.42", "exp2/hier2/HIER2.md"),
+    ("hier A5 洩漏率差", DOSSIER, "+2.15 ± 1.96", "exp2/hier2/HIER2.md"),
+    ("hier-A3−flat-A3", DOSSIER, "-3.11 ± 3.42", "exp2/hier2/HIER2.md"),
+    ("group-KD task-IL（總表）", DOSSIER, "+3.95 ± 2.50", "exp2/hier2/HIER2.md"),
+    ("group-KD class-IL（總表）", DOSSIER, "+3.71 ± 2.66", "exp2/hier2/HIER2.md"),
+    ("L_sem disc−none", DOSSIER, "-0.02 ± 0.89", "exp2/prior/PRIOR.md"),
+    ("L_sem disc−max_sim", DOSSIER, "+0.76 ± 0.75", "exp2/prior/PRIOR.md"),
+    ("記憶體 64", DOSSIER, "+4.90 ± 2.67", "exp2/memory_hier/MEMORY_HIER.md"),
+    ("記憶體 1024", DOSSIER, "+2.49 ± 2.42", "exp2/memory_hier/MEMORY_HIER.md"),
+    ("4× 配對", DOSSIER, "+3.06 ± 2.80", "exp2/memory_hier/MEMORY_HIER.md"),
+    ("class-IL 1024", DOSSIER, "+1.88 ± 5.69", "exp2/memory_hier/MEMORY_HIER.md"),
+    ("flat 2× 錨點", DOSSIER, "0.8203", "exp2/memory/MEMORY.md"),
+    ("flat A3 下滑", DOSSIER, "+4.25 ± 2.27", "exp2/memory/MEMORY.md"),
+    ("G5 task-IL", DOSSIER, "-0.497 ± 2.206", "exp2/arch/ARCH_COMPLETENESS.md"),
+    ("G4 class-IL", DOSSIER, "+5.849 ± 3.520", "exp2/arch/ARCH_COMPLETENESS.md"),
+    ("G4 洩漏率", DOSSIER, "-5.923 ± 4.189", "exp2/arch/ARCH_COMPLETENESS.md"),
+    ("G3 配額 KL", DOSSIER, "-0.005 ± 0.004", "exp2/arch/ARCH_COMPLETENESS.md"),
+    ("G5 重測重疊", DOSSIER, "2.81/8", "exp2/arch/ARCH_COMPLETENESS.md"),
+]
+
 
 def load(sub: str, arm: str, arch: str) -> list[dict]:
     d = OUT / sub / "per_slide"
@@ -100,13 +162,13 @@ def metrics(recs, arm, label_space):
     return seeds, {s: arm_metrics(recs, arm, TASKS, s, label_space) for s in seeds}
 
 
-def recompute(sub, arm, arch, key, label_space):
+def recompute(sub, arm, arch, key, label_space, baseline=None):
     """回傳 (mean, std, wins, n)，全部從 per_slide 重算。"""
-    a, b = load(sub, arm, arch), load(*BASELINE)
+    a, b = load(sub, arm, arch), load(*(baseline or BASELINE))
     if not a or not b:
         return None
     sa, Ma = metrics(a, arm, label_space)
-    sb, Mb = metrics(b, BASELINE[1], label_space)
+    sb, Mb = metrics(b, (baseline or BASELINE)[1], label_space)
     common = sorted(set(sa) & set(sb))
     d = [Ma[s][key] - Mb[s][key] for s in common
          if Ma[s].get(key) is not None and Mb[s].get(key) is not None]
@@ -121,6 +183,25 @@ def recompute(sub, arm, arch, key, label_space):
 def norm(t: str) -> str:
     """統一減號：文件用 U+2212，格式化字串用 ASCII。"""
     return t.replace("\u2212", "-").replace("\u2013", "-")
+
+
+def doc_forms(want: str) -> set[str]:
+    """由產物原字串推出文件端可接受的寫法。
+
+    ⚠️ 總表刻意寫四捨五入（`−0.50`），而登記的是產物原字串（`-0.497`）——
+    PI 明說「不要改總表的數字」。所以文件端接受同一個值的較低精度寫法，
+    但**產物端仍要求原字串**，溯源不因此變鬆。
+    只做機械的位數縮減，不逐案放行。
+    """
+    forms = {want}
+    m = re.match(r"^([+-]?)(\d+)\.(\d+)", want)
+    if m:
+        sign, ip, fp = m.groups()
+        val = float(f"{sign or '+'}{ip}.{fp}")
+        for nd in range(len(fp) - 1, 0, -1):
+            forms.add(f"{val:+.{nd}f}" if sign else f"{val:.{nd}f}")
+            forms.add(f"{val:.{nd}f}")
+    return forms
 
 
 def anchored_lines(path: Path, anchor: str) -> list[str]:
@@ -167,12 +248,29 @@ def main() -> int:
             if not hit:
                 bad.append(f"{label}：{doc} 的「{anchor}」該行沒有重算值 {want}")
 
-    print("── Tier 2：文件寫的數字必須**同時**出現在被引用的產物裡 ──")
+    print("── Tier 1b：非預設對照組的配對 ──")
+    for label, sub, arm, arch, key, locs, base in PAIRED_CUSTOM:
+        r = recompute(sub, arm, arch, key, ls, baseline=base)
+        if r is None:
+            bad.append(f"{label}：找不到 per_slide 資料"); continue
+        mean, sd, w, n = r
+        want = {f"{mean * 100:+.2f}", f"{mean * 100:+.3f}"}
+        for doc, anchor in locs:
+            lines = anchored_lines(ROOT / doc, anchor)
+            hit = bool(lines) and any(any(v in norm(ln) for v in want) for ln in lines)
+            print(f"  {'✅' if hit else '❌'} {label:20s} 重算 {mean * 100:+.2f} ± "
+                  f"{sd * 100:.2f}（{w}/{n}）  ← {doc}")
+            if not hit:
+                bad.append(f"{label}：{doc} 的「{anchor}」對不上重算值 {want}")
+
+    print("── Tier 2：登記的是**產物原字串**；文件端接受同值的四捨五入寫法 ──")
     for label, doc, text, art in QUOTED:
-        dt = (ROOT / doc).read_text(encoding="utf-8")
+        dt = norm((ROOT / doc).read_text(encoding="utf-8"))
         ap = OUT / art
-        at = ap.read_text(encoding="utf-8") if ap.exists() else ""
-        in_doc, in_art = text in dt, text in at
+        at = norm(ap.read_text(encoding="utf-8")) if ap.exists() else ""
+        want = norm(text)
+        in_art = want in at
+        in_doc = any(c in dt for c in doc_forms(want))
         ok = in_doc and in_art
         print(f"  {'✅' if ok else '❌'} {label:22s} {text:14s} "
               f"文件={'有' if in_doc else '**無**'} 產物={'有' if in_art else '**無**'}")

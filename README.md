@@ -10,6 +10,8 @@ WSI（whole-slide image）**patch 選取**的持續學習方法。在固定的 p
 
 ## 給第一次看這個 repo 的人
 
+0. **想一次看完全部結果**，就讀 [`docs/RESULTS_DOSSIER.md`](docs/RESULTS_DOSSIER.md) §1
+   —— 一頁摘要，論文站在哪九根柱子上，每個數字都附來源檔。
 1. **先讀 [`docs/ledger/INDEX.md`](docs/ledger/INDEX.md)** —— 決策現況，一頁看完。
    每張 `DR-*.md` 記錄一次裁定：脈絡、考慮過的選項、最後的判斷、支撐的證據。
 2. **再讀 [`docs/CONSTITUTION.md`](docs/CONSTITUTION.md)** —— 研究紀律。
@@ -32,7 +34,7 @@ WSI（whole-slide image）**patch 選取**的持續學習方法。在固定的 p
 
 ```bash
 pip install torch torchvision h5py pyyaml numpy pandas
-python -m pytest tests/ -q           # 全部應為綠（目前 1049 條）
+python -m pytest tests/ -q           # 全部應為綠（目前 1077 條）
 ```
 
 CONCH 的推論程式碼 vendored 在 `third_party/`（來源與版本見該目錄）。
