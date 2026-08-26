@@ -106,6 +106,7 @@ QUOTED = [
 ]
 
 #: RESULTS_DOSSIER 的 38 條（PROMPT DOSSIER-FIGURES-20260826 §A2）。
+#: 第 5 欄（可選）= 文件端的字串，只在總表刻意寫縮寫時登記。**不是容忍，是明列。**
 #: ⚠️ 總表用 U+2212（−），產物用 ASCII（-）。**正規化在檢查器裡做，不改總表的數字。**
 DOSSIER = "docs/RESULTS_DOSSIER.md"
 QUOTED += [
@@ -124,7 +125,7 @@ QUOTED += [
     ("A5−A3 flat task-IL", DOSSIER, "+0.74 ± 1.93", "exp2/main/EXP2.md"),
     ("A5−A3 flat class-IL", DOSSIER, "+4.61 ± 2.29", "exp2/main/EXP2.md"),
     ("A4−A3 task-IL", DOSSIER, "-1.04 ± 0.15", "exp2/main/EXP2.md"),
-    ("A5−B1 class-IL", DOSSIER, "+22.40 ± 13.06", "exp2/ablation/EXP2.md"),
+    ("A5−B1 class-IL", DOSSIER, "+22.40 ± 13.06", "exp2/ablation/EXP2.md", "+22.40"),
     ("B1 洩漏率", DOSSIER, "0.3231", "exp2/ablation/B1_LANDING.md"),
     ("β_u 配對", DOSSIER, "+1.12 ± 0.50", "exp2/ablation/BETA_U.md"),
     ("G1 判準", DOSSIER, "-18.69 ± 10.41", "exp2/hier/HIER.md"),
@@ -142,9 +143,12 @@ QUOTED += [
     ("class-IL 1024", DOSSIER, "+1.88 ± 5.69", "exp2/memory_hier/MEMORY_HIER.md"),
     ("flat 2× 錨點", DOSSIER, "0.8203", "exp2/memory/MEMORY.md"),
     ("flat A3 下滑", DOSSIER, "+4.25 ± 2.27", "exp2/memory/MEMORY.md"),
-    ("G5 task-IL", DOSSIER, "-0.497 ± 2.206", "exp2/arch/ARCH_COMPLETENESS.md"),
-    ("G4 class-IL", DOSSIER, "+5.849 ± 3.520", "exp2/arch/ARCH_COMPLETENESS.md"),
-    ("G4 洩漏率", DOSSIER, "-5.923 ± 4.189", "exp2/arch/ARCH_COMPLETENESS.md"),
+    ("G5 task-IL", DOSSIER, "-0.497 ± 2.206", "exp2/arch/ARCH_COMPLETENESS.md",
+     "-0.50 ± 2.21"),
+    ("G4 class-IL", DOSSIER, "+5.849 ± 3.520", "exp2/arch/ARCH_COMPLETENESS.md",
+     "+5.85 ± 3.52"),
+    ("G4 洩漏率", DOSSIER, "-5.923 ± 4.189", "exp2/arch/ARCH_COMPLETENESS.md",
+     "-5.92 ± 4.19"),
     ("G3 配額 KL", DOSSIER, "-0.005 ± 0.004", "exp2/arch/ARCH_COMPLETENESS.md"),
     ("G5 重測重疊", DOSSIER, "2.81/8", "exp2/arch/ARCH_COMPLETENESS.md"),
 ]
@@ -186,22 +190,25 @@ def norm(t: str) -> str:
 
 
 def doc_forms(want: str) -> set[str]:
-    """由產物原字串推出文件端可接受的寫法。
+    """已停用的四捨五入容忍。保留函式以說明為何不用。
 
-    ⚠️ 總表刻意寫四捨五入（`−0.50`），而登記的是產物原字串（`-0.497`）——
-    PI 明說「不要改總表的數字」。所以文件端接受同一個值的較低精度寫法，
-    但**產物端仍要求原字串**，溯源不因此變鬆。
-    只做機械的位數縮減，不逐案放行。
+    ⚠️ 曾經允許「少一位小數」的寫法，被 mutation 證明危險：
+    `-0.005` 的 2 位形式是 `-0.01`，而文件裡另一個不相干的數字（§4.4 的
+    Jaccard −0.01）正好長這樣 —— 檢查通過，但通過的理由是錯的。
+    模糊比對在治理文件上不可用。**文件端一律要求完全相符**；
+    總表刻意寫縮寫時，在 QUOTED 的第 5 欄明確登記文件端字串。
     """
-    forms = {want}
-    m = re.match(r"^([+-]?)(\d+)\.(\d+)", want)
-    if m:
-        sign, ip, fp = m.groups()
-        val = float(f"{sign or '+'}{ip}.{fp}")
-        for nd in range(len(fp) - 1, 0, -1):
-            forms.add(f"{val:+.{nd}f}" if sign else f"{val:.{nd}f}")
-            forms.add(f"{val:.{nd}f}")
-    return forms
+    return {want}
+
+
+def contains_number(text: str, form: str) -> bool:
+    """form 必須以**完整數字**出現，不能只是某個更長數字的前綴。
+
+    ⚠️ 這條是被 mutation 逼出來的：原本用 `form in text`，而 `+21.9` 是
+    `+21.95` 的前綴 —— 把總表的數字改一位，較短的四捨五入寫法仍然命中，
+    38 條裡有 31 條漏抓。必須要求右邊不接數字、左邊不接數字或小數點。
+    """
+    return re.search(r"(?<![\d.])" + re.escape(form) + r"(?!\d)", text) is not None
 
 
 def anchored_lines(path: Path, anchor: str) -> list[str]:
@@ -243,7 +250,7 @@ def main() -> int:
                 bad.append(f"{label}：{doc} 找不到錨點「{anchor}」"); 
                 print(f"  ❌ {label:12s} {doc}：錨點不存在「{anchor}」")
                 continue
-            hit = any(any(v in norm(ln) for v in want) for ln in lines)
+            hit = any(any(contains_number(norm(ln), v) for v in want) for ln in lines)
             print(f"  {'✅' if hit else '❌'} {label:12s} 重算 {shown}  ← {doc}")
             if not hit:
                 bad.append(f"{label}：{doc} 的「{anchor}」該行沒有重算值 {want}")
@@ -257,20 +264,23 @@ def main() -> int:
         want = {f"{mean * 100:+.2f}", f"{mean * 100:+.3f}"}
         for doc, anchor in locs:
             lines = anchored_lines(ROOT / doc, anchor)
-            hit = bool(lines) and any(any(v in norm(ln) for v in want) for ln in lines)
+            hit = bool(lines) and any(any(contains_number(norm(ln), v)
+                                          for v in want) for ln in lines)
             print(f"  {'✅' if hit else '❌'} {label:20s} 重算 {mean * 100:+.2f} ± "
                   f"{sd * 100:.2f}（{w}/{n}）  ← {doc}")
             if not hit:
                 bad.append(f"{label}：{doc} 的「{anchor}」對不上重算值 {want}")
 
     print("── Tier 2：登記的是**產物原字串**；文件端接受同值的四捨五入寫法 ──")
-    for label, doc, text, art in QUOTED:
+    for row in QUOTED:
+        label, doc, text, art = row[:4]
         dt = norm((ROOT / doc).read_text(encoding="utf-8"))
         ap = OUT / art
         at = norm(ap.read_text(encoding="utf-8")) if ap.exists() else ""
         want = norm(text)
-        in_art = want in at
-        in_doc = any(c in dt for c in doc_forms(want))
+        want_doc = norm(row[4]) if len(row) > 4 else want
+        in_art = contains_number(at, want)
+        in_doc = contains_number(dt, want_doc)
         ok = in_doc and in_art
         print(f"  {'✅' if ok else '❌'} {label:22s} {text:14s} "
               f"文件={'有' if in_doc else '**無**'} 產物={'有' if in_art else '**無**'}")
