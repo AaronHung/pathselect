@@ -475,7 +475,7 @@ linear probe 預測 4-way task id（train 訓練、test 評估；多數類基準
 |---|---|---|
 | 本 dossier 進 repo（`docs/RESULTS_DOSSIER.md`）並登錄 `verify_doc_numbers.py` Tier 2 | Cursor | prompt 已開（`PROMPT_Cursor_DOSSIER-FIGURES-20260826.md`） |
 | §7 九項治理修正 | Cursor | 同上 |
-| 圖表（5 張主圖 + 2 張小圖；`scripts/make_figures.py` → `figures/`） | Cursor | 規格已開在同一份 prompt |
+| 圖表（5 張主圖 + 2 張小圖；`scripts/make_figures.py` → `figures/`） | Cursor | ✅ 2026-08-26 完成：7 張皆輸出 .pdf + .png（300 dpi），數值收在 `figures/figure_data.json`，與 report 逐項對照通過（見 `tests/test_make_figures.py`） |
 | 機制生效性稽核 `outputs/verify/MECHANISM_AUDIT.md` | Cursor | 低優先（四個機制的消融差值已證據齊備，此份只是把證據集中成一張表） |
 | 架構圖 v3 手繪（移除 Panel E；q_τ 移出主圖；L_sem 標 patch-level） | PI | 標籤定稿已凍結 |
 | 論文晉稿 | Fable | PI 讀完本 dossier 給回饋後開工 |
