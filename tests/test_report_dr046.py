@@ -137,3 +137,50 @@ def test_forgetting_is_positive_when_performance_drops():
     assert R.forgetting(up) == pytest.approx(0.0), "沒退步時不應為正"
     down = [[0.90, None], [0.50, 0.80]]
     assert R.forgetting(down) == pytest.approx(0.40)
+
+
+# ── DR-046 裁定二：ΔUtility 取代比值 ────────────────────────────────────────
+
+def test_delta_utility_replaces_the_ratio_column():
+    """比值欄必須消失，ΔUtility 必須在。"""
+    md = ROOT / "docs" / "DR046_TABLE.md"
+    if not md.exists():
+        pytest.skip("尚未產生 DR046_TABLE.md")
+    text = md.read_text(encoding="utf-8")
+    assert "| ΔUtility |" in text or "ΔUtility |" in text
+    header = [ln for ln in text.splitlines() if ln.startswith("| 臂 | n seeds |")]
+    assert header, "找不到彙總表表頭"
+    for ln in header:
+        assert "Utility Retention" not in ln, "比值欄還在表頭裡"
+    assert "ΔUtility" in R.COLS and "Utility Retention" not in R.COLS
+
+
+def test_delta_utility_is_a_difference_of_the_existing_sums():
+    """定義釘死：各舊 task 的 (sum_u_at_end − sum_u_at_learn) 平均。"""
+    M = {"per_task": {"t0": {"sum_u_at_learn": 10.0, "sum_u_at_end": 4.0},
+                      "t1": {"sum_u_at_learn": 20.0, "sum_u_at_end": 25.0},
+                      "t2": {"sum_u_at_learn": 99.0, "sum_u_at_end": -99.0}}}
+    # t2 是最後一個 task，不算
+    assert R.delta_utility(M, ["t0", "t1", "t2"]) == pytest.approx(((4 - 10) + (25 - 20)) / 2)
+
+
+def test_delta_utility_sign_means_degradation():
+    worse = {"per_task": {"a": {"sum_u_at_learn": 10.0, "sum_u_at_end": -10.0},
+                          "b": {"sum_u_at_learn": 0.0, "sum_u_at_end": 0.0}}}
+    assert R.delta_utility(worse, ["a", "b"]) < 0, "退化時必須為負"
+
+
+def test_arms_are_auto_detected_not_hardcoded():
+    """不得寫死清單：per_slide 裡有什麼臂就納入什麼（DR-046 裁定二）。"""
+    recs = R.load_records()
+    have = {r["arm"] for r in recs}
+    assert set(R.arms_present(recs)) == have, "有臂被漏掉"
+    # DISPLAY_ORDER 只影響順序，不是白名單
+    fake = [{"arm": "ZZZ_new", "order": R.ORDER}]
+    assert "ZZZ_new" in R.arms_present(recs + fake)
+
+
+def test_arms_flag_rejects_unknown_arms():
+    recs = R.load_records()
+    with pytest.raises(SystemExit, match="沒有的臂"):
+        R.arms_present(recs, ["A1", "NOPE"])

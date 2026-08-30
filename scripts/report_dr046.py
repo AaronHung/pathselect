@@ -14,6 +14,7 @@
 """
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import statistics
@@ -36,7 +37,6 @@ TOL = 5e-4
 #: 由構造不適用的欄位。R1 每 task 獨立訓練、R2 一次看完所有資料 → 各 stage 的
 #: 結果相同，Forgetting 恆為 0、Jaccard 恆為 1（DR-011）。標「—」而不是印 0。
 NOT_APPLICABLE = {"R1", "R2"}
-NA_COLS = {"Forgetting", "Selection Jaccard", "Utility Retention"}
 
 
 # ── 讀檔 ────────────────────────────────────────────────────────────────────
@@ -48,10 +48,21 @@ def load_records() -> list[dict]:
             if r.get("order") == ORDER]
 
 
-def arms_present(recs) -> list[str]:
-    order = ["A1", "A2", "A3", "A4", "A5", "A5nG", "R1", "R2"]
+#: 只用來決定**顯示順序**，不是白名單 —— 不在其中的臂一律照樣納入（DR-046 裁定二）。
+DISPLAY_ORDER = ["A1", "A2", "A3", "A4", "A5", "A5nG", "W1", "W1B", "L2", "L2B",
+                 "B1", "B2", "R1", "R2"]
+
+
+def arms_present(recs, wanted: list[str] | None = None) -> list[str]:
+    """per_slide 裡實際存在的所有臂（可用 --arms 縮小範圍）。"""
     have = {r["arm"] for r in recs}
-    return [a for a in order if a in have] + sorted(have - set(order))
+    if wanted:
+        missing = [a for a in wanted if a not in have]
+        if missing:
+            raise SystemExit(f"--arms 指定了 per_slide 裡沒有的臂：{missing}")
+        have = set(wanted)
+    return ([a for a in DISPLAY_ORDER if a in have]
+            + sorted(have - set(DISPLAY_ORDER)))
 
 
 # ── 指標矩陣 a[s][j] ────────────────────────────────────────────────────────
@@ -102,32 +113,39 @@ def plasticity(a) -> float:
     return statistics.mean(v) if v else float("nan")
 
 
-# ── 行為軸：Jaccard 與 Utility Retention ────────────────────────────────────
+# ── 行為軸：Jaccard 與 ΔUtility ─────────────────────────────────────────────
 
 def behaviour(recs, arm: str, seed: int, tasks: list[str]):
-    """回傳 (selection Jaccard, utility retention, 略過的 slide 數)。
+    """回傳 (selection Jaccard, ΔUtility)。
 
-    兩者都是「同一張 slide 的自身階段 vs 最終階段」，只算前 T−1 個 task
-    （最後一個 task 兩個時點是同一時點，算進去只會稀釋 —— 憲法 §3.1）。
+    兩者都只算前 T−1 個 task（最後一個 task 兩個時點是同一時點，
+    算進去只會稀釋 —— 憲法 §3.1）。
+
+    - **Selection Jaccard**：同一張 slide 的 `selected_idx` 自身階段 vs 最終階段，
+      逐 slide 算後平均（沿用 run_exp2 的 `jac()`）。
+    - **ΔUtility**：各舊 task 的 `(U_final − U_own)` 平均（DR-046 裁定二）。
+      U 用 `arm_metrics` 既有的 `sum_u_at_end` / `sum_u_at_learn`，不另算一套。
+      ⚠️ 原本是比值 `U_final / U_own`，已移除：`utility_total` 會變號
+      （A1 的 esca 由 +22.0 掉到 −42.5），比值不是有界的保留率，會被誤讀為百分比。
     """
     last = len(tasks) - 1
     sub = [r for r in recs if r["arm"] == arm and r["seed"] == seed]
-    jacs, ratios, skipped = [], [], 0
+    jacs = []
     for j, t in enumerate(tasks[:last]):
         own = {r["slide_id"]: r for r in sub if r["stage"] == j and r["task"] == t}
         fin = {r["slide_id"]: r for r in sub if r["stage"] == last and r["task"] == t}
         for sid, o in own.items():
-            f = fin.get(sid)
-            if f is None:
-                continue
-            jacs.append(jac(o["selected_idx"], f["selected_idx"]))
-            denom = o.get("utility_total")
-            if denom is None or abs(denom) < 1e-9:
-                skipped += 1
-                continue
-            ratios.append(f["utility_total"] / denom)
-    return (statistics.mean(jacs) if jacs else float("nan"),
-            statistics.mean(ratios) if ratios else float("nan"), skipped)
+            if sid in fin:
+                jacs.append(jac(o["selected_idx"], fin[sid]["selected_idx"]))
+    return statistics.mean(jacs) if jacs else float("nan")
+
+
+def delta_utility(M_seed, tasks: list[str]) -> float:
+    """ΔUtility = 各舊 task 的 (U_final − U_own) 平均。越高越好，負值 = 退化。"""
+    per = M_seed.get("per_task", {})
+    d = [per[t]["sum_u_at_end"] - per[t]["sum_u_at_learn"]
+         for t in tasks[:-1] if t in per]
+    return statistics.mean(d) if d else float("nan")
 
 
 # ── 自檢：與 RESULTS_DOSSIER §4.4 比對 ──────────────────────────────────────
@@ -186,19 +204,24 @@ def self_check(recs, tasks, label_space) -> list[str]:
 
 # ── 主流程 ──────────────────────────────────────────────────────────────────
 
-COLS = ["A_Final", "Forgetting", "Plasticity", "Selection Jaccard", "Utility Retention"]
+COLS = ["A_Final", "Forgetting", "Plasticity", "Selection Jaccard", "ΔUtility"]
 
 
 def fmt(v) -> str:
     return "—" if v is None else ("nan" if v != v else f"{v:.4f}")
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--arms", default="", help="逗號分隔；預設為 per_slide 內的全部臂")
+    args = ap.parse_args(argv)
+    wanted = [a.strip() for a in args.arms.split(",") if a.strip()]
+
     cfg = load_config()
     label_space = list(cfg["tasks"])
     tasks = ORDERS[ORDER]
     recs = load_records()
-    arms = arms_present(recs)
+    arms = arms_present(recs, wanted)
     print(f"讀入 {len(recs)} 筆（order={ORDER}）；臂 = {arms}")
 
     check_lines = self_check(recs, tasks, label_space)
@@ -211,7 +234,8 @@ def main() -> int:
         for s in seeds:
             ac = matrix(recs, arm, s, tasks, "pred_class_il")
             at = matrix(recs, arm, s, tasks, "pred_task_il")
-            jc, ur, skipped = behaviour(recs, arm, s, tasks)
+            jc = behaviour(recs, arm, s, tasks)
+            M_seed = arm_metrics(recs, arm, tasks, s, label_space)
             na = arm in NOT_APPLICABLE
             rows[s] = {
                 "A_Final": a_final(ac), "A_Final_task": a_final(at),
@@ -219,8 +243,7 @@ def main() -> int:
                 "Forgetting_task": None if na else forgetting(at),
                 "Plasticity": plasticity(ac), "Plasticity_task": plasticity(at),
                 "Selection Jaccard": None if na else jc,
-                "Utility Retention": None if na else ur,
-                "_skipped": skipped,
+                "ΔUtility": None if na else delta_utility(M_seed, tasks),
             }
         per_arm[arm] = (seeds, rows)
 
@@ -238,15 +261,16 @@ def main() -> int:
          "| **Plasticity** | 對角線 `mean_j a[j][j]`，剛學完該 task 當下的表現 |",
          "| **Selection Jaccard** | 同一張 slide 的 `selected_idx`：自身階段 vs 最終階段，"
          "逐 slide 算後平均（沿用檔內 `jac()`），只算前 T−1 個 task |",
-         "| **Utility Retention** | 同一張 slide 的 `utility_total`：最終 / 自身階段之比，"
-         "逐 slide 算後平均 |",
+         "| **ΔUtility** | 各舊 task 的 `U_final − U_own` 平均（U 用 `arm_metrics` 既有的 "
+         "`sum_u_at_end` / `sum_u_at_learn`）。**越高越好，負值 = 退化** |",
          "",
-         "⚠️ **Utility Retention 不是有界的比值**：`utility_total` 會由正轉負"
-         "（A1 的 esca 由 +22.0 掉到 −42.5），比值因此可能為負或絕對值很大。"
-         "它只能讀作方向指標，不可當百分比。分母絕對值 < 1e-9 的 slide 予以略過"
-         "（略過數列在下方）。",
+         "⚠️ **為什麼是差值不是比值（DR-046 裁定二）**：`utility_total` **會變號** "
+         "—— A1 的 esca 由 +22.0 掉到 −42.5。比值 `U_final / U_own` 因此可能為負或"
+         "絕對值極大，不是有界的保留率，放在同一張表上會被誤讀為百分比。"
+         "原本的 Utility Retention 欄已移除。ΔUtility 是**加總後的差**（單位與 ΣU 相同），"
+         "不是比例。",
          "",
-         "⚠️ **R1 / R2 的 Forgetting / Jaccard / Utility Retention 標「—」**："
+         "⚠️ **R1 / R2 的 Forgetting / Jaccard / ΔUtility 標「—」**："
          "R1 每 task 獨立訓練、R2 一次看完所有資料，各 stage 結果相同，"
          "這三欄由構造分別恆為 0 / 1 / 1，印出來會被誤讀為「不遺忘」（DR-011）。",
          "",
@@ -294,12 +318,6 @@ def main() -> int:
                 cells.append(f"{statistics.mean(v):.4f} ± {sd:.4f}")
         L.append(f"| {arm} | {len(seeds)} | " + " | ".join(cells) + " |")
 
-    skipped_total = {a: sum(per_arm[a][1][s]["_skipped"] for s in per_arm[a][0])
-                     for a in arms}
-    L += ["", "## Utility Retention 略過的 slide 數（分母 ≈ 0）", "",
-          "| 臂 | 略過 |", "|---|---|"]
-    for arm in arms:
-        L.append(f"| {arm} | {skipped_total[arm]} |")
     L += ["", f"產生：`python scripts/report_dr046.py`（DR-046 Phase 0）。", ""]
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
