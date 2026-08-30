@@ -8,3 +8,4 @@ outputs/_status/
 ckpt/
 *_probe_features.npz
 outputs/**/_probe_features.npz
+.DS_Store
