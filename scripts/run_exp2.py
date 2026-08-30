@@ -87,6 +87,21 @@ ARMS = OrderedDict([
                 replay=False, kd=True, eq=False)),
     ("B2", dict(name="只 eq (λ_r=λ_kd=0)", mode="sequential", lora=True,
                 replay=False, kd=False, eq=True)),
+    # DR-046 Phase A：兩組 CL 消融。
+    #   W1 / W1B  warm-start —— stage 0 全參數 fine-tune，之後才掛 LoRA
+    #   L2 / L2B  single continual adapter —— 各 stage 之間不 merge，最後才合併一次
+    # 每組各有「有保存機制（+ Ours）」與「沒有（B 版）」兩臂，
+    # 讓 W1−A5 / L2−A5 與 W1B−A2 / L2B−A2 兩層對照都成立。
+    ("W1", dict(name="Warm-start (task1 full FT) + Ours", mode="sequential",
+                lora=True, kd=True, eq=True, replay=True, warmstart=True)),
+    ("W1B", dict(name="Warm-start (task1 full FT), no preservation",
+                 mode="sequential", lora=True, kd=False, eq=False, replay=False,
+                 warmstart=True)),
+    ("L2", dict(name="Single continual adapter + Ours", mode="sequential",
+                lora=True, kd=True, eq=True, replay=True, merge_each=False)),
+    ("L2B", dict(name="Single continual adapter, no preservation",
+                 mode="sequential", lora=True, kd=False, eq=False, replay=False,
+                 merge_each=False)),
     ("R1", dict(name="per-task specialist (independent training)",
                 mode="per_task", lora=False,
                 replay=False, kd=False, eq=False)),
@@ -99,7 +114,9 @@ PAIRED_COMPARISONS = [("A5", "A3"), ("A5", "A1"), ("A4", "A3"),
                       ("A5", "A4"), ("A5", "R2"),
                       # 元件消融（只在該 tag 有這些臂時才出現）
                       ("A5", "B1"), ("A5", "B2"), ("B2", "B1"), ("B2", "A3"),
-                      ("A5", "A5nG")]
+                      ("A5", "A5nG"),
+                      # DR-046 Phase A
+                      ("W1", "A5"), ("L2", "A5"), ("W1B", "A2"), ("L2B", "A2")]
 #: 配對比較看的四個指標，以及「越大越好 / 越小越好」
 PAIRED_METRICS = [("final_task_il", "task-IL final avg", True),
                   ("final_class_il", "class-IL final avg", True),
@@ -159,12 +176,19 @@ def trainable(f_g, f_p, use_lora):
 
 # ── training ────────────────────────────────────────────────────────────────
 
-def train_stage(ctx, arm, models, tasks, seed, args, memory, rng):
-    """在 tasks 這批 slide 上訓練一輪 stage。回傳 l_eq 觸發率等診斷。"""
+def train_stage(ctx, arm, models, tasks, seed, args, memory, rng, *, use_lora=None):
+    """在 tasks 這批 slide 上訓練一輪 stage。回傳 l_eq 觸發率等診斷。
+
+    `use_lora` 只覆寫**這個 stage 的 optimizer 看到哪些參數**：warm-start 臂
+    （DR-046）的 stage 0 尚未掛 LoRA，必須訓練全參數；其餘 stage 照 spec。
+    None = 沿用 spec["lora"]，所有既有臂的行為完全不變。
+    """
     spec = ARMS[arm]
+    if use_lora is None:
+        use_lora = spec["lora"]
     f_g, f_p = models
     f_g.train(); f_p.train()
-    opt = torch.optim.Adam(trainable(f_g, f_p, spec["lora"]), lr=args.lr,
+    opt = torch.optim.Adam(trainable(f_g, f_p, use_lora), lr=args.lr,
                            weight_decay=1e-4)
     stream = [(t, i) for t in tasks
               for i in range(min(args.max_train, ctx.n_slides(t, "train"))
@@ -281,12 +305,17 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
                 recs_all += evaluate(ctx, models, t, arm, order_name, seed, stage, args)
         return recs_all
 
-    # A1–A5：序列
-    models = new_models(ctx, seed, spec["lora"], args.rank)
+    # A1–A5 / W1 / L2：序列。所有臂共用同一套流程，差異只在下面兩個旗標。
+    warmstart = spec.get("warmstart", False)        # stage 0 全參數 FT，之後才掛 LoRA
+    merge_each = spec.get("merge_each", True)       # False = 只在最後一個 stage 合併
+    last_stage = len(tasks) - 1
+    models = new_models(ctx, seed, spec["lora"] and not warmstart, args.rank)
     for stage, task in enumerate(tasks):
         print(f"    ── stage {stage}: {task}", flush=True)
-        diag = train_stage(ctx, arm, models, [task], seed, args, memory, rng)
-        if spec["lora"]:
+        stage_lora = spec["lora"] and not (warmstart and stage == 0)
+        diag = train_stage(ctx, arm, models, [task], seed, args, memory, rng,
+                           use_lora=stage_lora)
+        if stage_lora and (merge_each or stage == last_stage):
             merge_lora(*models)                     # W_t = W_{t-1} + ΔW_t
         if spec["replay"] or spec["kd"] or spec["eq"]:
             added = fill_memory(memory, models, task, ctx.cfg, ctx.f_txt,
@@ -301,7 +330,34 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
             recs_all += r
             print(f"       eval {t:10s} class-IL={acc(r, 'pred_class_il'):.4f} "
                   f"task-IL={acc(r, 'pred_task_il'):.4f}", flush=True)
+        if warmstart and stage == 0:
+            wrap_with_lora(models, args.rank)
     return recs_all
+
+
+@torch.no_grad()
+def wrap_with_lora(models, rank: int) -> None:
+    """warm-start：stage 0 全參數訓練結束後才掛上 LoRA（DR-046 Phase A）。
+
+    **自檢**：`LoRALinear` 的 B 初始為零 ⇒ ΔW 恰好為零 ⇒ 掛上去不改變任何輸出。
+    用固定的隨機輸入斷言 wrap 前後**逐位元相同**；不同就停下，不讓一個已經走樣的
+    模型繼續跑完四個 stage。
+    """
+    from selector.model import SELECTOR_INPUT_DIM
+
+    g = torch.Generator().manual_seed(20460)
+    probe = torch.randn(16, SELECTOR_INPUT_DIM, generator=g)
+    before = [m(probe).detach().clone() for m in models]
+    for m in models:
+        apply_lora(m, r=rank)
+    for name, m, ref in zip(("F_g", "F_p"), models, before):
+        got = m(probe).detach()
+        if not torch.equal(got, ref):
+            raise SystemExit(
+                f"❌ warm-start 掛 LoRA 後 {name} 的前向不再位元相同"
+                f"（最大差 {float((got - ref).abs().max()):.3e}）—— 停下，不續跑。")
+    print("       ✅ warm-start 自檢：掛上 LoRA 後 F_g / F_p 前向逐位元相同",
+          flush=True)
 
 
 def acc(records, key="pred_task_il") -> float:
