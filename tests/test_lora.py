@@ -136,3 +136,58 @@ def test_per_task_bank_is_oracle_only_and_restores_exactly():
     for a, layer in zip(snap, lora_layers(f_p)):
         assert torch.equal(a, layer.delta_w())
     assert bank.tasks() == ["tcga_esca"] and len(bank) == 1
+
+
+# ── DR-046 Phase B：merge 的 alpha ──────────────────────────────────────────
+
+def test_merge_alpha_one_is_bit_identical_to_the_old_behaviour():
+    """alpha=1.0 必須與舊版逐位元相同 —— 否則所有既有結果的可比性就斷了。"""
+    import copy
+
+    import torch.nn as nn
+
+    from selector.lora import LoRALinear, apply_lora, lora_layers, merge_lora
+    torch.manual_seed(0)
+    base = apply_lora(nn.Sequential(nn.Linear(8, 4), nn.GELU(), nn.Linear(4, 1)), r=2)
+    for layer in lora_layers(base):
+        with torch.no_grad():
+            layer.lora_B.normal_(std=0.1)          # 讓 ΔW ≠ 0
+    x = torch.randn(6, 8)
+    before = base(x).detach().clone()
+
+    a, b = copy.deepcopy(base), copy.deepcopy(base)
+    torch.manual_seed(7); merge_lora(a)                    # 不帶 alpha
+    torch.manual_seed(7); merge_lora(b, alpha=1.0)         # 顯式 alpha=1
+    for la, lb in zip(lora_layers(a), lora_layers(b)):
+        assert torch.equal(la.weight, lb.weight), "alpha=1.0 與預設不相同"
+    # merge 前後 forward 位元相同（lora.py 的核心契約）
+    assert torch.equal(a(x).detach(), before)
+
+
+def test_merge_alpha_half_lands_midway():
+    import torch.nn as nn
+
+    from selector.lora import apply_lora, lora_layers, merge_lora
+    torch.manual_seed(1)
+    m = apply_lora(nn.Sequential(nn.Linear(8, 4)), r=2)
+    layer = lora_layers(m)[0]
+    with torch.no_grad():
+        layer.lora_B.normal_(std=0.1)
+    w0, d = layer.weight.detach().clone(), layer.delta_w().detach().clone()
+    merge_lora(m, alpha=0.5)
+    assert torch.allclose(layer.weight, w0 + 0.5 * d, rtol=0, atol=1e-7)
+    assert float(layer.delta_w().abs().max()) == 0.0, "merge 後 ΔW 應歸零"
+
+
+def test_merge_alpha_zero_leaves_base_weight_untouched():
+    import torch.nn as nn
+
+    from selector.lora import apply_lora, lora_layers, merge_lora
+    torch.manual_seed(2)
+    m = apply_lora(nn.Sequential(nn.Linear(8, 4)), r=2)
+    layer = lora_layers(m)[0]
+    with torch.no_grad():
+        layer.lora_B.normal_(std=0.1)
+    w0 = layer.weight.detach().clone()
+    merge_lora(m, alpha=0.0)
+    assert torch.equal(layer.weight, w0), "alpha=0 不該改動 base weight"

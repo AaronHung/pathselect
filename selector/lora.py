@@ -71,9 +71,18 @@ class LoRALinear(nn.Module):
     # ── merge ───────────────────────────────────────────────────────────────
 
     @torch.no_grad()
-    def merge_(self) -> None:
-        """W ← W + ΔW，然後 LoRA 歸零。forward 在 merge 前後位元相同。"""
-        self.weight.data = self.effective_weight().detach()
+    def merge_(self, alpha: float = 1.0) -> None:
+        """W ← W + alpha·ΔW，然後 LoRA 歸零。
+
+        `alpha = 1.0`（預設）走**與舊版完全相同的算式** `self.effective_weight()`，
+        因此 forward 在 merge 前後仍逐位元相同 —— 既有呼叫端一個字都不必改。
+        `alpha < 1` 是 DR-046 Phase B 的 A5H 臂用的「半量合併」，會刻意改變權重，
+        所以只有非 1.0 時才走另一條算式。
+        """
+        if alpha == 1.0:
+            self.weight.data = self.effective_weight().detach()
+        else:
+            self.weight.data = (self.weight + self.delta_w() * alpha).detach()
         self.reset_lora()
 
     def lora_state(self) -> dict:
@@ -112,11 +121,15 @@ def lora_parameters(*modules: nn.Module) -> list[nn.Parameter]:
     return out
 
 
-def merge_lora(*modules: nn.Module) -> None:
-    """把所有 LoRA 併進 base weight 並歸零。task 結束時呼叫一次。"""
+def merge_lora(*modules: nn.Module, alpha: float = 1.0) -> None:
+    """把所有 LoRA 併進 base weight 並歸零。task 結束時呼叫一次。
+
+    `alpha` 是合併強度（DR-046 Phase B）：預設 1.0 = 舊行為，
+    `W ← W + alpha·ΔW`。
+    """
     for m in modules:
         for layer in lora_layers(m):
-            layer.merge_()
+            layer.merge_(alpha=alpha)
 
 
 def delta_norm(*modules: nn.Module) -> float:

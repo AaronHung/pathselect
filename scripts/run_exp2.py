@@ -102,6 +102,15 @@ ARMS = OrderedDict([
     ("L2B", dict(name="Single continual adapter, no preservation",
                  mode="sequential", lora=True, kd=False, eq=False, replay=False,
                  merge_each=False)),
+    # A5H：與 A5 完全相同，只把每界的合併強度降到一半（W ← W + 0.5·ΔW）。
+    ("A5H", dict(name="Ours, half-strength merge (α=0.5)", mode="sequential",
+                 lora=True, replay=True, kd=True, eq=True, merge_alpha=0.5)),
+    # C1 / C2：每個 task 各自從同一個 θ₀ 出發、bare 訓練，事後才把 delta 組合起來。
+    # 兩臂共用同一批 delta（bare 訓練與臂無關），差別只在 composition。
+    ("C1", dict(name="Independent per-task deltas, summed", mode="independent",
+                lora=True, kd=False, eq=False, replay=False, composition="sum")),
+    ("C2", dict(name="Independent per-task deltas, averaged", mode="independent",
+                lora=True, kd=False, eq=False, replay=False, composition="mean")),
     ("R1", dict(name="per-task specialist (independent training)",
                 mode="per_task", lora=False,
                 replay=False, kd=False, eq=False)),
@@ -116,7 +125,9 @@ PAIRED_COMPARISONS = [("A5", "A3"), ("A5", "A1"), ("A4", "A3"),
                       ("A5", "B1"), ("A5", "B2"), ("B2", "B1"), ("B2", "A3"),
                       ("A5", "A5nG"),
                       # DR-046 Phase A
-                      ("W1", "A5"), ("L2", "A5"), ("W1B", "A2"), ("L2B", "A2")]
+                      ("W1", "A5"), ("L2", "A5"), ("W1B", "A2"), ("L2B", "A2"),
+                      # DR-046 Phase B
+                      ("A2", "C1"), ("A5", "A5H"), ("C1", "C2")]
 #: 配對比較看的四個指標，以及「越大越好 / 越小越好」
 PAIRED_METRICS = [("final_task_il", "task-IL final avg", True),
                   ("final_class_il", "class-IL final avg", True),
@@ -296,6 +307,9 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
                                      seed, stage, args)
         return recs_all
 
+    if spec["mode"] == "independent":
+        return run_independent(ctx, arm, order_name, seed, args, out_dir)
+
     if spec["mode"] == "joint":
         # R2：一次看到所有資料、沒有順序。offline reference，不是 CL baseline。
         models = new_models(ctx, seed, spec["lora"], args.rank)
@@ -316,7 +330,8 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
         diag = train_stage(ctx, arm, models, [task], seed, args, memory, rng,
                            use_lora=stage_lora)
         if stage_lora and (merge_each or stage == last_stage):
-            merge_lora(*models)                     # W_t = W_{t-1} + ΔW_t
+            # merge_alpha 預設 1.0 → 與舊行為位元相同（DR-046 Phase B）
+            merge_lora(*models, alpha=spec.get("merge_alpha", 1.0))
         if spec["replay"] or spec["kd"] or spec["eq"]:
             added = fill_memory(memory, models, task, ctx.cfg, ctx.f_txt,
                                 ctx.logit_scale, ctx.tissue, budget=args.budget,
@@ -332,6 +347,103 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
                   f"task-IL={acc(r, 'pred_task_il'):.4f}", flush=True)
         if warmstart and stage == 0:
             wrap_with_lora(models, args.rank)
+    return recs_all
+
+
+#: LoRA adapter 的參數名。merge 之後 B 歸零、A 被 reset_lora 重抽 —— 兩者對函數
+#: 都沒有影響（ΔW = 0），但 A 的值會變。把它們算進 delta 只會注入雜訊，故排除。
+ADAPTER_KEYS = ("lora_A", "lora_B")
+
+
+def _state(models) -> list[dict]:
+    return [{k: v.detach().clone() for k, v in m.state_dict().items()} for m in models]
+
+
+def _delta(after: list[dict], theta0: list[dict]) -> list[dict]:
+    """訓後 − θ₀，只留有差異的鍵（排除 adapter，理由見 ADAPTER_KEYS）。"""
+    out = []
+    for a, b in zip(after, theta0):
+        d = {}
+        for k, v in a.items():
+            if k.endswith(ADAPTER_KEYS):
+                continue
+            if not torch.equal(v, b[k]):
+                d[k] = (v - b[k]).detach().clone()
+        out.append(d)
+    return out
+
+
+def _compose(theta0: list[dict], deltas: list[list[dict]], how: str) -> list[dict]:
+    """θ₀ + Σ delta（sum）或 θ₀ + mean(delta)（mean）。"""
+    if how not in ("sum", "mean"):
+        raise ValueError(f"unknown composition: {how}")
+    scale = 1.0 if how == "sum" else 1.0 / len(deltas)
+    out = []
+    for i, base in enumerate(theta0):
+        sd = {k: v.detach().clone() for k, v in base.items()}
+        for d in deltas:
+            for k, v in d[i].items():
+                sd[k] = sd[k] + v * scale
+        out.append(sd)
+    return out
+
+
+def run_independent(ctx, arm, order_name, seed, args, out_dir):
+    """C1 / C2：每個 task 各自從同一個 θ₀ 出發 bare 訓練，事後才組合 delta。
+
+    與 A1–A5 的差別只在**組合時機**：這裡沒有序列依賴，四個 delta 互不相干，
+    stage s 的模型 = θ₀ + 前 s+1 個 delta 的（和 / 平均）。因此 C 臂也有完整的
+    Forgetting 矩陣，可與序列臂並列。
+
+    delta 與臂無關（bare 訓練），所以 C1 與 C2 **共用同一份快取**：先跑的那個
+    臂訓練，後跑的直接載入，零訓練。
+    """
+    spec = ARMS[arm]
+    tasks = ORDERS[order_name]
+
+    # θ₀ 一致性：new_models 內含 torch.manual_seed，同 seed 兩次必須逐位元相同
+    m1, m2 = new_models(ctx, seed, True, args.rank), new_models(ctx, seed, True, args.rank)
+    for i, (a, b) in enumerate(zip(_state(m1), _state(m2))):
+        for k in a:
+            if not torch.equal(a[k], b[k]):
+                raise SystemExit(
+                    f"❌ θ₀ 不一致：同 seed={seed} 兩次 new_models 的 {k}（模型 {i}）"
+                    "不同 —— C 臂的 delta 不可比，停下。")
+    theta0 = _state(m1)
+    print(f"       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同", flush=True)
+
+    cache = out_dir / f"dr046_deltas_seed{seed}.pt"
+    if cache.exists() and not args.no_resume:
+        deltas = torch.load(cache, weights_only=False)
+        print(f"       ▷ 重用 delta 快取 {cache.name}（零訓練）", flush=True)
+    else:
+        deltas = []
+        for t in tasks:
+            print(f"    ── independent: {t}", flush=True)
+            models = new_models(ctx, seed, True, args.rank)
+            # bare：memory 建了但完全不用（spec 的 kd/eq/replay 皆 False）
+            mem = SelectionMemory(capacity=args.mem_capacity or MEMORY_CAPACITY,
+                                  policy=None)
+            train_stage(ctx, arm, models, [t], seed, args, mem, random.Random(seed))
+            merge_lora(*models)
+            deltas.append(_delta(_state(models), theta0))
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        torch.save(deltas, cache)
+        print(f"       → 存下 4 個 delta：{cache}", flush=True)
+
+    recs_all = []
+    for stage in range(len(tasks)):
+        sd = _compose(theta0, deltas[:stage + 1], spec["composition"])
+        models = new_models(ctx, seed, True, args.rank)
+        for m, s_ in zip(models, sd):
+            m.load_state_dict(s_)
+        print(f"    ── stage {stage}: θ₀ + {spec['composition']}"
+              f"(delta[0..{stage}])", flush=True)
+        for t in tasks[:stage + 1]:
+            r = evaluate(ctx, models, t, arm, order_name, seed, stage, args)
+            recs_all += r
+            print(f"       eval {t:10s} class-IL={acc(r, 'pred_class_il'):.4f} "
+                  f"task-IL={acc(r, 'pred_task_il'):.4f}", flush=True)
     return recs_all
 
 

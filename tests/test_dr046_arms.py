@@ -109,8 +109,8 @@ def _trace(arm, monkeypatch):
         calls.append(("train", tasks[0], use_lora))
         return {}
 
-    def fake_merge(*models):
-        calls.append(("merge", None, None))
+    def fake_merge(*models, alpha=1.0):
+        calls.append(("merge", None, alpha))
 
     def fake_evaluate(ctx, models, task, *a, **k):
         return []
@@ -175,3 +175,133 @@ def test_baseline_arm_merges_every_stage(monkeypatch):
     assert sum(c[0] == "merge" for c in calls) == 4, "A5 應每個 stage 都 merge"
     assert not any(c[0] == "wrap" for c in calls), "A5 不該掛 warm-start 的 LoRA"
     assert calls[0] == ("new", None, True), "A5 建模時就該掛 LoRA"
+
+
+# ── DR-046 Phase B：A5H / C1 / C2 ───────────────────────────────────────────
+
+def test_phase_b_arms_exist_with_the_specified_flags():
+    want = {
+        "A5H": dict(mode="sequential", lora=True, replay=True, kd=True, eq=True,
+                    merge_alpha=0.5),
+        "C1": dict(mode="independent", lora=True, kd=False, eq=False, replay=False,
+                   composition="sum"),
+        "C2": dict(mode="independent", lora=True, kd=False, eq=False, replay=False,
+                   composition="mean"),
+    }
+    for arm, spec in want.items():
+        assert arm in R.ARMS, f"缺少 {arm}"
+        for k, v in spec.items():
+            assert R.ARMS[arm].get(k) == v, f"{arm} 的 {k}：期望 {v}，實得 {R.ARMS[arm].get(k)}"
+
+
+def test_a5h_differs_from_a5_only_in_merge_alpha():
+    a, h = dict(R.ARMS["A5"]), dict(R.ARMS["A5H"])
+    a.pop("name"); h.pop("name")
+    assert h.pop("merge_alpha") == 0.5
+    assert "merge_alpha" not in a
+    assert a == h, f"A5H 與 A5 除了 merge_alpha 之外還有差異：{a} vs {h}"
+
+
+def test_c_arms_are_bare_no_preservation():
+    """C1 / C2 必須是 bare —— 任何一個保存機制被打開就等於換了實驗。"""
+    for arm in ("C1", "C2"):
+        for k in ("kd", "eq", "replay"):
+            assert R.ARMS[arm][k] is False, f"{arm} 的 {k} 不該是 True"
+
+
+def test_c1_and_c2_differ_only_in_composition():
+    a, b = dict(R.ARMS["C1"]), dict(R.ARMS["C2"])
+    a.pop("name"); b.pop("name")
+    assert a.pop("composition") == "sum" and b.pop("composition") == "mean"
+    assert a == b
+
+
+def test_phase_b_paired_comparisons():
+    for pair in (("A2", "C1"), ("A5", "A5H"), ("C1", "C2")):
+        assert pair in R.PAIRED_COMPARISONS, f"缺少配對 {pair}"
+
+
+def test_a5h_passes_half_alpha_to_merge(monkeypatch):
+    calls = _trace("A5H", monkeypatch)
+    merges = [c for c in calls if c[0] == "merge"]
+    assert len(merges) == 4, "A5H 應每個 stage 都 merge"
+    assert all(c[2] == 0.5 for c in merges), f"合併強度不是 0.5：{merges}"
+
+
+def test_a5_still_merges_at_full_strength(monkeypatch):
+    """既有臂不得被 merge_alpha 影響。"""
+    calls = _trace("A5", monkeypatch)
+    assert all(c[2] == 1.0 for c in calls if c[0] == "merge")
+
+
+# ── independent 模式的組合與 θ₀ 守門 ────────────────────────────────────────
+
+def _sd(vals):
+    return [{"w": torch.tensor(vals, dtype=torch.float32)}]
+
+
+def test_compose_sum_adds_all_deltas():
+    theta0 = _sd([0.0, 0.0])
+    deltas = [_sd([1.0, 2.0]), _sd([10.0, 20.0])]
+    out = R._compose(theta0, deltas, "sum")
+    assert torch.allclose(out[0]["w"], torch.tensor([11.0, 22.0]))
+
+
+def test_compose_mean_divides_by_count():
+    theta0 = _sd([0.0, 0.0])
+    deltas = [_sd([1.0, 2.0]), _sd([3.0, 4.0])]
+    out = R._compose(theta0, deltas, "mean")
+    assert torch.allclose(out[0]["w"], torch.tensor([2.0, 3.0]))
+    assert not torch.allclose(out[0]["w"], torch.tensor([4.0, 6.0])), "mean 誤用了 sum"
+
+
+def test_compose_rejects_unknown_composition():
+    with pytest.raises(ValueError, match="unknown composition"):
+        R._compose(_sd([0.0]), [_sd([1.0])], "median")
+
+
+def test_delta_excludes_adapter_keys_and_keeps_changed_ones():
+    """merge 後 lora_A 被 reset_lora 重抽但不影響函數（B=0）—— 不得算進 delta。"""
+    theta0 = [{"mlp.0.weight": torch.zeros(2), "mlp.0.lora_A": torch.zeros(2),
+               "mlp.0.bias": torch.ones(2)}]
+    after = [{"mlp.0.weight": torch.tensor([1.0, 2.0]),
+              "mlp.0.lora_A": torch.tensor([9.0, 9.0]),      # 重抽，應被排除
+              "mlp.0.bias": torch.ones(2)}]                  # 沒變，不留
+    d = R._delta(after, theta0)[0]
+    assert set(d) == {"mlp.0.weight"}, f"delta 的鍵不對：{sorted(d)}"
+    assert torch.allclose(d["mlp.0.weight"], torch.tensor([1.0, 2.0]))
+
+
+def test_theta0_is_reproducible_for_the_same_seed():
+    """C 臂的前提：同 seed 兩次 new_models 逐位元相同。"""
+    import types
+    ctx = types.SimpleNamespace(device=torch.device("cpu"))
+    a, b = R.new_models(ctx, 3, True, 4), R.new_models(ctx, 3, True, 4)
+    for x, y in zip(R._state(a), R._state(b)):
+        for k in x:
+            assert torch.equal(x[k], y[k]), f"{k} 不一致"
+    c = R.new_models(ctx, 4, True, 4)
+    assert any(not torch.equal(x[k], z[k]) for x, z in zip(R._state(a), R._state(c))
+               for k in x), "不同 seed 竟然給出相同的 θ₀ —— 這條測試對 seed 不敏感"
+
+
+def test_run_independent_aborts_when_theta0_is_not_reproducible(monkeypatch, tmp_path):
+    """θ₀ 守門要有牙齒。
+
+    ⚠️ 在正確行為下 θ₀ 本來就一致，把 `raise SystemExit` 改成 `print` 跑一次是
+    抓不到的 —— 必須強制製造不一致（與 verify_doc_numbers 的容差同一類坑）。
+    """
+    import types
+    calls = {"n": 0}
+
+    def flaky(ctx, seed, use_lora, rank):
+        calls["n"] += 1
+        torch.manual_seed(seed * 100 + calls["n"])     # 每次都不同 → θ₀ 不一致
+        from selector.model import GroupSelector, PatchSelector
+        return GroupSelector(), PatchSelector()
+
+    monkeypatch.setattr(R, "new_models", flaky)
+    ctx = types.SimpleNamespace(device=torch.device("cpu"))
+    args = types.SimpleNamespace(rank=4, mem_capacity=None, no_resume=False)
+    with pytest.raises(SystemExit, match="θ₀ 不一致"):
+        R.run_independent(ctx, "C1", "reverse", 0, args, tmp_path)
