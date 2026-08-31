@@ -127,7 +127,10 @@ PAIRED_COMPARISONS = [("A5", "A3"), ("A5", "A1"), ("A4", "A3"),
                       # DR-046 Phase A
                       ("W1", "A5"), ("L2", "A5"), ("W1B", "A2"), ("L2B", "A2"),
                       # DR-046 Phase B
-                      ("A2", "C1"), ("A5", "A5H"), ("C1", "C2")]
+                      ("A2", "C1"), ("A5", "A5H"), ("C1", "C2"),
+                      # 論文引用「完整方法勝過 post-hoc composition」的三個數字，
+                      # 先前沒有任何產物算過這一對 —— 由 verify_doc_numbers 掃出。
+                      ("A5", "C1")]
 #: 配對比較看的四個指標，以及「越大越好 / 越小越好」
 PAIRED_METRICS = [("final_task_il", "task-IL final avg", True),
                   ("final_class_il", "class-IL final avg", True),

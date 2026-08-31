@@ -230,6 +230,103 @@ def anchored_lines(path: Path, anchor: str) -> list[str]:
     return out
 
 
+# ── 論文稿的數值溯源（DR-046 凍結）──────────────────────────────────────────
+
+PAPER = ROOT / "paper" / "main.tex"
+#: EXP2.md（flat）是 EXP2_hier.md 的同批對照，配對表在那裡；DR046_GATES 是
+#: 本輪新增的 gate 總表。兩者都是 committed artifact，一併納入掃描來源。
+PAPER_ARTIFACTS = ["docs/DR046_TABLE.md", "docs/RESULTS_DOSSIER.md",
+                   "outputs/exp2/main/EXP2_hier.md", "outputs/exp2/main/EXP2.md",
+                   "docs/DR046_GATES.md"]
+PAPER_TOL = 5e-3
+
+#: 稿內合法但**不是實驗結果**的數字，逐個列出理由。不得用來塞不會溯源的結果值。
+PAPER_ALLOW = {
+    "2.1": "rank-4 LoRA 佔參數比（16,400 / 選擇器總參數），由架構推導，非實驗結果",
+}
+
+
+def paper_numbers(text: str):
+    """稿內的帶小數數字（略過註解行）。整數不看 —— rank 4、5 seeds 之類不是結果值。"""
+    out = []
+    for i, ln in enumerate(text.splitlines(), 1):
+        if ln.lstrip().startswith("%"):
+            continue
+        for m in re.finditer(r"[-+\u2212]?\d+\.\d+", ln):
+            out.append((i, m.group(0), ln.strip()))
+    return out
+
+
+def artifact_numbers() -> list[float]:
+    pool = []
+    for rel in PAPER_ARTIFACTS:
+        f = ROOT / rel
+        if not f.exists():
+            continue
+        for m in re.finditer(r"[-+\u2212]?\d+\.\d+", norm(f.read_text(encoding="utf-8"))):
+            try:
+                pool.append(float(m.group(0)))
+            except ValueError:
+                pass
+    return pool
+
+
+def traceable(tok: str, pool: list[float]) -> bool:
+    """稿內數字能否溯源。
+
+    ⚠️ 容差是「**先對齊稿內的位數**再比 5e-3」，不是對原值取 5e-3 ——
+    稿裡寫 `34.0`（1 位）而產物是 `-34.03`，直接比會差 0.03 而誤判。
+    同時容許 ×100 / ÷100（產物用比例 0.9821、稿裡用百分比 98.21）。
+    """
+    v = abs(float(norm(tok)))
+    k = len(tok.split(".")[1])
+    for y in pool:
+        for cand in (abs(y), abs(y) * 100.0, abs(y) / 100.0):
+            if abs(round(cand, k) - round(v, k)) <= PAPER_TOL:
+                return True
+    return False
+
+
+def scan_paper() -> list[str]:
+    """回傳問題清單；空 = 通過。
+
+    ⚠️ **已知弱點：數值池比對會誤配。** 本掃描只問「這個數字在產物裡存不存在」，
+    不問「它是不是**這個主張**的那個數字」。實例：稿內的 `+13.2` 命中的是
+    `+25.26 ± 13.24` 裡的一個**標準差**，與該句主張毫無關係。
+    因此它能抓「憑空捏造的數字」，但抓不到「引用了別處的數字」。
+    要更強的保證，需要逐句標註來源，超出本檔範圍。
+    """
+    if not PAPER.exists():
+        return [f"找不到 {PAPER}"]
+    text = PAPER.read_text(encoding="utf-8")
+    bad = []
+
+    uses = [(i, l) for i, l in enumerate(text.splitlines(), 1)
+            if re.search(r"\\pending\{", l) and not l.lstrip().startswith("%")
+            and "newcommand" not in l]
+    print(f"  \\pending 用例：{len(uses)} " + ("✅" if not uses else "❌"))
+    for i, l in uses:
+        bad.append(f"paper/main.tex L{i} 還有 \\pending 用例：{l.strip()[:70]}")
+
+    pool = artifact_numbers()
+    nums = paper_numbers(text)
+    seen, miss = set(), []
+    for line_no, tok, ctx in nums:
+        key = norm(tok).lstrip("+")
+        if key in seen:
+            continue
+        seen.add(key)
+        if key.lstrip("-") in PAPER_ALLOW or key in PAPER_ALLOW:
+            continue
+        if not traceable(tok, pool):
+            miss.append((line_no, tok, ctx))
+    print(f"  稿內相異數值 {len(seen)}｜白名單 {len(PAPER_ALLOW)}｜"
+          f"無法溯源 {len(miss)} " + ("✅" if not miss else "❌"))
+    for line_no, tok, ctx in miss:
+        bad.append(f"paper/main.tex L{line_no} 的 {tok} 溯源不到：{ctx[:70]}")
+    return bad
+
+
 def main() -> int:
     cfg = load_config()
     ls = list(cfg["tasks"])
@@ -286,6 +383,9 @@ def main() -> int:
               f"文件={'有' if in_doc else '**無**'} 產物={'有' if in_art else '**無**'}")
         if not ok:
             bad.append(f"{label}：文件={in_doc}、產物={in_art}（兩者都要有）")
+
+    print("── 論文稿溯源：paper/main.tex ──")
+    bad += scan_paper()
 
     if bad:
         print("\n❌ 對不上：")

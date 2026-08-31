@@ -127,3 +127,49 @@ def test_doc_numbers_are_traceable_to_artifacts():
     r = subprocess.run([sys.executable, "scripts/verify_doc_numbers.py"],
                        capture_output=True, text=True, cwd=REPO_ROOT)
     assert r.returncode == 0, f"數字無法溯源：\n{r.stdout[-3000:]}"
+
+
+# ── DR-046 凍結：論文稿的數值溯源 ───────────────────────────────────────────
+
+def test_paper_tolerance_is_the_spec_value():
+    """容差是規格寫死的 5e-3，不得放寬。
+
+    ⚠️ 放寬容差不會讓掃描在正確稿子上失敗，跑一次抓不到 —— 只能用測試釘住。
+    """
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    import verify_doc_numbers as V
+    assert V.PAPER_TOL == 5e-3
+
+
+def test_paper_scan_flags_a_changed_number(tmp_path, monkeypatch):
+    """稿內數字改一位 → 掃描必須報出來。"""
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    import verify_doc_numbers as V
+    src = (REPO_ROOT / "paper" / "main.tex").read_text(encoding="utf-8")
+    assert "$+3.06$" in src or "+3.06" in src, "稿內找不到用來擾動的錨點數字"
+    fake = tmp_path / "main.tex"
+    # ⚠️ 擾動值要挑**不可能在產物裡碰撞**的。掃描是「與產物數值池比對」，
+    #    改成 +9.06 之類仍會命中池子裡別的數字（例如某個標準差），
+    #    看起來像通過 —— 這是本掃描的已知弱點，見 scan_paper 的說明。
+    fake.write_text(src.replace("+3.06", "+77.77"), encoding="utf-8")
+    monkeypatch.setattr(V, "PAPER", fake)
+    bad = V.scan_paper()
+    assert any("77.77" in b for b in bad), f"改掉的數字沒被抓到：{bad}"
+
+
+def test_paper_scan_flags_a_pending_usage(tmp_path, monkeypatch):
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    import verify_doc_numbers as V
+    src = (REPO_ROOT / "paper" / "main.tex").read_text(encoding="utf-8")
+    fake = tmp_path / "main.tex"
+    fake.write_text(src + "\n\\pending{something unfinished}\n", encoding="utf-8")
+    monkeypatch.setattr(V, "PAPER", fake)
+    bad = V.scan_paper()
+    assert any("pending" in b for b in bad), f"塞回的 \\pending 沒被抓到：{bad}"
+
+
+def test_paper_scan_passes_on_the_real_manuscript():
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    import verify_doc_numbers as V
+    bad = V.scan_paper()
+    assert not bad, "稿件溯源未通過：\n" + "\n".join(bad)
