@@ -1,0 +1,498 @@
+Exp2  arms=['A2', 'A5', 'C1', 'C2', 'A5H']  order=reverse  seeds=[0, 1, 2, 3, 4]  B=8 c=1 epochs=5 arch=flat alloc=per_budget prior=discriminative beta_u=0.1 replay_k=1 λ=(1.0,1.0,1.0)
+  ▷ A2 seed=0 已有存檔，跳過
+  ▷ A2 seed=1 已有存檔，跳過
+  ▷ A2 seed=2 已有存檔，跳過
+  ▷ A2 seed=3 已有存檔，跳過
+  ▷ A2 seed=4 已有存檔，跳過
+  ▷ A5 seed=0 已有存檔，跳過
+  ▷ A5 seed=1 已有存檔，跳過
+  ▷ A5 seed=2 已有存檔，跳過
+  ▷ A5 seed=3 已有存檔，跳過
+  ▷ A5 seed=4 已有存檔，跳過
+  ▶ C1 (Independent per-task deltas, summed) seed=0
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+    ── independent: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.5796
+      epoch 2/5 n=120 mean_loss=0.1847
+      epoch 3/5 n=120 mean_loss=0.0653
+      epoch 4/5 n=120 mean_loss=0.0417
+      epoch 5/5 n=120 mean_loss=0.1188
+    ── independent: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.3688
+      epoch 2/5 n=616 mean_loss=0.1801
+      epoch 3/5 n=616 mean_loss=0.1588
+      epoch 4/5 n=616 mean_loss=0.1993
+      epoch 5/5 n=616 mean_loss=0.1906
+    ── independent: tcga_brca
+      epoch 1/5 n=763 mean_loss=0.3608
+      epoch 2/5 n=763 mean_loss=0.2920
+      epoch 3/5 n=763 mean_loss=0.3338
+      epoch 4/5 n=763 mean_loss=0.3058
+      epoch 5/5 n=763 mean_loss=0.2920
+    ── independent: tcga_lung
+      epoch 1/5 n=774 mean_loss=0.5237
+      epoch 2/5 n=774 mean_loss=0.3903
+      epoch 3/5 n=774 mean_loss=0.3419
+      epoch 4/5 n=774 mean_loss=0.3437
+      epoch 5/5 n=774 mean_loss=0.3379
+       → 存下 4 個 delta：/Users/aaron/research/02_pathselect/outputs/exp2/main/dr046_deltas_seed0.pt
+    ── stage 0: θ₀ + sum(delta[0..0])
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+    ── stage 1: θ₀ + sum(delta[0..1])
+       eval tcga_esca  class-IL=0.6000 task-IL=0.8000
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+    ── stage 2: θ₀ + sum(delta[0..2])
+       eval tcga_esca  class-IL=0.6000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+       eval tcga_brca  class-IL=0.4946 task-IL=0.8817
+    ── stage 3: θ₀ + sum(delta[0..3])
+       eval tcga_esca  class-IL=0.7333 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+       eval tcga_brca  class-IL=0.4731 task-IL=0.8710
+       eval tcga_lung  class-IL=0.5053 task-IL=0.8316
+  ▶ C1 (Independent per-task deltas, summed) seed=1
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+    ── independent: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.4838
+      epoch 2/5 n=120 mean_loss=0.1656
+      epoch 3/5 n=120 mean_loss=0.1271
+      epoch 4/5 n=120 mean_loss=0.1091
+      epoch 5/5 n=120 mean_loss=0.1208
+    ── independent: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.2553
+      epoch 2/5 n=616 mean_loss=0.1608
+      epoch 3/5 n=616 mean_loss=0.2460
+      epoch 4/5 n=616 mean_loss=0.1433
+      epoch 5/5 n=616 mean_loss=0.1789
+    ── independent: tcga_brca
+      epoch 1/5 n=763 mean_loss=0.3712
+      epoch 2/5 n=763 mean_loss=0.3485
+      epoch 3/5 n=763 mean_loss=0.3175
+      epoch 4/5 n=763 mean_loss=0.3209
+      epoch 5/5 n=763 mean_loss=0.3195
+    ── independent: tcga_lung
+      epoch 1/5 n=774 mean_loss=0.6066
+      epoch 2/5 n=774 mean_loss=0.3879
+      epoch 3/5 n=774 mean_loss=0.3768
+      epoch 4/5 n=774 mean_loss=0.3605
+      epoch 5/5 n=774 mean_loss=0.3413
+       → 存下 4 個 delta：/Users/aaron/research/02_pathselect/outputs/exp2/main/dr046_deltas_seed1.pt
+    ── stage 0: θ₀ + sum(delta[0..0])
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+    ── stage 1: θ₀ + sum(delta[0..1])
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
+    ── stage 2: θ₀ + sum(delta[0..2])
+       eval tcga_esca  class-IL=0.5333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8816 task-IL=0.9211
+       eval tcga_brca  class-IL=0.8280 task-IL=0.8710
+    ── stage 3: θ₀ + sum(delta[0..3])
+       eval tcga_esca  class-IL=0.5333 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9474
+       eval tcga_brca  class-IL=0.7849 task-IL=0.8387
+       eval tcga_lung  class-IL=0.6526 task-IL=0.8632
+  ▶ C1 (Independent per-task deltas, summed) seed=2
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+    ── independent: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.5715
+      epoch 2/5 n=120 mean_loss=0.2234
+      epoch 3/5 n=120 mean_loss=0.0734
+      epoch 4/5 n=120 mean_loss=0.1335
+      epoch 5/5 n=120 mean_loss=0.1558
+    ── independent: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.2733
+      epoch 2/5 n=616 mean_loss=0.1758
+      epoch 3/5 n=616 mean_loss=0.1908
+      epoch 4/5 n=616 mean_loss=0.1494
+      epoch 5/5 n=616 mean_loss=0.1486
+    ── independent: tcga_brca
+      epoch 1/5 n=763 mean_loss=0.3997
+      epoch 2/5 n=763 mean_loss=0.3232
+      epoch 3/5 n=763 mean_loss=0.3331
+      epoch 4/5 n=763 mean_loss=0.2871
+      epoch 5/5 n=763 mean_loss=0.2897
+    ── independent: tcga_lung
+      epoch 1/5 n=774 mean_loss=0.5705
+      epoch 2/5 n=774 mean_loss=0.4637
+      epoch 3/5 n=774 mean_loss=0.3843
+      epoch 4/5 n=774 mean_loss=0.4341
+      epoch 5/5 n=774 mean_loss=0.4082
+       → 存下 4 個 delta：/Users/aaron/research/02_pathselect/outputs/exp2/main/dr046_deltas_seed2.pt
+    ── stage 0: θ₀ + sum(delta[0..0])
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+    ── stage 1: θ₀ + sum(delta[0..1])
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9211
+    ── stage 2: θ₀ + sum(delta[0..2])
+       eval tcga_esca  class-IL=0.7333 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9342
+       eval tcga_brca  class-IL=0.7097 task-IL=0.9032
+    ── stage 3: θ₀ + sum(delta[0..3])
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9211
+       eval tcga_brca  class-IL=0.6774 task-IL=0.8925
+       eval tcga_lung  class-IL=0.5579 task-IL=0.8105
+  ▶ C1 (Independent per-task deltas, summed) seed=3
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+    ── independent: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.5415
+      epoch 2/5 n=120 mean_loss=0.2037
+      epoch 3/5 n=120 mean_loss=0.1161
+      epoch 4/5 n=120 mean_loss=0.0515
+      epoch 5/5 n=120 mean_loss=0.0385
+    ── independent: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.2852
+      epoch 2/5 n=616 mean_loss=0.1735
+      epoch 3/5 n=616 mean_loss=0.1709
+      epoch 4/5 n=616 mean_loss=0.1974
+      epoch 5/5 n=616 mean_loss=0.1535
+    ── independent: tcga_brca
+      epoch 1/5 n=763 mean_loss=0.4369
+      epoch 2/5 n=763 mean_loss=0.3082
+      epoch 3/5 n=763 mean_loss=0.2827
+      epoch 4/5 n=763 mean_loss=0.3040
+      epoch 5/5 n=763 mean_loss=0.2725
+    ── independent: tcga_lung
+      epoch 1/5 n=774 mean_loss=0.5634
+      epoch 2/5 n=774 mean_loss=0.3977
+      epoch 3/5 n=774 mean_loss=0.3854
+      epoch 4/5 n=774 mean_loss=0.3618
+      epoch 5/5 n=774 mean_loss=0.3612
+       → 存下 4 個 delta：/Users/aaron/research/02_pathselect/outputs/exp2/main/dr046_deltas_seed3.pt
+    ── stage 0: θ₀ + sum(delta[0..0])
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+    ── stage 1: θ₀ + sum(delta[0..1])
+       eval tcga_esca  class-IL=0.8667 task-IL=1.0000
+       eval tcga_rcc   class-IL=0.9737 task-IL=0.9868
+    ── stage 2: θ₀ + sum(delta[0..2])
+       eval tcga_esca  class-IL=0.5333 task-IL=0.8000
+       eval tcga_rcc   class-IL=0.9605 task-IL=0.9737
+       eval tcga_brca  class-IL=0.8172 task-IL=0.8710
+    ── stage 3: θ₀ + sum(delta[0..3])
+       eval tcga_esca  class-IL=0.5333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.7763 task-IL=0.8553
+       eval tcga_brca  class-IL=0.5161 task-IL=0.8495
+       eval tcga_lung  class-IL=0.8632 task-IL=0.8947
+  ▶ C1 (Independent per-task deltas, summed) seed=4
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+    ── independent: tcga_esca
+      epoch 1/5 n=120 mean_loss=1.6190
+      epoch 2/5 n=120 mean_loss=0.1774
+      epoch 3/5 n=120 mean_loss=0.0753
+      epoch 4/5 n=120 mean_loss=0.1064
+      epoch 5/5 n=120 mean_loss=0.2032
+    ── independent: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.3195
+      epoch 2/5 n=616 mean_loss=0.1863
+      epoch 3/5 n=616 mean_loss=0.2271
+      epoch 4/5 n=616 mean_loss=0.1547
+      epoch 5/5 n=616 mean_loss=0.1516
+    ── independent: tcga_brca
+      epoch 1/5 n=763 mean_loss=0.4182
+      epoch 2/5 n=763 mean_loss=0.3002
+      epoch 3/5 n=763 mean_loss=0.3186
+      epoch 4/5 n=763 mean_loss=0.3143
+      epoch 5/5 n=763 mean_loss=0.2763
+    ── independent: tcga_lung
+      epoch 1/5 n=774 mean_loss=0.5736
+      epoch 2/5 n=774 mean_loss=0.3626
+      epoch 3/5 n=774 mean_loss=0.3899
+      epoch 4/5 n=774 mean_loss=0.3768
+      epoch 5/5 n=774 mean_loss=0.3620
+       → 存下 4 個 delta：/Users/aaron/research/02_pathselect/outputs/exp2/main/dr046_deltas_seed4.pt
+    ── stage 0: θ₀ + sum(delta[0..0])
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: θ₀ + sum(delta[0..1])
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8289 task-IL=0.8553
+    ── stage 2: θ₀ + sum(delta[0..2])
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8421 task-IL=0.8816
+       eval tcga_brca  class-IL=0.6989 task-IL=0.8602
+    ── stage 3: θ₀ + sum(delta[0..3])
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8816 task-IL=0.9211
+       eval tcga_brca  class-IL=0.6344 task-IL=0.8280
+       eval tcga_lung  class-IL=0.4421 task-IL=0.7895
+  ▶ C2 (Independent per-task deltas, averaged) seed=0
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+       ▷ 重用 delta 快取 dr046_deltas_seed0.pt（零訓練）
+    ── stage 0: θ₀ + mean(delta[0..0])
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+    ── stage 1: θ₀ + mean(delta[0..1])
+       eval tcga_esca  class-IL=0.6000 task-IL=0.8000
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9342
+    ── stage 2: θ₀ + mean(delta[0..2])
+       eval tcga_esca  class-IL=0.6000 task-IL=0.8000
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9342
+       eval tcga_brca  class-IL=0.5914 task-IL=0.8817
+    ── stage 3: θ₀ + mean(delta[0..3])
+       eval tcga_esca  class-IL=0.5333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9474
+       eval tcga_brca  class-IL=0.5161 task-IL=0.8602
+       eval tcga_lung  class-IL=0.7053 task-IL=0.8000
+  ▶ C2 (Independent per-task deltas, averaged) seed=1
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+       ▷ 重用 delta 快取 dr046_deltas_seed1.pt（零訓練）
+    ── stage 0: θ₀ + mean(delta[0..0])
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+    ── stage 1: θ₀ + mean(delta[0..1])
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
+    ── stage 2: θ₀ + mean(delta[0..2])
+       eval tcga_esca  class-IL=0.4667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9342
+       eval tcga_brca  class-IL=0.8602 task-IL=0.8817
+    ── stage 3: θ₀ + mean(delta[0..3])
+       eval tcga_esca  class-IL=0.4667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8421 task-IL=0.9342
+       eval tcga_brca  class-IL=0.8172 task-IL=0.8710
+       eval tcga_lung  class-IL=0.7474 task-IL=0.8526
+  ▶ C2 (Independent per-task deltas, averaged) seed=2
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+       ▷ 重用 delta 快取 dr046_deltas_seed2.pt（零訓練）
+    ── stage 0: θ₀ + mean(delta[0..0])
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+    ── stage 1: θ₀ + mean(delta[0..1])
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9474
+    ── stage 2: θ₀ + mean(delta[0..2])
+       eval tcga_esca  class-IL=0.4000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9474
+       eval tcga_brca  class-IL=0.7957 task-IL=0.8280
+    ── stage 3: θ₀ + mean(delta[0..3])
+       eval tcga_esca  class-IL=0.6000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9605
+       eval tcga_brca  class-IL=0.7312 task-IL=0.8602
+       eval tcga_lung  class-IL=0.7579 task-IL=0.8737
+  ▶ C2 (Independent per-task deltas, averaged) seed=3
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+       ▷ 重用 delta 快取 dr046_deltas_seed3.pt（零訓練）
+    ── stage 0: θ₀ + mean(delta[0..0])
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+    ── stage 1: θ₀ + mean(delta[0..1])
+       eval tcga_esca  class-IL=0.7333 task-IL=1.0000
+       eval tcga_rcc   class-IL=0.9605 task-IL=0.9605
+    ── stage 2: θ₀ + mean(delta[0..2])
+       eval tcga_esca  class-IL=0.3333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8495 task-IL=0.8710
+    ── stage 3: θ₀ + mean(delta[0..3])
+       eval tcga_esca  class-IL=0.3333 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8289 task-IL=0.8684
+       eval tcga_brca  class-IL=0.6452 task-IL=0.8602
+       eval tcga_lung  class-IL=0.8316 task-IL=0.8632
+  ▶ C2 (Independent per-task deltas, averaged) seed=4
+       ✅ θ₀ 一致性：同 seed 兩次建模逐位元相同
+       ▷ 重用 delta 快取 dr046_deltas_seed4.pt（零訓練）
+    ── stage 0: θ₀ + mean(delta[0..0])
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: θ₀ + mean(delta[0..1])
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8553 task-IL=0.8684
+    ── stage 2: θ₀ + mean(delta[0..2])
+       eval tcga_esca  class-IL=0.6000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8289 task-IL=0.8816
+       eval tcga_brca  class-IL=0.8602 task-IL=0.8925
+    ── stage 3: θ₀ + mean(delta[0..3])
+       eval tcga_esca  class-IL=0.4667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8421 task-IL=0.9211
+       eval tcga_brca  class-IL=0.8387 task-IL=0.8817
+       eval tcga_lung  class-IL=0.6526 task-IL=0.8211
+  ▶ A5H (Ours, half-strength merge (α=0.5)) seed=0
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.5796
+      epoch 2/5 n=120 mean_loss=0.1847
+      epoch 3/5 n=120 mean_loss=0.0653
+      epoch 4/5 n=120 mean_loss=0.0417
+      epoch 5/5 n=120 mean_loss=0.1188
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.5646
+      epoch 2/5 n=616 mean_loss=0.4304
+      epoch 3/5 n=616 mean_loss=0.4437
+      epoch 4/5 n=616 mean_loss=0.3606
+      epoch 5/5 n=616 mean_loss=0.3143
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9211
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.2420
+      epoch 2/5 n=763 mean_loss=1.0304
+      epoch 3/5 n=763 mean_loss=0.9944
+      epoch 4/5 n=763 mean_loss=0.9221
+      epoch 5/5 n=763 mean_loss=0.9382
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+       eval tcga_brca  class-IL=0.7312 task-IL=0.8602
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=2.2888
+      epoch 2/5 n=774 mean_loss=1.8312
+      epoch 3/5 n=774 mean_loss=1.4534
+      epoch 4/5 n=774 mean_loss=1.6091
+      epoch 5/5 n=774 mean_loss=1.4133
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9605
+       eval tcga_brca  class-IL=0.8065 task-IL=0.8925
+       eval tcga_lung  class-IL=0.7263 task-IL=0.8421
+  ▶ A5H (Ours, half-strength merge (α=0.5)) seed=1
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.4838
+      epoch 2/5 n=120 mean_loss=0.1656
+      epoch 3/5 n=120 mean_loss=0.1271
+      epoch 4/5 n=120 mean_loss=0.1091
+      epoch 5/5 n=120 mean_loss=0.1208
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.6484
+      epoch 2/5 n=616 mean_loss=0.5113
+      epoch 3/5 n=616 mean_loss=0.3116
+      epoch 4/5 n=616 mean_loss=0.3660
+      epoch 5/5 n=616 mean_loss=0.2663
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9474
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=0.9314
+      epoch 2/5 n=763 mean_loss=0.9918
+      epoch 3/5 n=763 mean_loss=1.0262
+      epoch 4/5 n=763 mean_loss=0.9195
+      epoch 5/5 n=763 mean_loss=0.8556
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
+       eval tcga_brca  class-IL=0.7849 task-IL=0.8925
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.8809
+      epoch 2/5 n=774 mean_loss=1.6123
+      epoch 3/5 n=774 mean_loss=1.7742
+      epoch 4/5 n=774 mean_loss=1.5254
+      epoch 5/5 n=774 mean_loss=1.6031
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8387 task-IL=0.9032
+       eval tcga_lung  class-IL=0.7158 task-IL=0.8737
+  ▶ A5H (Ours, half-strength merge (α=0.5)) seed=2
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.5715
+      epoch 2/5 n=120 mean_loss=0.2234
+      epoch 3/5 n=120 mean_loss=0.0734
+      epoch 4/5 n=120 mean_loss=0.1335
+      epoch 5/5 n=120 mean_loss=0.1558
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.5564
+      epoch 2/5 n=616 mean_loss=0.4668
+      epoch 3/5 n=616 mean_loss=0.3567
+      epoch 4/5 n=616 mean_loss=0.4079
+      epoch 5/5 n=616 mean_loss=0.3166
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.9333 task-IL=1.0000
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9342
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.3178
+      epoch 2/5 n=763 mean_loss=0.9283
+      epoch 3/5 n=763 mean_loss=0.9795
+      epoch 4/5 n=763 mean_loss=0.8932
+      epoch 5/5 n=763 mean_loss=0.8862
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9211
+       eval tcga_brca  class-IL=0.7634 task-IL=0.8817
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=2.5159
+      epoch 2/5 n=774 mean_loss=2.0344
+      epoch 3/5 n=774 mean_loss=1.6649
+      epoch 4/5 n=774 mean_loss=1.6805
+      epoch 5/5 n=774 mean_loss=1.5409
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8172 task-IL=0.8925
+       eval tcga_lung  class-IL=0.7474 task-IL=0.8632
+  ▶ A5H (Ours, half-strength merge (α=0.5)) seed=3
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.5415
+      epoch 2/5 n=120 mean_loss=0.2037
+      epoch 3/5 n=120 mean_loss=0.1161
+      epoch 4/5 n=120 mean_loss=0.0515
+      epoch 5/5 n=120 mean_loss=0.0385
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.6068
+      epoch 2/5 n=616 mean_loss=0.4615
+      epoch 3/5 n=616 mean_loss=0.3704
+      epoch 4/5 n=616 mean_loss=0.3801
+      epoch 5/5 n=616 mean_loss=0.4673
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9605 task-IL=0.9605
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.5335
+      epoch 2/5 n=763 mean_loss=1.1904
+      epoch 3/5 n=763 mean_loss=1.0136
+      epoch 4/5 n=763 mean_loss=1.0430
+      epoch 5/5 n=763 mean_loss=0.9539
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8065 task-IL=0.8925
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=2.0589
+      epoch 2/5 n=774 mean_loss=1.9603
+      epoch 3/5 n=774 mean_loss=1.5996
+      epoch 4/5 n=774 mean_loss=1.7401
+      epoch 5/5 n=774 mean_loss=1.3048
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8602 task-IL=0.9032
+       eval tcga_lung  class-IL=0.7158 task-IL=0.8632
+  ▶ A5H (Ours, half-strength merge (α=0.5)) seed=4
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=1.6190
+      epoch 2/5 n=120 mean_loss=0.1774
+      epoch 3/5 n=120 mean_loss=0.0753
+      epoch 4/5 n=120 mean_loss=0.1064
+      epoch 5/5 n=120 mean_loss=0.2032
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.6385
+      epoch 2/5 n=616 mean_loss=0.3862
+      epoch 3/5 n=616 mean_loss=0.2863
+      epoch 4/5 n=616 mean_loss=0.3156
+      epoch 5/5 n=616 mean_loss=0.2912
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9474
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.3109
+      epoch 2/5 n=763 mean_loss=0.9922
+      epoch 3/5 n=763 mean_loss=0.9272
+      epoch 4/5 n=763 mean_loss=0.8324
+      epoch 5/5 n=763 mean_loss=0.9579
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9474
+       eval tcga_brca  class-IL=0.7634 task-IL=0.8710
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.9297
+      epoch 2/5 n=774 mean_loss=1.7180
+      epoch 3/5 n=774 mean_loss=1.5824
+      epoch 4/5 n=774 mean_loss=1.4398
+      epoch 5/5 n=774 mean_loss=1.2410
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8280 task-IL=0.9032
+       eval tcga_lung  class-IL=0.6316 task-IL=0.8105
+
+→ /Users/aaron/research/02_pathselect/outputs/exp2/main/EXP2.md
