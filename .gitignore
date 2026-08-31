@@ -9,3 +9,10 @@ ckpt/
 *_probe_features.npz
 outputs/**/_probe_features.npz
 .DS_Store
+
+# LaTeX 中間產物（paper/ 只收原始檔與定稿 PDF）
+paper/*.aux
+paper/*.log
+paper/*.blg
+paper/*.out
+paper/*.bbl

@@ -1,0 +1,181 @@
+% ============================================================
+% extended_master.tex — FROZEN SNAPSHOT (2026-08-31)
+% 身分：投稿後 arXiv / 擴充版的種子（長摘要、附錄、逐 seed 表、預註冊卡住這裡）。
+% 規則：不再隨投稿版平行更新。9/16 投稿後以 git diff 對 main.tex 一次回填新數字。
+% 一切當前數字與措辭以 paper/main.tex（spconf 投稿版）為準。
+% ============================================================
+% ============================================================
+% PathSelect — Master Draft (full-length; compress to ICASSP later per DR-018)
+% Fable v1 — 2026-08-30 — numbers verified against repo @ tag dr046-phase0
+% Pending slots are marked \pending{...} and MUST be resolved by 9/6 freeze.
+% Figure: swap figures/fig1_architecture.png for fig1_architecture_v1_0 after fix list.
+% ============================================================
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx,booktabs,amsmath,amssymb,xcolor,microtype}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\newcommand{\pending}[1]{\textcolor{red}{\textbf{$\langle$PENDING: #1$\rangle$}}}
+\newcommand{\Fg}{F_{g}} \newcommand{\Fp}{F_{p}}
+\newcommand{\classil}{class-IL} \newcommand{\taskil}{task-IL}
+
+% ---- VENUE FACTS (verified 2026-08-30 against 2027.ieeeicassp.org) ----
+% Target: ICASSP 2027, Toronto, 16-21 May 2027. Full-paper deadline: 16 Sep 2026.
+% Notification 13 Jan 2027; final paper 27 Jan 2027; author registration 10 Feb 2027.
+% Page rule (official wording): "up to four pages for technical content including
+% figures and references, and one optional fifth page containing only references"
+% (2026 kit adds: 5th page may also carry funding ack + ethics-compliance statement).
+% => Compression target is 4(+1 refs-only), NOT the ICIP 5+1 precedent.
+% Review is SINGLE-BLIND: "ICASSP does not perform blind reviews" -- author list
+% REQUIRED on the submitted PDF. Submission must be in final, publishable form.
+% Template: spconf.sty + IEEEbib.bst (\usepackage{spconf}); use the ICASSP 2027
+% paper kit when it goes live (each year's kit supersedes the previous year's).
+\title{Remembering Where to Look:\\ Continual Hierarchical Evidence Selection for Whole-Slide Images}
+% PI may veto title; alternative: "Continual Hierarchical Evidence Selection for Whole-Slide Images"
+\author{Po-Nyo (Aaron) Hung, [co-authors], [advisor]\thanks{Author list and order: PI decision. ICASSP is single-blind; do NOT anonymize.}}
+\date{Master draft v1 --- August 30, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Gigapixel whole-slide images (WSIs) force any practical diagnostic system to \emph{select} a small set of evidence patches before reasoning. When diagnostic tasks arrive sequentially---new organs, new cohorts---the question is not only whether a model forgets \emph{what} the classes are, but whether it forgets \emph{where to look}. We isolate this question with a deliberately austere design: a frozen CONCH vision--language backbone, a frozen prompt-based diagnosis head, and \emph{no trained classifier anywhere}, so that every change in performance is attributable to a single trainable object---a hierarchical evidence-selection policy (two small MLPs, 0.79M parameters). Continual learning operates only on this policy: each task trains a rank-4 LoRA residual ($16{,}400$ parameters, ${\approx}2.1\%$) that is folded exactly into a single shared selector at the task boundary ($W_t = W_{t-1} + \Delta W_t$), yielding task-ID-free, constant-cost inference. Merging alone, however, is only a substrate: with LoRA-and-merge but no preservation losses, class-incremental accuracy shows no systematic difference from naive sequential fine-tuning (3/5 paired seeds). The mechanism that preserves selection is training-time behavioral preservation---experience replay plus dual-level selection distillation and a utility-preservation hinge, driven by a 512-entry memory of \emph{behavioral snapshots} (scores and indices; no patches, no features). On a four-task TCGA sequence, the full method improves final class-incremental accuracy over sequential fine-tuning by $+34.6$ points (5/5 seeds), halves forgetting relative to replay alone ($0.054$ vs.\ $0.110$), and---measured directly by selection-set Jaccard---retains substantially more of its originally selected evidence than unprotected baselines (selection Jaccard $0.16$ vs.\ $0.001$--$0.002$). All gate criteria were pre-registered; components that failed their gates were removed from the method and are reported in the appendix.
+\end{abstract}
+
+\section{Introduction}
+A single WSI contains $10^4$--$10^5$ patches, of which a diagnosis typically depends on a handful. Systems therefore acquire evidence under a budget: choose $B$ patches, then decide. In deployment, tasks arrive sequentially---a hospital adds esophageal cases this quarter, renal the next---and retraining from scratch on all past cohorts is rarely feasible. Continual learning (CL) for WSIs has so far inherited its framing from natural-image classification: preserve the \emph{classifier} or the \emph{representation}. This framing obscures a failure mode unique to budgeted pathology pipelines: a model whose classifier is intact can still stop looking at the right tissue.
+
+We make that failure mode measurable, and then substantially mitigate it. The design principle is \textbf{attribution by freezing}: the CONCH image and text encoders \citep{lu2024conch} are frozen; the diagnosis head is a fixed cosine rule against class-text embeddings; there is no trained classifier. The only trainable object is a hierarchical evidence-selection policy. Consequently, when methods are compared on the same data and label space, differences in accuracy, leakage, and evidence choice are attributable to the selection policy alone; temporal class-incremental changes additionally reflect the expanding label space, which is why we also measure selection drift directly.
+
+Prior LoRA-based CL---Online-LoRA \citep{wei2025onlinelora}, InfLoRA \citep{liang2024inflora}, SD-LoRA \citep{wu2025sdlora}, CL-LoRA \citep{he2025cllora}, FlexEM \citep{chen2026flexem}---preserves classifier or backbone representations. We instead confine continual learning to the evidence-selection policy over a frozen diagnostic pathway, which lets us measure directly whether a model forgets \emph{where to look for evidence}.
+
+\textbf{Contributions.}
+(1)~A formulation of continual evidence selection with complete attribution: frozen backbone, frozen head, selection-only training, and selection-level forgetting metrics (selection Jaccard, utility retention) alongside standard accuracy and forgetting.
+(2)~A task-free consolidated selector: per-task rank-4 LoRA residuals folded exactly into one shared policy at task boundaries; inference uses a single model, no task ID, no memory, no module retrieval, at constant cost.
+(3)~A mechanism separation supported by controls: merging is a substrate, not a demonstrated defense---LoRA-and-merge alone shows no systematic preservation benefit over sequential fine-tuning (3/5 paired seeds)---while preservation comes from replay, dual-level selection distillation, and a utility hinge operating on stored \emph{behavioral snapshots} rather than stored images.
+(4)~An evaluation with pre-registered gates and win-count statistics over five seeds, including honest reporting of removed components and of comparisons that did not reach systematicity.
+
+Figure~\ref{fig:arch} gives the overview.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig1_architecture.png}
+  \caption{\textbf{Continual hierarchical evidence selection.}
+  \emph{Left, middle (within a task):} patches from a frozen CONCH image encoder are assigned to $J{=}8$ tissue groups by argmax cosine similarity to fixed tissue prompts; a group selector $\Fg$ scores groups, a largest-remainder allocation converts scores into integer quotas $\sum_j b_j = B$ in one shot, and a patch selector $\Fp$ picks the top $b_j$ patches within each group. Selected evidence is pooled (score-weighted, $\ell_2$-normalized) and classified by a \emph{frozen} cosine rule against class-text embeddings---no trained classifier exists anywhere in the pipeline.
+  \emph{Right (across tasks):} each task trains only rank-4 LoRA adapters on $\Fg,\Fp$ (fire); at the boundary the residual is folded exactly into the shared selector, which is the only model used at inference (no task ID, no memory, no retrieval). A 512-entry Selection Memory stores behavioral snapshots---group/patch scores, utilities, and replay indices; \emph{no patches or features}---and drives selection distillation, utility preservation, and replayed diagnostic training. Base MLPs are frozen within a task and updated \emph{only} by the boundary merge.}
+  \label{fig:arch}
+\end{figure*}
+
+\section{Related Work}
+\textbf{Evidence selection in WSIs.} Multiple-instance learning aggregates patch features with learned attention \citep{ilse2018abmil,lu2021clam,shao2021transmil}, implicitly ranking evidence but entangling selection with a trained classifier. We make selection explicit and budgeted, and remove the trained classifier entirely so that selection is the sole learned behavior.
+
+\textbf{LoRA-based continual learning.} LoRA \citep{hu2022lora} has become the vehicle of choice for parameter-efficient CL. Online-LoRA \citep{wei2025onlinelora} expands adapters on detected distribution shift; FlexEM \citep{chen2026flexem} maintains a module pool with dual-stage retrieval at inference; InfLoRA \citep{liang2024inflora} and O-LoRA \citep{wang2023olora} constrain per-task subspaces; CL-LoRA \citep{he2025cllora} splits task-shared and task-specific adapters; SD-LoRA \citep{wu2025sdlora} decouples magnitude and direction and, like us, deploys the final model directly without per-task component selection. These methods differ in \emph{when} adaptation is consolidated. Pool-and-retrieve methods keep modules separate and select at inference; deferred-composition methods combine independently trained task vectors post hoc \citep{ilharco2023task,yadav2023ties,marczak2024magmax}; we consolidate \emph{incrementally}: each residual is trained on top of the already-merged selector under preservation constraints, then folded in exactly. Our study object also differs: prior work preserves classifier or backbone representations, whereas we preserve a selection \emph{policy} over a frozen pathway.
+
+\textbf{Classical CL families.} We compare against representatives of rehearsal \citep{lopezpaz2017gem,buzzega2020derpp,rebuffi2017icarl} and functional regularization \citep{li2018lwf} adapted to the selection setting; parameter-importance methods \citep{kirkpatrick2017ewc} are complementary and left to future work (\S\ref{sec:limitations}).
+
+\section{Method}\label{sec:method}
+\subsection{Problem setup and the attribution principle}
+Tasks $\tau = 1,\dots,T$ arrive sequentially; task $\tau$ contributes WSIs with labels from its own class set (two classes per organ task in our benchmark). For a slide with patch features $\{x_i\}_{i=1}^{N}\!\subset\!\mathbb{R}^{512}$ (frozen CONCH image encoder, $256{\times}256$ patches at $10\times$, pre-extracted), the system must select a set $\mathcal{P}$ with $|\mathcal{P}| = B = 8$ and predict from $\mathcal{P}$ alone. Prediction is a fixed rule: score-weighted pooling of $\mathcal{P}$, $\ell_2$ normalization, cosine similarity to frozen class-text embeddings $\{t_c\}$, softmax over the classes under evaluation. \textbf{Training is task-aware; inference is task-free}: at test time the model receives no task identity and is evaluated class-incrementally over the union of all classes seen so far, as well as task-incrementally within each task's class pair. Because all non-selector parameters are frozen, cross-method differences evaluated on the same data and label space are attributable to selector updates; temporal class-incremental changes additionally reflect the expanding evaluation label space. We therefore also report \emph{leakage}, the fraction of predictions falling in the wrong task's class set, and complement it with direct selection-drift metrics that bypass the head entirely.
+
+\subsection{Hierarchical selection within a task}\label{sec:hier}
+Patches are grouped by semantics, not clustering: each $x_i$ is assigned to $\arg\max_j \cos(x_i, p_j)$ over $J{=}8$ fixed tissue prompts (tumor, stroma, necrosis, \dots, normal) encoded once by the frozen text encoder; group prototypes are means, $g_j = \mathrm{mean}(x_i \in G_j)$. Two structurally identical two-layer MLPs, $\mathrm{Linear}(1537{\to}256)\to\mathrm{GELU}\to\mathrm{Linear}(256{\to}1)$, implement the policy: the group selector $\Fg$ maps $g_j$ to a score $r_j$; a largest-remainder (Hamilton) allocation converts $\mathrm{softmax}(r)$ into integer quotas $b_j$ with $\sum_j b_j = B$ in a single shot; the patch selector $\Fp$ scores patches, and the top $b_j$ within each group are selected. Each selector operates on its active 512-d visual input ($g_j$ for $\Fg$, $x_i$ for $\Fp$), with fixed zero padding retained only for implementation compatibility with the module's original 1537-d input shape; the discarded task-query and state-conditioning variants behind that shape are described in Sec.~\ref{sec:removed}. The two MLPs total $787{,}970$ parameters.
+
+Within-task training minimizes $\mathcal{L}_{\mathrm{ev}} = \mathcal{L}_{\mathrm{diag}} + \beta_s\mathcal{L}_{\mathrm{sem}} + \beta_u\mathcal{L}_{\mathrm{util}}$: the frozen-head diagnostic loss on the selected evidence; a patch-wise semantic prior aligning patch scores with prompt affinities; and a differentiable utility term rewarding patches with positive counterfactual gain. Selection is made differentiable through the score-weighted pooling; $\beta_s=\beta_u=0.1$ throughout.
+
+\subsection{Continual protocol: exact incremental consolidation}\label{sec:cl}
+\textbf{Per-task residuals, one shared selector.} For every task, rank-4 LoRA adapters \citep{hu2022lora} are attached to each linear layer of $\Fg$ and $\Fp$ (four layers; $16{,}400$ trainable parameters per task, ${\approx}2.1\%$ of the selector; $\alpha{=}r$). During task $\tau$ the base is frozen and only the adapters train; the forward pass materializes $W_{\mathrm{eff}} = W + BA$ at every step, so folding the residual in at the boundary,
+\begin{equation}
+W_\tau \;=\; W_{\tau-1} + \Delta W_\tau,\qquad \Delta W_\tau = B_\tau A_\tau,
+\end{equation}
+is an \emph{identity rewrite}: the network computes the same function immediately before and after the merge. The adapter is then re-initialized for the next task. Inference uses the single merged selector: no task ID, no adapter bank, no retrieval, constant parameter count.
+
+\textbf{Task-1 protocol, stated explicitly.} In the main configuration the very first task also trains only LoRA, on a frozen \emph{randomly initialized} base. Two observations contextualize this choice without settling it: the output layer's residual is a $1{\times}256$ matrix of rank at most one, hence unconstrained by the rank-4 budget; and A2 reaches final task-IL parity with full-parameter A1 ($0.8105$ vs.\ $0.8086$; Table~\ref{tab:main})---though this compares whole four-task lifecycles and does not isolate the task-1 initialization. Whether warm-starting the base is preferable is an empirical question; we evaluate it directly with the pre-registered warm-start ablation (task~1 trains the full base, LoRA thereafter) under a two-sided decision rule; the ablation found no systematic class-IL difference (warm start better in 2/5 seeds; Sec.~\ref{sec:ablations}), so the parameter-efficient LoRA-from-task-1 protocol is retained.
+
+\textbf{Merging is a substrate, not a mechanism.} LoRA merging alone does not prevent forgetting: with adapters and boundary merges but no preservation losses, final class-incremental accuracy shows no systematic difference from naive sequential fine-tuning ($0.4466$ vs.\ $0.4774$; 3/5 seeds, wide seed spread). What merging buys is a fixed-cost sequential \emph{substrate}---a single consolidated policy with task-free inference. Preservation comes from the training-time losses of \S\ref{sec:memory}. Two boundary-related equivalences are worth stating to preempt confusion. First, ``merge at each boundary'' and ``keep earlier adapters frozen in place and merge once at the end'' compute the same function and, with matched initialization, the same training trajectory; we verify this to numerical tolerance with a unit test (six assertions, including step-wise loss identity) and therefore spend no experiments on it. Second, composing \emph{independently trained} task residuals post hoc (task arithmetic \citep{ilharco2023task}) is \emph{not} the same algorithm: each residual then never conditions on prior knowledge, and the composed model never receives a training signal. We evaluate this as a separate family in \S\ref{sec:ablations}.
+
+\subsection{Selection Memory and preservation losses}\label{sec:memory}
+The memory $\mathcal{M}$ ($|\mathcal{M}|\le 512$, global reservoir sampling---uniform over all stored experiences) holds \emph{behavioral snapshots}: per slide, the task tag, slide ID, terminal selection state, group scores $r_{\mathrm{old}}$, candidate indices, patch scores $s_{\mathrm{old}}$, and counterfactual utilities $u_{\mathrm{old}}$. \emph{No patches and no features are stored}; features are reloaded by slide ID when a snapshot is replayed. Because entries are sampled uniformly over the stream, each past task's share is proportional to what it contributed; capacity is deliberately small, and \S\ref{sec:results} shows the mechanism matters more than the capacity.
+
+During task $\tau$, each optimizer step draws one stored slide ($\mathrm{replay}\_k{=}1$, i.e., a 1:1 old:new ratio) and adds
+\begin{equation}
+\mathcal{L}_{CL} = \lambda_{kd}\,\underbrace{\big[\mathrm{KL}(r_{\mathrm{old}}\Vert r_{\mathrm{new}}) + \mathrm{KL}(s_{\mathrm{old}}\Vert s_{\mathrm{new}})\big]}_{\text{dual-level selection distillation}} \;+\; \lambda_{eq}\,\underbrace{\max(0,\,U_{\mathrm{old}} - U_{\mathrm{new}})}_{\text{utility preservation (hinge)}} \;+\; \lambda_{r}\,\underbrace{\mathcal{L}_{\mathrm{diag}}^{\mathrm{replayed}}}_{\text{experience replay}},
+\end{equation}
+with $\lambda_{kd}{=}\lambda_{eq}{=}\lambda_{r}{=}1$. Three design points deserve emphasis. The distillation teacher is \emph{not a second network}: targets are the stored score snapshots, so no teacher forward pass or checkpoint is kept. The hinge penalizes only utility \emph{regression}, leaving improvement unpenalized. And the replay term is the ordinary task loss evaluated on replayed slides---replay is a data mechanism, not a new objective; all three terms join the current sample's loss in a \emph{single} backward pass and optimizer step, so replay arms take no extra gradient steps. With replay, distillation, and utility preservation disabled, the continual pipeline reduces exactly to the A2 LoRA-and-boundary-merge baseline. At inference the memory is not consulted at all.
+
+\section{Experimental setup}\label{sec:setup}
+\textbf{Benchmark.} Four TCGA organ tasks---ESCA, RCC, BRCA, LUNG---each a binary subtype problem; the primary sequence is ESCA${\to}$RCC${\to}$BRCA${\to}$LUNG. Train/test: $2{,}273$ slides train; test $n=15/76/93/95$ per task. Class-incremental evaluation uses the union of all classes seen so far; task-incremental uses each task's own pair; leakage is the fraction of predictions in the wrong task's class set. All runs: 5 epochs/task, lr $10^{-3}$, $B{=}8$, rank 4, seeds 0--4.
+
+\textbf{Arms.} R1 per-task specialists (oracle upper bound); R2 joint offline training; A1 sequential full fine-tuning (SeqFT); A2 LoRA + boundary merge only; A3 A2 + replay; A4 A3 + dual-level distillation; A5 the full method (A4 + utility hinge); L2 a single continual adapter never reset. A2--A5 share the same LoRA parameterization, task order, and within-task objective, differing only in the enabled preservation components; A1 is a full-parameter sequential baseline, and R1/R2 are specialist and offline references.
+
+\textbf{Metrics.} Final class-IL accuracy ($A_{\mathrm{Final}}$), final task-IL accuracy, leakage; Forgetting $F = \frac{1}{T-1}\sum_{j<T}\big[\max_{s\ge j} a_{s,j} - a_{T,j}\big]$ and Plasticity $\frac{1}{T}\sum_j a_{j,j}$ from the full accuracy matrix; and two selection-level metrics computed on old-task slides: \emph{Selection Jaccard} between the evidence set chosen right after the task was learned and the set chosen at the end of the sequence, and \emph{utility retention} $\Delta U = U_{\mathrm{final}} - U_{\mathrm{own}}$ (values reported in the text).
+
+\textbf{Statistical discipline.} With $n{=}5$ seeds we report mean$\pm$sd and \emph{win counts} over seed-paired comparisons; we call a difference \emph{systematic} only at 5/5 and \emph{directional} at 4/5, and we do not report $p$-values at this seed count. All gates below were registered before the corresponding runs.
+
+\section{Main results}\label{sec:results}
+\begin{table*}[t]
+\centering\small
+\caption{\textbf{Continual-learning main table} (mean$\pm$sd over 5 seeds; class-IL unless noted; flat selector substrate---the canonical main-table configuration, with hierarchical-policy contrasts reported in the text). Rows form a lifecycle progression: full fine-tuning $\to$ PEFT substrate $\to$ memory $\to$ behavioral preservation. Dashes: not applicable. Leakage: lower is better.}
+\label{tab:main}
+\begin{tabular}{lccccccc}
+\toprule
+Method & $A_{\mathrm{Final}}\!\uparrow$ & Forgetting$\downarrow$ & Plasticity$\uparrow$ & Sel.\ Jaccard$\uparrow$ & task-IL$\uparrow$ & Leakage$\downarrow$ \\
+\midrule
+Per-task specialist (R1) & $0.8777{\pm}.020$ & --- & $0.8777$ & --- & $0.9027{\pm}.019$ & --- \\
+Joint (R2) & $0.7789{\pm}.028$ & --- & $0.7789$ & --- & $0.8498{\pm}.029$ & --- \\
+\midrule
+SeqFT (A1) & $0.4774{\pm}.103$ & $0.5193$ & $0.8669$ & $0.0023$ & $0.8086{\pm}.061$ & $0.4408$ \\
+Seq-LoRA, one adapter (L2) & $0.7885{\pm}.015$ & $0.0982$ & $0.8555$ & $0.0661$ & $0.8941{\pm}.018$ & $0.1254$ \\
+LoRA-Merge (A2) & $0.4466{\pm}.109$ & $0.5798$ & $0.8814$ & $0.0010$ & $0.8105{\pm}.036$ & $0.4756$ \\
+\;+ Replay (A3) & $0.7778{\pm}.015$ & $0.1102$ & $0.8514$ & $0.0864$ & $0.9073{\pm}.018$ & --- \\
+\;+ Distillation (A4) & $0.7972{\pm}.046$ & $0.1063$ & $0.8689$ & $0.1752$ & $0.8969{\pm}.019$ & --- \\
+\textbf{PathSelect (A5)} & $\mathbf{0.8239{\pm}.028}$ & $\mathbf{0.0539}$ & $0.8515$ & $0.1613$ & $\mathbf{0.9147{\pm}.014}$ & $\mathbf{0.1005}$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\textbf{Accuracy.} The full method gains $+34.6$ class-IL points over SeqFT ($0.8239$ vs.\ $0.4774$; 5/5 seeds), $+10.6$ task-IL points (5/5), and cuts leakage by $34.0$ points (5/5), closing most of the gap to the per-task oracle and surpassing joint training's final accuracy. A2 shows no systematic difference from A1 in the paired five-seed comparison (3/5)---the substrate result anticipated in Sec.~\ref{sec:cl}.
+
+\textbf{Forgetting is halved, plasticity is untouched.} A5's class-IL forgetting is $0.0539$ vs.\ $0.1102$ for replay alone; its task-IL forgetting is $0.0080$. Plasticity remains within a narrow $0.85$--$0.88$ range across arms; the large retention gains are not accompanied by an obvious collapse in new-task learning.
+
+\textbf{Forgetting where to look, measured directly.} Selection Jaccard separates the field by two orders of magnitude: unprotected arms re-select almost nothing of their original evidence ($0.0023$, $0.0010$), replay recovers some ($0.0864$), and distillation-based arms retain the most ($0.1752$, $0.1613$). Exact evidence-set overlap and diagnostic performance need not move monotonically together: A4 retains slightly higher Jaccard, whereas A5 achieves better final accuracy and forgetting; we report both. The revised utility-retention metric orders arms consistently with accuracy: $\Delta U$ is $-16.8$ for the full method and $-21.2$/$-31.9$ for replay/distillation, versus $-220$/$-301$ for unprotected A1/A2 (L2: $-27.5$; warm-start W1 best overall at $-12.8$)---every arm loses old-task utility, but protected arms lose an order of magnitude less. We also note honestly that the A5$-$A4 margin flips sign under some task orders; the class-IL gain of the utility hinge is order-sensitive and we present it as such.
+
+\textbf{Hierarchy and dual-level distillation.} Under the flat substrate the A5$-$A3 task-IL margin is $+0.74{\pm}1.93$ (3/5); the hierarchical policy strengthens the same contrast to $+3.28{\pm}2.40$ task-IL and $+5.76{\pm}3.42$ class-IL (both 5/5), while its \emph{absolute} A5 accuracy stays within noise of flat ($-0.58$/$-1.20$, 1/5) with somewhat higher leakage ($+2.15$, 0/5)---the architecture was adopted under pre-registered criteria for amplifying and stabilizing the method contrast, and we report both sides. Removing group-level distillation under the hierarchy costs $3.95$ task-IL and $3.71$ class-IL points (both 5/5), supporting an additional contribution from group-level preservation on top of the patch-level pathway.
+
+\textbf{Preservation design can outweigh buffer size.} In this controlled comparison on the hierarchical configuration, the full method with a 128-entry memory outperforms replay-only with 512 entries ($+3.06$ task-IL, 5/5), indicating that \emph{what} is stored---behavioral snapshots consumed by distillation and the hinge---can matter more than how much.
+
+\section{Update-protocol ablations (pre-registered)}\label{sec:ablations}
+All arms below were registered with two-sided decision rules before any run; win counts over 5 seeds decide, and the incumbent is retained on a split. \pending{C1/C2 and A5H land next}
+
+\textbf{Warm start (W1).} Task 1 trains the full base; LoRA thereafter. Class-IL shows no systematic difference (W1 $-1.80$pp mean, better in 2/5 seeds; task-IL $-0.96$, 1/5), so the parameter-efficient incumbent is retained under the pre-registered split rule. Warm-starting does reshape selection: Jaccard rises to $0.245$ ($+0.06$ over A5, 4/5) and $\Delta U$ is the best of any arm ($-12.8$)---changing \emph{what} is selected without changing outcomes, echoing the removed-components pattern. Base quality matters precisely when nothing else protects: without preservation losses, W1B improves over A2 by $+2.86$ class-IL (4/5) with $-1.59$ leakage (4/5); with them, the advantage dissolves---preservation subsumes initialization.
+
+\textbf{One adapter vs.\ fresh-per-task (L2 vs.\ A5).} Skipping the boundary reset caps the total drift at rank 4; fresh adapters allow rank up to 16. The capacity matters: the single-adapter variant loses $3.54$ class-IL (A5 better in 4/5) and $2.06$ task-IL (4/5) points, empirically supporting the fresh-adapter design the merge protocol assumes. (Bare, L2B edges A2 by $+1.37$ task-IL, 4/5---mild continuity benefits exist, but capacity dominates once preservation is active.)
+
+\textbf{Post-hoc composition (C1 sum, C2 average).} Residuals trained independently from the same $\theta_0$ (no preservation terms are definable without an accumulated model), then composed; capacity-bounded-matched to the sequential substrate (both $\le$ rank 16 total drift), so the contrast isolates \emph{sequentiality of learning}. Compared against A2 (also without preservation). If A2 wins $\ge$4/5 we will claim only that \emph{sequential consolidation is better than post-hoc composition of independently learned task updates under our setting}. \pending{C1/C2 vs.\ A2, per-seed}
+
+\textbf{Damped merging (A5H, $\alpha{=}0.5$).} A one-parameter probe of the stability--plasticity dial in the merge rule. \pending{A5H vs.\ A5, per-seed}
+
+\textbf{Replay budget.} $\mathrm{replay}\_k\in\{0,1,2,4\}$ sensitivity. \pending{DR-047, optional}
+
+\section{Removed components}\label{sec:removed}
+Three architectural components failed their pre-registered gates and were removed from the method; we report them because removal is not hiding. In the general parameterization the selectors accept $[\,\mathrm{feat};q_\tau;e;\tilde b\,]\in\mathbb{R}^{1537}$; the main configuration zero-fills the conditioning blocks after the corresponding variants failed their gates. The task-conditioning query $q_\tau$ failed its gate; separately, task identity is already highly decodable from slide-average features ($98.21\%$) and group prototypes ($98.57\%$), consistent with---though not proving---the hypothesis that explicit conditioning adds little new information on this benchmark. It nonetheless carries a reproducible secondary effect, reducing leakage by $5.92$ points (5/5), which we retain as an observation, not a mechanism. Group-level semantic priors and stateful (sequential) selection likewise failed their gates; the group-level prior carries its own secondary finding, reducing quota-distribution divergence by $0.005$ ($-0.005{\pm}0.004$, 5/5) without translating into accuracy. Full gate cards appear in the appendix.
+
+\section{Limitations and discussion}\label{sec:limitations}
+Five seeds and win-count discipline bound what we can claim; we report no $p$-values by design. Task boundaries are known during training (organ cohorts arrive staged), which is clinically motivated but weaker than task-free online CL; our inference, however, is fully task-free. We compare within parameter-isolation, rehearsal, and functional-regularization families; parameter-importance methods (e.g., EWC) are complementary and deferred. Results use one foundation model (CONCH) and one budget ($B{=}8$); the removed-component analysis suggests our benchmark's tasks are unusually separable, and harder mixtures may re-open the case for explicit task conditioning.
+
+\section{Conclusion}
+Freezing everything except a budgeted selection policy turns continual learning for WSIs into a question that can be asked cleanly and answered mechanistically: models do forget where to look, merging alone does not stop them, and training-time behavioral preservation---replay, dual-level selection distillation, and a utility hinge over stored snapshots---substantially mitigates it, at zero inference-time cost.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\appendix
+\section{Per-seed tables}
+Per-seed values for every cell of Table~\ref{tab:main} are generated by \texttt{scripts/report\_dr046.py} (docs/DR046\_TABLE.md) and will be inlined at freeze. \pending{inline at 9/6}
+\section{Pre-registration cards}
+DR-046 (update-protocol ablation; arms, two-sided gates, contingency) and DR-047 (memory sensitivity) reproduced verbatim. \pending{paste at 9/6}
+\section{Task-order permutations}
+\pending{P2; include if run}
+
+% ---- PENDING REGISTRY (verify_doc_numbers target; must be empty at freeze) ----
+% C1/C2 | A5H | DR-047 optional | appendix inlines  (resolved 8/31: W1, L2, ΔU, hierarchy cross-check)
+\end{document}
