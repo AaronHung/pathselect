@@ -521,7 +521,7 @@ def main() -> int:
         recs = [r for p in sorted((out_dir / "per_slide").glob("*.json"))
                 for r in json.loads(p.read_text())]
         write_report(ctx, recs, arms, args.order, seeds, args, out_dir)
-        print(f"→ {out_dir / 'EXP2.md'}（report-only）")
+        print(f"→ {report_path(args.arch, out_dir)}（report-only）")
         return 0
 
     print(f"Exp2  arms={arms}  order={args.order}  seeds={seeds}  "
@@ -550,7 +550,7 @@ def main() -> int:
             all_recs += recs
 
     write_report(ctx, all_recs, arms, args.order, seeds, args, out_dir)
-    print(f"\n→ {out_dir / 'EXP2.md'}")
+    print(f"\n→ {report_path(args.arch, out_dir)}")
     return 0
 
 
@@ -631,7 +631,40 @@ def arm_metrics(recs, arm, tasks, seed, label_space):
     return out
 
 
+def report_path(arch: str, out_dir) -> Path:
+    """報告檔名。目錄若同時含多個架構，就用 `EXP2_{arch}.md` 分開寫。
+
+    ⚠️ DR-046 stretch 暴露的問題：`--tag main` 下同時存在 flat 與 hier 的 L2，
+    per_slide 靠 `_hier` 後綴不互相覆蓋，但**彙總的 EXP2.md 只有一個檔名**，
+    後跑的會蓋掉先跑的。單一架構的目錄（hier / hier2 / arch 等）維持 `EXP2.md`
+    不變，既有產物不受影響。
+
+    ⚠️ 架構集合**從目錄的 per_slide 實際內容判定**，不是從傳進來的 recs ——
+    第一版拿了 write_report 內部**已過濾**的 recs（只剩一個 arch），於是 hier
+    報告被寫成 EXP2.md 蓋掉 flat 報告，而 print 出來的路徑還是對的。
+    """
+    d = out_dir / "per_slide"
+    archs = set()
+    if d.is_dir():
+        for f in d.glob("*.json"):
+            for r in json.loads(f.read_text()):
+                archs.add(r.get("arch") or DEFAULT_ARCH)
+    if len(archs) <= 1:
+        return out_dir / "EXP2.md"
+    return out_dir / ("EXP2.md" if arch == DEFAULT_ARCH else f"EXP2_{arch}.md")
+
+
+def filter_arch(recs, arch: str) -> list[dict]:
+    """只留該架構的記錄。缺欄位者視為 DEFAULT_ARCH（欄位是 e6d13df 才加入的）。
+
+    ⚠️ 沒有這道過濾，`arm_metrics` 會把同名臂的 flat 與 hier 記錄疊成同一批
+    (arm, seed) —— 數字直接失效，而且不會報錯。
+    """
+    return [r for r in recs if (r.get("arch") or DEFAULT_ARCH) == arch]
+
+
 def write_report(ctx, recs, arms, order_name, seeds, args, out_dir):
+    recs = filter_arch(recs, args.arch)
     tasks = ORDERS[order_name]
     short = [t.replace("tcga_", "") for t in tasks]
     n_test = {t: ctx.n_slides(t, "test") for t in tasks}
@@ -742,7 +775,7 @@ def write_report(ctx, recs, arms, order_name, seeds, args, out_dir):
             L.append(f"| {x} − {y} | {(fin(x) - fin(y)) * 100:+.2f} |")
     L += write_paired(M, arms, seeds)
     L += ["", "逐 slide 預測：`outputs/exp2/" + args.tag + "/per_slide/*.json`", ""]
-    (out_dir / "EXP2.md").write_text("\n".join(L) + "\n")
+    report_path(args.arch, out_dir).write_text("\n".join(L) + "\n")
 
 
 def write_paired(M, arms, seeds) -> list[str]:

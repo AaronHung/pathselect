@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import json
 import sys
 import types
 from pathlib import Path
@@ -305,3 +306,52 @@ def test_run_independent_aborts_when_theta0_is_not_reproducible(monkeypatch, tmp
     args = types.SimpleNamespace(rank=4, mem_capacity=None, no_resume=False)
     with pytest.raises(SystemExit, match="θ₀ 不一致"):
         R.run_independent(ctx, "C1", "reverse", 0, args, tmp_path)
+
+
+# ── DR-046 stretch：同一個 tag 下 flat / hier 不得混算 ──────────────────────
+
+def test_filter_arch_treats_missing_field_as_default():
+    recs = [{"arm": "L2"}, {"arm": "L2", "arch": "flat"}, {"arm": "L2", "arch": "hier"}]
+    assert len(R.filter_arch(recs, "flat")) == 2
+    assert len(R.filter_arch(recs, "hier")) == 1
+
+
+def test_write_report_filters_by_arch(monkeypatch, tmp_path):
+    """⚠️ 沒有這道過濾，arm_metrics 會把同名臂的 flat 與 hier 疊成同一批
+    (arm, seed) —— 數字失效且不會報錯。"""
+    seen = {}
+
+    def spy(recs, arm, tasks, seed, label_space):
+        seen.setdefault(arm, []).append(len(recs))
+        return {}
+
+    monkeypatch.setattr(R, "arm_metrics", spy)
+    recs = ([{"arm": "L2", "seed": 0, "arch": "flat"}] * 10
+            + [{"arm": "L2", "seed": 0, "arch": "hier"}] * 4)
+    ctx = types.SimpleNamespace(label_space=["a"], n_slides=lambda t, s: 1)
+    args = types.SimpleNamespace(arch="flat", budget=8, chunk=1, epochs=5, lr=1e-3,
+                                 beta_s=0.1, beta_u=0.1, prior="discriminative",
+                                 lambda_kd=1.0, lambda_eq=1.0, lambda_replay=1.0,
+                                 replay_k=1, tag="t")
+    try:
+        R.write_report(ctx, recs, ["L2"], "reverse", [0], args, tmp_path)
+    except Exception:
+        pass                                    # 只在乎 arm_metrics 收到幾筆
+    assert seen["L2"], "arm_metrics 沒被呼叫"
+    assert all(n == 10 for n in seen["L2"]), \
+        f"write_report 沒按 arch 過濾，arm_metrics 收到 {seen['L2']} 筆（應為 10）"
+
+
+def test_report_path_uses_directory_contents_not_the_passed_records(tmp_path):
+    """⚠️ 第一版拿 write_report 內部**已過濾**的 recs 判定架構集合（只剩一個），
+    於是 hier 報告被寫成 EXP2.md 蓋掉 flat 報告，而印出來的路徑還是對的。
+    架構集合必須從目錄的 per_slide 實際內容判定。"""
+    d = tmp_path / "per_slide"; d.mkdir()
+    (d / "a_flat.json").write_text(json.dumps([{"arm": "L2", "arch": "flat"}]))
+    assert R.report_path("flat", tmp_path).name == "EXP2.md"
+    assert R.report_path("hier", tmp_path).name == "EXP2.md", "單一架構不該加後綴"
+
+    (d / "b_hier.json").write_text(json.dumps([{"arm": "L2", "arch": "hier"}]))
+    assert R.report_path("flat", tmp_path).name == "EXP2.md"
+    assert R.report_path("hier", tmp_path).name == "EXP2_hier.md", \
+        "混合架構時 hier 必須寫到獨立檔名，否則會蓋掉 flat 報告"
