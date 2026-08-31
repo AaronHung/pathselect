@@ -48,9 +48,29 @@ def load_records() -> list[dict]:
             if r.get("order") == ORDER]
 
 
+def arch_of(r: dict) -> str:
+    """記錄的架構。缺欄位者視為 flat。
+
+    ⚠️ 依據而非猜測：`arch` 欄位是 commit `e6d13df`（G1 的 --arch 開關）才加入的，
+    在那之前寫的 A1–A5 / R1 / R2 沒有這個欄位；而 `main` tag 一直是預設
+    `--arch flat`（hier 的跑都寫在 `hier` / `hier2` tag）。
+    """
+    return r.get("arch") or "flat"
+
+
+def split_by_arch(recs) -> dict[str, list[dict]]:
+    """**flat 與 hier 必須分表**（PI 裁定）。同一個臂在兩種架構下是兩個實驗，
+    混在一起會讓 `arm_metrics` 把兩批 (arm, seed) 疊起來算，數字直接失效。
+    """
+    out: dict[str, list[dict]] = {}
+    for r in recs:
+        out.setdefault(arch_of(r), []).append(r)
+    return out
+
+
 #: 只用來決定**顯示順序**，不是白名單 —— 不在其中的臂一律照樣納入（DR-046 裁定二）。
-DISPLAY_ORDER = ["A1", "A2", "A3", "A4", "A5", "A5nG", "W1", "W1B", "L2", "L2B",
-                 "B1", "B2", "R1", "R2"]
+DISPLAY_ORDER = ["A1", "A2", "A3", "A4", "A5", "A5H", "A5nG",
+                 "W1", "W1B", "L2", "L2B", "C1", "C2", "B1", "B2", "R1", "R2"]
 
 
 def arms_present(recs, wanted: list[str] | None = None) -> list[str]:
@@ -220,13 +240,29 @@ def main(argv=None) -> int:
     cfg = load_config()
     label_space = list(cfg["tasks"])
     tasks = ORDERS[ORDER]
-    recs = load_records()
-    arms = arms_present(recs, wanted)
-    print(f"讀入 {len(recs)} 筆（order={ORDER}）；臂 = {arms}")
+    all_recs = load_records()
+    groups = split_by_arch(all_recs)
+    # flat 排前面（正典基底），其餘按名稱
+    arch_order = [a for a in ("flat",) if a in groups] + sorted(set(groups) - {"flat"})
+    print(f"讀入 {len(all_recs)} 筆（order={ORDER}）；架構分組 = "
+          + "、".join(f"{a}:{len(groups[a])}" for a in arch_order))
 
-    check_lines = self_check(recs, tasks, label_space)
+    # 自檢只在 flat 上做 —— RESULTS_DOSSIER §4.4 是 flat 主表
+    if "flat" not in groups:
+        raise SystemExit("找不到 flat 記錄，無法自檢")
+    check_lines = self_check(groups["flat"], tasks, label_space)
     print("✅ 自檢通過（A5 / A2 / A1 的最終 class-IL 與 task-IL 皆在容差內）")
 
+    blocks = {a: build_arch_block(groups[a], wanted, tasks, label_space)
+              for a in arch_order}
+    for a in arch_order:
+        print(f"  {a}: 臂 = {blocks[a][0]}")
+    return write_report(blocks, arch_order, check_lines)
+
+
+def build_arch_block(recs, wanted, tasks, label_space):
+    """單一架構的 (arms, per_arm)。"""
+    arms = arms_present(recs, wanted)
     per_arm = {}
     for arm in arms:
         seeds = sorted({r["seed"] for r in recs if r["arm"] == arm})
@@ -246,10 +282,17 @@ def main(argv=None) -> int:
                 "ΔUtility": None if na else delta_utility(M_seed, tasks),
             }
         per_arm[arm] = (seeds, rows)
+    return arms, per_arm
 
-    L = ["# DR-046 Phase 0 — 離線 CL 指標表", "",
+
+def write_report(blocks, arch_order, check_lines):
+    L = ["# DR-046 — 離線 CL 指標表", "",
          f"來源：`outputs/exp2/main/per_slide/*.json`（order = **{ORDER}**，"
-         f"flat 架構、B=8、c=1、\\|M\\|=512）。**純重算，未訓練、未改動任何結果檔。**", "",
+         f"B=8、c=1、\\|M\\|=512）。**純重算，未訓練、未改動任何結果檔。**", "",
+         "⚠️ **flat 與 hier 分表**（PI 裁定）：同一個臂在兩種架構下是**兩個實驗**，"
+         "混在一起會讓 `arm_metrics` 把兩批 (arm, seed) 疊起來算。缺 `arch` 欄位的"
+         "舊記錄視為 flat —— 該欄位是 commit `e6d13df` 才加入的，而 `main` tag "
+         "一直是預設 `--arch flat`。", "",
          "**算法沿用 `scripts/run_exp2.py`** 的 `acc()` / `jac()` / `arm_metrics()` ——"
          "階段別遮罩與 `lo` 索引不另立一套。本檔只是把它們排成 stage × task 的"
          "矩陣 a[s][j] 並導出彙總量。", "",
@@ -276,49 +319,47 @@ def main(argv=None) -> int:
          "",
          "## 自檢：與 `docs/RESULTS_DOSSIER.md` §4.4 比對（容差 5e-4）", ""]
     L += check_lines
-    L += ["", "自檢未通過時腳本會直接中止、不產出本表（規格 C-8）。", "",
-          "## 逐 seed 明細（class-IL）", ""]
+    L += ["", "自檢未通過時腳本會直接中止、不產出本表（規格 C-8）。",
+          "自檢只在 **flat** 上做 —— `RESULTS_DOSSIER` §4.4 是 flat 主表。", ""]
 
-    head = "| 臂 | seed | " + " | ".join(COLS) + " |"
-    L += [head, "|---|---|" + "---|" * len(COLS)]
-    for arm in arms:
-        seeds, rows = per_arm[arm]
-        for s in seeds:
-            L.append(f"| {arm} | {s} | " +
-                     " | ".join(fmt(rows[s][c]) for c in COLS) + " |")
-    L += ["", "## 彙總（mean ± sd，class-IL）", "",
-          "| 臂 | n seeds | " + " | ".join(COLS) + " |",
-          "|---|---|" + "---|" * len(COLS)]
-    for arm in arms:
-        seeds, rows = per_arm[arm]
-        cells = []
-        for c in COLS:
-            v = [rows[s][c] for s in seeds if rows[s][c] is not None
-                 and rows[s][c] == rows[s][c]]
-            if not v:
-                cells.append("—")
-            else:
-                sd = statistics.stdev(v) if len(v) > 1 else 0.0
-                cells.append(f"{statistics.mean(v):.4f} ± {sd:.4f}")
-        L.append(f"| {arm} | {len(seeds)} | " + " | ".join(cells) + " |")
+    for arch in arch_order:
+        arms, per_arm = blocks[arch]
+        title = "flat（正典基底）" if arch == "flat" else f"{arch}"
+        L += ["", f"---", "", f"# 架構：{title}", ""]
+        if arch != "flat":
+            L += [f"⚠️ 本節與 flat 節**不可混讀**：不同架構下同名臂是不同實驗。", ""]
 
-    L += ["", "## 彙總（mean ± sd，task-IL）", "",
-          "| 臂 | n seeds | A_Final | Forgetting | Plasticity |",
-          "|---|---|---|---|---|"]
-    for arm in arms:
-        seeds, rows = per_arm[arm]
-        cells = []
-        for c in ("A_Final_task", "Forgetting_task", "Plasticity_task"):
-            v = [rows[s][c] for s in seeds if rows[s][c] is not None
-                 and rows[s][c] == rows[s][c]]
-            if not v:
-                cells.append("—")
-            else:
-                sd = statistics.stdev(v) if len(v) > 1 else 0.0
-                cells.append(f"{statistics.mean(v):.4f} ± {sd:.4f}")
-        L.append(f"| {arm} | {len(seeds)} | " + " | ".join(cells) + " |")
+        L += ["## 逐 seed 明細（class-IL）", "",
+              "| 臂 | seed | " + " | ".join(COLS) + " |",
+              "|---|---|" + "---|" * len(COLS)]
+        for arm in arms:
+            seeds, rows = per_arm[arm]
+            for sd_ in seeds:
+                L.append(f"| {arm} | {sd_} | " +
+                         " | ".join(fmt(rows[sd_][c]) for c in COLS) + " |")
 
-    L += ["", f"產生：`python scripts/report_dr046.py`（DR-046 Phase 0）。", ""]
+        for lab, keys in (("class-IL", COLS),
+                          ("task-IL", ["A_Final_task", "Forgetting_task",
+                                       "Plasticity_task"])):
+            head = (["A_Final", "Forgetting", "Plasticity"] if lab == "task-IL"
+                    else COLS)
+            L += ["", f"## 彙總（mean ± sd，{lab}）", "",
+                  "| 臂 | n seeds | " + " | ".join(head) + " |",
+                  "|---|---|" + "---|" * len(head)]
+            for arm in arms:
+                seeds, rows = per_arm[arm]
+                cells = []
+                for c in keys:
+                    v = [rows[sd_][c] for sd_ in seeds if rows[sd_][c] is not None
+                         and rows[sd_][c] == rows[sd_][c]]
+                    if not v:
+                        cells.append("—")
+                    else:
+                        sdv = statistics.stdev(v) if len(v) > 1 else 0.0
+                        cells.append(f"{statistics.mean(v):.4f} ± {sdv:.4f}")
+                L.append(f"| {arm} | {len(seeds)} | " + " | ".join(cells) + " |")
+
+    L += ["", f"產生：`python scripts/report_dr046.py`（DR-046）。", ""]
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(L) + "\n")

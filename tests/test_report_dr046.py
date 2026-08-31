@@ -184,3 +184,119 @@ def test_arms_flag_rejects_unknown_arms():
     recs = R.load_records()
     with pytest.raises(SystemExit, match="沒有的臂"):
         R.arms_present(recs, ["A1", "NOPE"])
+
+
+# ── flat / hier 必須分表（PI 裁定，選配 stretch 前置）────────────────────────
+
+def test_arch_of_treats_missing_field_as_flat():
+    """舊記錄沒有 arch 欄位（commit e6d13df 之前），main tag 一直是 flat。"""
+    assert R.arch_of({"arm": "A1"}) == "flat"
+    assert R.arch_of({"arm": "A1", "arch": None}) == "flat"
+    assert R.arch_of({"arm": "L2", "arch": "hier"}) == "hier"
+
+
+def test_split_by_arch_keeps_groups_disjoint():
+    recs = [{"arm": "L2", "arch": "flat", "seed": 0},
+            {"arm": "L2", "arch": "hier", "seed": 0},
+            {"arm": "A1", "seed": 0}]
+    g = R.split_by_arch(recs)
+    assert set(g) == {"flat", "hier"}
+    assert len(g["flat"]) == 2 and len(g["hier"]) == 1
+    assert all(r.get("arch") == "hier" for r in g["hier"])
+
+
+def test_same_arm_in_two_architectures_is_not_merged():
+    """同名臂在兩個架構下必須分開算 —— 混算會讓 arm_metrics 疊起兩批 (arm, seed)。"""
+    real = R.load_records()
+    flat = [r for r in real if R.arch_of(r) == "flat"]
+    assert flat, "缺 flat 記錄"
+    fake_hier = [dict(r, arch="hier") for r in flat if r["arm"] == "A5"]
+    g = R.split_by_arch(flat + fake_hier)
+    assert len(g["flat"]) == len(flat)
+    assert len(g["hier"]) == len(fake_hier)
+    # 混在一起時 A5 的記錄數會翻倍 —— 這正是要避免的
+    merged = [r for r in flat + fake_hier if r["arm"] == "A5"]
+    assert len(merged) == 2 * len([r for r in flat if r["arm"] == "A5"])
+
+
+def test_report_marks_non_flat_sections_as_not_comparable():
+    md = ROOT / "docs" / "DR046_TABLE.md"
+    if not md.exists():
+        pytest.skip("尚未產生 DR046_TABLE.md")
+    text = md.read_text(encoding="utf-8")
+    assert "# 架構：flat（正典基底）" in text, "缺 flat 分節標題"
+    assert "flat 與 hier 分表" in text, "缺分表說明"
+    # 若已有非 flat 的節，必須帶不可混讀的警語
+    import re
+    for m in re.finditer(r"^# 架構：(?!flat)(.+)$", text, re.M):
+        seg = text[m.end():m.end() + 400]
+        assert "不可混讀" in seg, f"{m.group(1)} 節缺不可混讀警語"
+
+
+def _synthetic_hier_from_flat(flat, arms=("A1", "A2", "A5", "L2")):
+    """把 flat 記錄改寫成 arch=hier，並把預測全部打壞。
+
+    ⚠️ 打壞是刻意的：如果自檢誤用了全部記錄（而非只用 flat），這批爛數字會讓
+    A5/A2/A1 的重算值偏離 §4.4，自檢就會中止 —— 那正是我們要測出來的。
+    """
+    out = []
+    for r in flat:
+        if r["arm"] not in arms:
+            continue
+        q = dict(r, arch="hier")
+        q["pred_class_il"] = (r["true"] + 3) % 8          # 全錯
+        q["pred_task_il"] = (r["true"] + 1) % 8
+        out.append(q)
+    return out
+
+
+@pytest.fixture
+def hier_sandbox(tmp_path, monkeypatch):
+    flat = R.load_records()
+    recs = flat + _synthetic_hier_from_flat(flat)
+    monkeypatch.setattr(R, "load_records", lambda: recs)
+    md = tmp_path / "DR046_TABLE.md"
+    monkeypatch.setattr(R, "OUT", md)
+    return md
+
+
+def test_hier_section_is_emitted_and_marked_not_comparable(hier_sandbox):
+    assert R.main([]) == 0
+    text = hier_sandbox.read_text(encoding="utf-8")
+    assert "# 架構：flat（正典基底）" in text
+    assert "# 架構：hier" in text, "hier 沒有獨立分節"
+    seg = text.split("# 架構：hier")[1][:400]
+    assert "不可混讀" in seg, "hier 節缺不可混讀警語"
+
+
+def test_self_check_uses_flat_only_even_when_hier_exists(hier_sandbox):
+    """hier 的數字再爛也不該影響自檢 —— 自檢的對照是 §4.4 的 flat 主表。"""
+    assert R.main([]) == 0, "自檢被 hier 記錄污染而中止"
+
+
+def test_flat_summary_is_unchanged_by_the_presence_of_hier(hier_sandbox, tmp_path):
+    """加入 hier 記錄後，flat 節的數字必須一個字都不變。"""
+    clean = tmp_path / "clean.md"
+    flat = [r for r in R.load_records() if R.arch_of(r) == "flat"]
+    import types
+    saved = R.load_records
+    R.load_records = lambda: flat
+    R.OUT = clean
+    try:
+        R.main([])
+    finally:
+        R.load_records = saved
+    R.OUT = hier_sandbox
+    R.main([])
+
+    def flat_block(p):
+        """只取 flat 節的**表格內容**，切掉結尾邊界。
+
+        ⚠️ 乾淨版接的是頁尾、含 hier 版接的是分隔線，直接比整段會被邊界差異誤導。
+        """
+        t = p.read_text(encoding="utf-8")
+        body = t.split("# 架構：flat（正典基底）")[1].split("# 架構：")[0]
+        return body.split("產生：")[0].rstrip().rstrip("-").rstrip()
+
+    assert flat_block(clean) == flat_block(hier_sandbox), \
+        "hier 記錄改變了 flat 節的數字 —— 分表沒有生效"
