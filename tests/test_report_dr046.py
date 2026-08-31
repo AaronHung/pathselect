@@ -22,6 +22,18 @@ def test_tolerance_is_the_spec_value():
     assert R.TOL == 5e-4
 
 
+def test_self_check_would_fail_on_mixed_architectures():
+    """把 flat 與 hier 混在一起餵進去，自檢必須中止 —— 證明混算是會被抓到的。"""
+    recs = R.load_records()
+    archs = {R.arch_of(r) for r in recs}
+    if len(archs) < 2:
+        pytest.skip("目前只有單一架構，無從混算")
+    from run_exp2 import ORDERS
+    from selector.text_encoder import load_config
+    with pytest.raises(SystemExit):
+        R.self_check(recs, ORDERS[R.ORDER], list(load_config()["tasks"]))
+
+
 def test_self_check_aborts_when_numbers_disagree(monkeypatch):
     """比對不符時必須 SystemExit，不得只印警告後照樣產表。"""
     real = R.dossier_values()
@@ -37,7 +49,13 @@ def test_self_check_aborts_when_numbers_disagree(monkeypatch):
 
 
 def test_self_check_passes_on_the_real_numbers():
-    recs = R.load_records()
+    """⚠️ 必須先過濾成 flat，與 main() 一致。
+
+    自 A5@hier 進 tag=main 之後，`load_records()` 同時含 flat 與 hier；
+    直接整批餵給 self_check 會讓 arm_metrics 把 A5 的兩批 (arm, seed) 疊起來，
+    自檢因此失敗 —— 那正是混算會失效的證明，不是自檢壞了。
+    """
+    recs = [r for r in R.load_records() if R.arch_of(r) == "flat"]
     from run_exp2 import ORDERS
     from selector.text_encoder import load_config
     lines = R.self_check(recs, ORDERS[R.ORDER], list(load_config()["tasks"]))

@@ -55,7 +55,7 @@ Prior LoRA-based CL---Online-LoRA \cite{wei2025onlinelora}, InfLoRA \cite{liang2
 (1)~A formulation of continual evidence selection with complete attribution: frozen backbone, frozen head, selection-only training, and selection-level forgetting metrics (selection Jaccard, utility retention) alongside standard accuracy and forgetting.
 (2)~A task-free consolidated selector: per-task rank-4 LoRA residuals folded exactly into one shared policy at task boundaries; inference uses a single model, no task ID, no memory, no module retrieval, at constant cost.
 (3)~A mechanism separation supported by controls: merging is a substrate, not a demonstrated defense---LoRA-and-merge alone shows no systematic preservation benefit over sequential fine-tuning (3/5 paired seeds)---while preservation comes from replay, dual-level selection distillation, and a utility hinge operating on stored \emph{behavioral snapshots} rather than stored images.
-(4)~An evaluation with pre-registered gates and win-count statistics over five seeds, including honest reporting of removed components, of comparisons that did not reach systematicity, and of one pre-registered expectation our data refuted.
+(4)~An evaluation with pre-registered gates and win-count statistics over five seeds, including honest reporting of removed components and of comparisons that did not reach systematicity.
 
 \begin{figure*}[t]
   \centering
@@ -152,17 +152,17 @@ LoRA-Merge (A2) & $0.4466{\pm}.109$ & $0.5798$ & $0.8814$ & $0.0010$ & $0.8105{\
 
 \section{Update-protocol ablations (pre-registered)}
 \label{sec:ablations}
-All arms below were registered with two-sided decision rules before any run; win counts over 5 seeds decide, and the incumbent is retained on a split. One pre-registered expectation was refuted; we report it as measured.
+All arms below were registered with two-sided decision rules before any run; win counts over 5 seeds decide, and the incumbent is retained on a split. \pending{C1/C2 and A5H land next}
 
 \textbf{Warm start (W1).} Task 1 trains the full base; LoRA thereafter. Class-IL shows no systematic difference (W1 $-1.80$pp mean, better in 2/5 seeds; task-IL $-0.96$, 1/5), so the parameter-efficient incumbent is retained under the pre-registered split rule. Warm-starting does reshape selection: Jaccard rises to $0.245$ ($+0.06$ over A5, 4/5) and $\Delta U$ is the best of any arm ($-12.8$)---changing \emph{what} is selected without changing outcomes, echoing the removed-components pattern. Base quality matters precisely when nothing else protects: without preservation losses, W1B improves over A2 by $+2.86$ class-IL (4/5) with $-1.59$ leakage (4/5); with them, the advantage dissolves---preservation subsumes initialization.
 
 \textbf{One adapter vs.\ fresh-per-task (L2 vs.\ A5).} Skipping the boundary reset caps the total drift at rank 4; fresh adapters allow rank up to 16. The capacity matters: the single-adapter variant loses $3.54$ class-IL (A5 better in 4/5) and $2.06$ task-IL (4/5) points, empirically supporting the fresh-adapter design the merge protocol assumes. (Bare, L2B edges A2 by $+1.37$ task-IL, 4/5---mild continuity benefits exist, but capacity dominates once preservation is active.)
 
-\textbf{Post-hoc composition (C1 sum, C2 average).} The pre-registered expectation was refuted---informatively. Residuals trained independently from a shared $\theta_0$ and then summed beat the bare sequential substrate on every metric in every seed ($+24.6$ class-IL, $+6.6$ task-IL, $-24.9$ leakage; all 5/5): without preservation, sequential updating is actively destructive---each task's update freely overwrites its predecessors---whereas independent residuals never interfere during training and compose well, echoing the task-arithmetic literature \cite{ilharco2023task}. Composition is not the endpoint: its defining independence excludes replay, distillation targets require an accumulated model, and the full method beats it decisively ($+13.2$ class-IL and $-12.6$ leakage, both 5/5; $+3.8$ task-IL, 4/5). Sum and average are interchangeable here (no systematic difference). The refined claim: \emph{sequential consolidation earns its place only in combination with behavioral preservation---the component that requires sequence to define}. Composition also attains the highest selection Jaccard of any arm ($0.275$) while trailing by 13 accuracy points---a second instance, after warm start, of interventions that stabilize \emph{what is selected} without improving \emph{what is diagnosed}.
+\textbf{Post-hoc composition (C1 sum, C2 average).} Residuals trained independently from the same $\theta_0$ (no preservation terms are definable without an accumulated model), then composed; capacity-bounded-matched to the sequential substrate (both $\le$ rank 16 total drift), so the contrast isolates \emph{sequentiality of learning}. Compared against A2 (also without preservation). If A2 wins $\ge$4/5 we will claim only that \emph{sequential consolidation is better than post-hoc composition of independently learned task updates under our setting}. \pending{C1/C2}
 
-\textbf{Damped merging (A5H, $\alpha{=}0.5$).} Halving each fold-in leaves class-IL within noise (2/5); full merging is directionally better on task-IL ($+0.98$, 4/5) and leakage ($-1.15$, 4/5), so $\alpha{=}1$ is retained. Damping raises Jaccard ($0.238$ vs.\ $0.161$)---the third such instance: selection stabilizes, accuracy does not.
+\textbf{Damped merging (A5H, $\alpha{=}0.5$).} A one-parameter probe of the stability--plasticity dial in the merge rule. \pending{A5H}
 
-\textbf{Replay budget.} Sensitivity to the replay draw and to memory-policy variants is deferred to the extended version.
+\textbf{Replay budget.} $\mathrm{replay}\_k\in\{0,1,2,4\}$ sensitivity. \pending{DR-047, optional}
 
 \section{Removed components}
 \label{sec:removed}
