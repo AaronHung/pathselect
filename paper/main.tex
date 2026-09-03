@@ -59,7 +59,7 @@ Prior LoRA-based CL---Online-LoRA \cite{wei2025onlinelora}, InfLoRA \cite{liang2
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=\textwidth]{figures/fig1_architecture.png}
+  \includegraphics[width=\textwidth]{figures/fig1_architecture_v1_0.pdf}
   \caption{\textbf{Continual hierarchical evidence selection.}
   \emph{Left, middle (within a task):} patches from a frozen CONCH image encoder are assigned to $J{=}8$ tissue groups by argmax cosine similarity to fixed tissue prompts; a group selector $\Fg$ scores groups, a largest-remainder allocation converts scores into integer quotas $\sum_j b_j = B$ in one shot, and a patch selector $\Fp$ picks the top $b_j$ patches within each group. Selected evidence is pooled (score-weighted, $\ell_2$-normalized) and classified by a \emph{frozen} cosine rule against class-text embeddings---no trained classifier exists anywhere in the pipeline.
   \emph{Right (across tasks):} each task trains only rank-4 LoRA adapters on $\Fg,\Fp$ (fire); at the boundary the residual is folded exactly into the shared selector, which is the only model used at inference (no task ID, no memory, no retrieval). A 512-entry Selection Memory stores behavioral snapshots---group/patch scores, utilities, and replay indices; \emph{no patches or features}---and drives selection distillation, utility preservation, and replayed diagnostic training. Base MLPs are frozen within a task and updated \emph{only} by the boundary merge.}
