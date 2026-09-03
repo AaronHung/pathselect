@@ -173,3 +173,23 @@ def test_paper_scan_passes_on_the_real_manuscript():
     import verify_doc_numbers as V
     bad = V.scan_paper()
     assert not bad, "稿件溯源未通過：\n" + "\n".join(bad)
+
+
+def test_paper_scan_skips_latex_lengths():
+    """`p{4.75cm}` / `0.48\\textwidth` 是排版參數，不該被要求溯源。
+
+    ⚠️ 沒有這道略過，v0.71 的表格欄寬會逼人把版面數字塞進「可溯源產物」。
+    """
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    import verify_doc_numbers as V
+    got = [t for _i, t, _c in V.paper_numbers(
+        r"\begin{tabular}{p{1.25cm}p{4.75cm}} 0.48\textwidth 0.9147 3.5pt")]
+    assert got == ["0.9147"], f"排版參數沒被略過：{got}"
+
+
+def test_paper_scan_still_sees_real_numbers_next_to_units():
+    """略過規則不能誤殺真數字 —— 只有緊接單位的才算排版參數。"""
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    import verify_doc_numbers as V
+    got = [t for _i, t, _c in V.paper_numbers(r"gains $+3.28$ pp and $0.8239$ accuracy")]
+    assert got == ["+3.28", "0.8239"], got

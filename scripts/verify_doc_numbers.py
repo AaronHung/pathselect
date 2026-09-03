@@ -237,7 +237,9 @@ PAPER = ROOT / "paper" / "main.tex"
 #: 本輪新增的 gate 總表。兩者都是 committed artifact，一併納入掃描來源。
 PAPER_ARTIFACTS = ["docs/DR046_TABLE.md", "docs/RESULTS_DOSSIER.md",
                    "outputs/exp2/main/EXP2_hier.md", "outputs/exp2/main/EXP2.md",
-                   "docs/DR046_GATES.md"]
+                   "docs/DR046_GATES.md",
+                   # Exp 0 預算掃描（論文要引用 28/28 與 0.8797 @ K=8）
+                   "outputs/exp0/BASELINES.md"]
 PAPER_TOL = 5e-3
 
 #: 稿內合法但**不是實驗結果**的數字，逐個列出理由。不得用來塞不會溯源的結果值。
@@ -246,13 +248,24 @@ PAPER_ALLOW = {
 }
 
 
+#: LaTeX 的長度單位與相對寬度。`p{4.75cm}`、`0.48\\textwidth` 之類是**排版參數**，
+#: 不是實驗數字，掃描要略過 —— 否則會逼人把版面寬度也塞進「可溯源產物」。
+LATEX_LEN = re.compile(
+    r"(?:cm|mm|in|pt|bp|pc|dd|cc|sp|ex|em|\\(?:text|line|column|page)width|\\(?:text|page)height)")
+
+
 def paper_numbers(text: str):
-    """稿內的帶小數數字（略過註解行）。整數不看 —— rank 4、5 seeds 之類不是結果值。"""
+    """稿內的帶小數數字（略過註解行與 LaTeX 長度）。
+
+    整數不看 —— rank 4、5 seeds 之類不是結果值。
+    """
     out = []
     for i, ln in enumerate(text.splitlines(), 1):
         if ln.lstrip().startswith("%"):
             continue
         for m in re.finditer(r"[-+\u2212]?\d+\.\d+", ln):
+            if LATEX_LEN.match(ln[m.end():].lstrip()[:14]):
+                continue                      # 4.75cm / 0.48\textwidth → 排版參數
             out.append((i, m.group(0), ln.strip()))
     return out
 
