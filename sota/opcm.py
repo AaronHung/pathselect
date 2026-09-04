@@ -65,7 +65,10 @@ from selector.text_encoder import load_config                           # noqa: 
 #: 與 `scripts/run_exp2.py` 同一個根，好讓 SOTA 主表只讀一個目錄
 OUT_ROOT = ROOT / "outputs" / "exp2"
 DELTA_CACHE = ROOT / "outputs" / "exp2" / "main" / "dr046_deltas_seed{seed}.pt"
+#: 兩版必須用**不同的 arm 名**，否則 `report_sota.load_runs` 會把它們
+#: 併成同一列（它以 (arm, arch) 為 key，看不到檔名的 _nomask 後綴）。
 ARM = "OPCM"
+ARM_NOMASK = "OPCM-nomask"
 
 
 # ── 演算法 ──────────────────────────────────────────────────────────────────
@@ -143,6 +146,7 @@ def apply_delta(theta0: list[dict], delta: list[dict]) -> list[dict]:
 # ── 執行 ────────────────────────────────────────────────────────────────────
 
 def run(ctx, seed: int, order_name: str, args, out_dir: Path) -> list[dict]:
+    arm = ARM_NOMASK if args.no_mask else ARM
     cache = Path(str(DELTA_CACHE).format(seed=seed))
     if not cache.is_file():
         raise SystemExit(f"❌ 缺 delta 快取 {cache} —— 先跑 C1（`--arms C1 --seeds {seed}`）")
@@ -161,10 +165,10 @@ def run(ctx, seed: int, order_name: str, args, out_dir: Path) -> list[dict]:
         models = new_models(ctx, seed, True, args.rank)
         for m, sd in zip(models, apply_delta(theta0, merged)):
             m.load_state_dict(sd)
-        print(f"    ── stage {stage}: OPCM(Δ[0..{stage}])  "
+        print(f"    ── stage {stage}: {arm}(Δ[0..{stage}])  "
               f"‖Δθ̃‖={_norm(merged):.4f}", flush=True)
         for t in tasks[:stage + 1]:
-            r = evaluate(ctx, models, t, ARM, order_name, seed, stage, args)
+            r = evaluate(ctx, models, t, arm, order_name, seed, stage, args)
             recs += r
             print(f"       eval {t:10s} class-IL={acc(r, 'pred_class_il'):.4f} "
                   f"task-IL={acc(r, 'pred_task_il'):.4f}", flush=True)
@@ -198,7 +202,7 @@ def main(argv=None) -> int:
 
     for seed in [int(x) for x in args.seeds.split(",")]:
         suffix = "" if not args.no_mask else "_nomask"
-        name = (f"{ARM}_{args.order}_seed{seed}"
+        name = (f"{ARM_NOMASK if args.no_mask else ARM}_{args.order}_seed{seed}"
                 f"{'' if args.arch == DEFAULT_ARCH else '_' + args.arch}{suffix}.json")
         path = out_dir / name
         if path.exists() and not args.no_resume:

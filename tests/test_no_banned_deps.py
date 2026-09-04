@@ -47,6 +47,11 @@ EXEMPT: dict[str, dict[str, str]] = {
                  "本檔**只記錄其設定值**（路徑格式、fold 數、任務順序、標籤位移），"
                  "不引入任何 QPMIL 程式碼、不 import 其模組。",
     },
+    "sota/external_baselines.py": {
+        "qpmil": "DR-048 SOTA 主表的外部列：必須指名才能標出處（bibtex key "
+                 "`gou2025qpmil`）並說明那些數字是引用而非重算。本檔是**唯讀**"
+                 "資料模組，不寫檔、不 import 其模組、不含任何其程式碼。",
+    },
     "scripts/v9_reference.py": {
         "qpmil": "唯讀存檔讀取器：說明 v9 側的對照條件",
         "zeronav": "reference/v9 存檔 JSON 的既有 key 名，讀它就得指名",
@@ -132,14 +137,17 @@ def test_every_exemption_carries_a_reason():
 
 
 def test_only_read_only_scripts_may_be_exempt():
-    """拍板 1：scripts/ 底下只有唯讀驗證腳本可申請例外。
+    """拍板 1：scripts/ 與 sota/ 底下只有唯讀模組可申請例外。
+
+    `sota/` 於 DR-048 併入 —— 它同樣是產出結果的 pipeline，同一個理由適用：
+    會寫 outputs/ 的腳本一律不得例外。
 
     任何會寫入 outputs/ 的訓練或評估腳本一律不得例外 —— 產出結果的 pipeline
     必須完全乾淨。這裡用靜態檢查：例外腳本不得出現寫檔字樣，也不得提到 outputs。
     """
     offenders = []
     for path in EXEMPT:
-        if not path.startswith("scripts/"):
+        if not path.startswith(("scripts/", "sota/")):
             continue
         src = (REPO_ROOT / path).read_text(encoding="utf-8")
         hits = [m for m in WRITE_MARKERS if m in src]

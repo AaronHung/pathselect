@@ -30,21 +30,21 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from run_exp2 import ARMS, DEFAULT_ARCH, ORDERS                      # noqa: E402
+from sota.external_baselines import CAVEATS, CITATION, ROWS         # noqa: E402
 from sota.metrics import all_metrics                                 # noqa: E402
 
 OUT = ROOT / "docs" / "SOTA_TABLE.md"
 
 #: 顯示名稱。沒列到的臂沿用 run_exp2 的 ARMS 說明。
-LABEL = {"OPCM": "OPCM-Merge (adapted)",
+LABEL = {"OPCM": "OPCM-Merge (adapted, paper Alg. 1)",
+         "OPCM-nomask": "OPCM (released code, no-op mask)",
          "ZS-mean": "Zero-shot, mean-pool (all patches)",
          "ZS-rand8": "Zero-shot, random-B patches"}
 
 #: 每一列的協定註記。key 是臂名。
-PROTOCOL = {"OPCM": "DR-046 協定（fold 1、seed 0–4）—— **不是** 10 折"}
+_OPCM_PROTO = "DR-046 協定（fold 1、seed 0–4）—— **不是** 10 折"
+PROTOCOL = {"OPCM": _OPCM_PROTO, "OPCM-nomask": _OPCM_PROTO}
 DEFAULT_PROTOCOL = "SOTA 協定（10 折，seed = 折號）"
-
-#: 外部方法：只列名稱與出處欄，數字留白給 PI 填。
-EXTERNAL = ["JointTrain (Upper)", "FineTune (Lower)"]
 
 METRICS = [("acc", "ACC ↑"), ("masked_acc", "Masked ACC ↑"),
            ("forgetting", "Forgetting ↓"), ("bwt", "BWT ↑")]
@@ -84,6 +84,26 @@ def cell(v) -> str:
     return "—" if v is None else f"{v[0]:.3f} ± {v[1]:.3f}"
 
 
+def _provenance(runs: list[tuple[int, int]]) -> str:
+    """把 (fold, seed) 清單壓成一行可讀的溯源說明。
+
+    十折逐一列出會佔掉整個欄寬，反而看不出重點；但**不能只寫個數** ——
+    讀者要能確認是「哪十折」。所以連續且 seed = fold 時壓成區間，
+    其餘情形照舊逐一列出。
+    """
+    if not runs:
+        return "—"
+    folds = [f for f, _s in runs]
+    if all(s == f for f, s in runs) and folds == list(range(min(folds), max(folds) + 1)):
+        return f"fold {min(folds)}–{max(folds)}（seed = fold）"
+    if len({f for f, _s in runs}) == 1:
+        f = folds[0]
+        seeds = sorted(s for _f, s in runs)
+        if seeds == list(range(min(seeds), max(seeds) + 1)):
+            return f"fold {f}，seed {min(seeds)}–{max(seeds)}"
+    return ", ".join(f"fold{f}/seed{s}" for f, s in runs)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--tag", default="sota")
@@ -109,11 +129,17 @@ def main(argv=None) -> int:
          "把兩張表的數字並排比較會得到沒有意義的結論。", "",
          "⚠️ **本檔只放數字，不寫解讀。** 判讀的文字在 "
          "[`docs/ledger/DR-048.md`](ledger/DR-048.md) 與論文裡。", "",
-         "指標定義見 [`sota/metrics.py`](../sota/metrics.py) 的模組說明 —— "
-         "ACC 與 Masked ACC 是從官方程式核對過的，Forgetting 與 BWT 是**推得的**"
-         "（論文沒有印出公式），推導依據與反證都記在那裡。", "",
+         "指標定義見 [`sota/metrics.py`](../sota/metrics.py) 的模組說明："
+         "**ACC** 與 **Masked ACC** 從基準論文的官方程式逐行核對；"
+         "**BWT** 依 Lopez-Paz & Ranzato (2017)、**Forgetting** 依 "
+         "Chaudhry et al. (2018) 的 max-based 定義（PI 裁定，Prompt 6-3）。", "",
          "訓練設定維持本 repo 的：**5 epoch、lr 1e-3、rank 4**"
          "（與基準論文的 12 epoch 不同，屬方法設定，PI 裁定 3）。", "",
+         "OPCM 有**兩列**：`OPCM` 照論文 Alg. 1（零對角遮罩生效）、"
+         "`OPCM-nomask` 重現官方釋出程式的實際行為"
+         "（`Tensor.diag()` 回傳副本，那行遮罩是 no-op，`G(·)` 退化成恆等）。"
+         "詳見 [`sota/opcm.py`](../sota/opcm.py) 與 "
+         "[`docs/ledger/DR-048.md`](ledger/DR-048.md)。", "",
          "| 方法 | 架構 | " + " | ".join(lab for _k, lab in METRICS) +
          " | n runs | 協定 | 溯源 |",
          "|---|---|" + "---|" * len(METRICS) + "---|---|---|"]
@@ -121,7 +147,7 @@ def main(argv=None) -> int:
     for (arm, arch), rr in sorted(runs.items()):
         a = agg(rr, tasks)
         name = LABEL.get(arm) or (ARMS[arm]["name"] if arm in ARMS else arm)
-        prov = ", ".join(f"fold{f}/seed{s}" for f, s in a["runs"]) or "—"
+        prov = _provenance(a["runs"])
         L.append(f"| {name}（`{arm}`） | `{arch}` | " +
                  " | ".join(cell(a[k]) for k, _lab in METRICS) +
                  f" | {a['n']} | {PROTOCOL.get(arm, DEFAULT_PROTOCOL)} | `{prov}` |")
@@ -129,14 +155,14 @@ def main(argv=None) -> int:
             L.append(f"| ↳ ⚠️ 未完成、未計入 | | | | | | {len(a['skipped'])} | | "
                      f"`{', '.join(f'fold{f}/seed{s}' for f, s in a['skipped'])}` |")
 
-    L += ["", "## 外部方法（基準論文 Tab. 2）", "",
-          "⚠️ **數字留空，待 PI 逐列填入並註明出處。** "
-          "本腳本刻意不從論文抄數字 —— 抄進來的欄位會與上表「我們自己重算的」"
-          "欄位長得一模一樣，讀者無法分辨。", "",
-          "| 方法 | " + " | ".join(lab for _k, lab in METRICS) + " | 出處 |",
-          "|---|" + "---|" * len(METRICS) + "---|"]
-    for name in EXTERNAL:
-        L.append(f"| {name} | " + " | ".join("" for _ in METRICS) + " |  |")
+    L += ["", "## 外部方法（基準論文 Tab. 2，reverse、10 折）", ""]
+    L += [f"* {c}" for c in CAVEATS] + [""]
+    L += ["| 方法 | ACC ↑ | Masked ACC ↑ | Forgetting ↓ | BWT ↑ | 出處 |",
+          "|---|---|---|---|---|---|"]
+    dash = lambda v: "–" if v is None else v
+    for name, acc_, forg, bwt_, macc in ROWS:
+        L.append(f"| {name} | {dash(acc_)} | {dash(macc)} | {dash(forg)} | "
+                 f"{dash(bwt_)} | {CITATION} |")
 
     L += ["", "---", "",
           f"產生：`python sota/report_sota.py --tag {args.tag} --order {args.order}`。"

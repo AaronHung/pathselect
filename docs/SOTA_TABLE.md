@@ -1,0 +1,49 @@
+# SOTA 主表（DR-048）
+
+任務順序：`reverse`＝ ESCA → RCC → BRCA → LUNG（對應基準論文 Tab. 2）。
+
+⚠️ **不可與 `docs/DR046_TABLE.md` 混讀。** 該表是 **fold 1 上的 5 個 seed**；本表是 **10 折、每折一個 run、seed = 折號**。兩者的 ± 量的是不同的東西（前者只含初始化／順序的隨機性，後者含資料切分的隨機性），把兩張表的數字並排比較會得到沒有意義的結論。
+
+⚠️ **本檔只放數字，不寫解讀。** 判讀的文字在 [`docs/ledger/DR-048.md`](ledger/DR-048.md) 與論文裡。
+
+指標定義見 [`sota/metrics.py`](../sota/metrics.py) 的模組說明：**ACC** 與 **Masked ACC** 從基準論文的官方程式逐行核對；**BWT** 依 Lopez-Paz & Ranzato (2017)、**Forgetting** 依 Chaudhry et al. (2018) 的 max-based 定義（PI 裁定，Prompt 6-3）。
+
+訓練設定維持本 repo 的：**5 epoch、lr 1e-3、rank 4**（與基準論文的 12 epoch 不同，屬方法設定，PI 裁定 3）。
+
+OPCM 有**兩列**：`OPCM` 照論文 Alg. 1（零對角遮罩生效）、`OPCM-nomask` 重現官方釋出程式的實際行為（`Tensor.diag()` 回傳副本，那行遮罩是 no-op，`G(·)` 退化成恆等）。詳見 [`sota/opcm.py`](../sota/opcm.py) 與 [`docs/ledger/DR-048.md`](ledger/DR-048.md)。
+
+| 方法 | 架構 | ACC ↑ | Masked ACC ↑ | Forgetting ↓ | BWT ↑ | n runs | 協定 | 溯源 |
+|---|---|---|---|---|---|---|---|---|
+| Ours (Replay+KD+eq)（`A5`） | `flat` | 0.830 ± 0.029 | 0.914 ± 0.021 | 0.090 ± 0.043 | -0.082 ± 0.050 | 10 | SOTA 協定（10 折，seed = 折號） | `fold 1–10（seed = fold）` |
+| Ours (Replay+KD+eq)（`A5`） | `hier` | 0.854 ± 0.044 | 0.925 ± 0.019 | 0.060 ± 0.041 | -0.056 ± 0.038 | 10 | SOTA 協定（10 折，seed = 折號） | `fold 1–10（seed = fold）` |
+| OPCM-Merge (adapted, paper Alg. 1)（`OPCM`） | `flat` | 0.709 ± 0.035 | 0.883 ± 0.015 | 0.128 ± 0.082 | -0.127 ± 0.083 | 5 | DR-046 協定（fold 1、seed 0–4）—— **不是** 10 折 | `fold 1，seed 0–4` |
+| OPCM (released code, no-op mask)（`OPCM-nomask`） | `flat` | 0.706 ± 0.036 | 0.890 ± 0.012 | 0.132 ± 0.085 | -0.132 ± 0.085 | 5 | DR-046 協定（fold 1、seed 0–4）—— **不是** 10 折 | `fold 1，seed 0–4` |
+| Zero-shot, mean-pool (all patches)（`ZS-mean`） | `flat` | 0.679 ± 0.032 | 0.776 ± 0.029 | 0.000 ± 0.000 | 0.000 ± 0.000 | 10 | SOTA 協定（10 折，seed = 折號） | `fold 1–10（seed = fold）` |
+| Zero-shot, random-B patches（`ZS-rand8`） | `flat` | 0.646 ± 0.025 | 0.760 ± 0.027 | 0.000 ± 0.000 | 0.000 ± 0.000 | 10 | SOTA 協定（10 折，seed = 折號） | `fold 1–10（seed = fold）` |
+
+## 外部方法（基準論文 Tab. 2，reverse、10 折）
+
+* 這些是**引用的發表數字**，不是本 repo 重算的 —— 出處欄逐列標明。
+* 它們與上表**不是對照實驗**：主幹（QPMIL-VL 用可訓練的 prototype pool + prompt learner，我們是凍結的 CONCH 頭 + patch 選取）、訓練設定（12 epoch vs 我們的 5 epoch）、以及 buffer 定義都不同。
+* 唯一可以對齊的是**協定**：同一份四資料集、同一組 10 折病人層級切分、同一個 reverse 任務順序、同一套指標定義。
+* 因此本表適合讀成「在同一份 benchmark 上各方法各自的絕對水準」，**不適合**讀成「我們的方法優於／劣於某一列」。
+
+| 方法 | ACC ↑ | Masked ACC ↑ | Forgetting ↓ | BWT ↑ | 出處 |
+|---|---|---|---|---|---|
+| JointTrain (Upper) | 0.908±0.022 | 0.937±0.022 | – | – | [gou2025qpmil], Tab. 2 |
+| FineTune (Lower) | 0.234±0.008 | 0.803±0.060 | 0.927±0.023 | −0.927±0.023 | [gou2025qpmil], Tab. 2 |
+| EWC | 0.235±0.011 | 0.833±0.069 | 0.928±0.020 | −0.928±0.020 | [gou2025qpmil], Tab. 2 |
+| LwF | 0.236±0.016 | 0.900±0.041 | 0.908±0.030 | −0.908±0.030 | [gou2025qpmil], Tab. 2 |
+| A-GEM (buffer 30) | 0.536±0.047 | 0.872±0.026 | 0.527±0.067 | −0.527±0.067 | [gou2025qpmil], Tab. 2 |
+| ER-ACE (buffer 30) | 0.703±0.049 | 0.889±0.041 | 0.281±0.062 | −0.279±0.063 | [gou2025qpmil], Tab. 2 |
+| DER++ (buffer 30) | 0.684±0.055 | 0.910±0.043 | 0.310±0.069 | −0.307±0.072 | [gou2025qpmil], Tab. 2 |
+| ER (buffer 30) | 0.644±0.028 | 0.901±0.035 | 0.387±0.050 | −0.386±0.049 | [gou2025qpmil], Tab. 2 |
+| ConSlide (buffer 30) | 0.499±0.025 | 0.854±0.039 | 0.058±0.032 | −0.021±0.039 | [gou2025qpmil], Tab. 2 |
+| AttriCLIP | 0.694±0.058 | 0.861±0.019 | 0.207±0.063 | −0.207±0.063 | [gou2025qpmil], Tab. 2 |
+| MI-Zero | 0.839±0.034 | 0.909±0.019 | – | – | [gou2025qpmil], Tab. 2 |
+| QPMIL-VL | 0.859±0.032 | 0.925±0.018 | 0.064±0.031 | −0.064±0.031 | [gou2025qpmil], Tab. 2 |
+
+---
+
+產生：`python sota/report_sota.py --tag sota --order reverse`。資料源：`outputs/exp2/sota/per_slide/*.json`。
+

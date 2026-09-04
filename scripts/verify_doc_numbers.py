@@ -239,7 +239,10 @@ PAPER_ARTIFACTS = ["docs/DR046_TABLE.md", "docs/RESULTS_DOSSIER.md",
                    "outputs/exp2/main/EXP2_hier.md", "outputs/exp2/main/EXP2.md",
                    "docs/DR046_GATES.md",
                    # Exp 0 預算掃描（論文要引用 28/28 與 0.8797 @ K=8）
-                   "outputs/exp0/BASELINES.md"]
+                   "outputs/exp0/BASELINES.md",
+                   # DR-048 SOTA 協定線（Prompt 6-5：verify 擴掃納入 sota/ 產物）
+                   "docs/SOTA_TABLE.md", "docs/MEMORY_FOOTPRINT.md",
+                   "outputs/exp2/sota/EXP2.md"]
 PAPER_TOL = 5e-3
 
 #: 稿內合法但**不是實驗結果**的數字，逐個列出理由。不得用來塞不會溯源的結果值。

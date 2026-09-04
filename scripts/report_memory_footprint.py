@@ -35,6 +35,7 @@ sys.path.insert(0, str(ROOT))
 
 from selector.memory import (CANDIDATE_SIZE, MEMORY_CAPACITY,          # noqa: E402
                              SelectionMemoryEntry, sample_key)
+from selector.text_encoder import load_config                          # noqa: E402
 
 PER_SLIDE = ROOT / "outputs" / "exp2" / "main" / "per_slide"
 OUT = ROOT / "docs" / "MEMORY_FOOTPRINT.md"
@@ -119,6 +120,33 @@ def mb(x: float) -> str:
     return f"{x / 1024 / 1024:.2f} MB"
 
 
+#: `.pt` 檔的固定 header 開銷（pickle + zip 容器）。實測四個檔皆為 747 B，
+#: 且 (size - 747) 恆可被 512*4 整除 —— `feature_counts()` 每次都重新驗證。
+PT_HEADER = 747
+
+
+def feature_counts() -> dict[str, list[int]]:
+    """四個 task **全部** slide 的 patch 數 N（不分 split）。
+
+    直接從特徵檔大小反推 `N = (size - PT_HEADER) / (512 * 4)`，
+    不載入張量 —— 全部載入是約 9 GB 的 I/O，而我們只要形狀。
+    整除性當場驗證，不成立就報錯，不默默用一個近似值。
+    """
+    cfg = load_config()
+    root, out = cfg["dataset_root_dir"], {}
+    for task in cfg["tasks"]:
+        d = Path(root + cfg["path_feat"].format(task, cfg["conch_path_feat"]))
+        ns = []
+        for f in sorted(d.glob("*.pt")):
+            payload = f.stat().st_size - PT_HEADER
+            if payload <= 0 or payload % (D * 4):
+                raise ValueError(f"{f} 大小 {f.stat().st_size} 無法反推 N —— "
+                                 f"扣掉 {PT_HEADER} B header 後不是 {D}×4 的倍數")
+            ns.append(payload // (D * 4))
+        out[task] = ns
+    return out
+
+
 def main() -> int:
     lengths = observed_candidate_lengths()
     if not lengths:
@@ -182,6 +210,47 @@ def main() -> int:
           "那是 dataclass 包裝的固定開銷，v1 也有，故上表兩邊都以欄位字典量。）"
           "`cand_idx` 是 int64，現在是最大的一欄 —— 降到 int32 可以再省一半，"
           "但那會動到 `index_select` 的呼叫端，本輪不做。", ""]
+
+    # ── 特徵記錄大小（DR-048 Prompt 6-4）────────────────────────────────────
+    try:
+        counts = feature_counts()
+    except (OSError, ValueError) as exc:
+        L += ["## 特徵記錄大小", "", f"⚠️ 無法統計：{exc}", ""]
+    else:
+        allN = [n for ns in counts.values() for n in ns]
+        rec = lambda n: n * D * 4
+        L += ["## 特徵記錄大小（原始 patch 特徵，供對照）", "",
+              "記憶庫存的是 **key + index**，不是特徵；下面這一節是「如果改成存特徵」"
+              "的量體，用來說明為什麼不存。", "",
+              f"N = 每張 slide 的 patch 數，特徵記錄 = **N × {D} × 4 bytes**"
+              f"（CONCH float32）。N 由特徵檔大小反推："
+              f"`(size − {PT_HEADER}) / ({D}×4)`，整除性逐檔驗證。", "",
+              "| task | slide 數 | N 平均 | N 中位數 | 記錄平均 | 記錄中位數 |",
+              "|---|---|---|---|---|---|"]
+        for task, ns in counts.items():
+            s = sorted(ns)
+            med = s[len(s) // 2] if len(s) % 2 else (s[len(s)//2 - 1] + s[len(s)//2]) / 2
+            L.append(f"| `{task}` | {len(ns)} | {statistics.mean(ns):,.0f} | {med:,.0f} | "
+                     f"{mb(rec(statistics.mean(ns)))} | {mb(rec(med))} |")
+        s = sorted(allN)
+        med_all = s[len(s)//2] if len(s) % 2 else (s[len(s)//2 - 1] + s[len(s)//2]) / 2
+        mean_all = statistics.mean(allN)
+        L += [f"| **四 task 合計** | **{len(allN)}** | **{mean_all:,.0f}** | "
+              f"**{med_all:,.0f}** | **{mb(rec(mean_all))}** | **{mb(rec(med_all))}** |", "",
+              f"N 的範圍 {min(allN):,}–{max(allN):,}。", "",
+              "### 與記憶庫並列", "",
+              f"* **一張 slide 的特徵記錄**（平均）：{mb(rec(mean_all))}"
+              f"　／　中位數 {mb(rec(med_all))}",
+              f"* **整個記憶庫 |M| = {MEMORY_CAPACITY}**（schema v2，最壞情況）："
+              f"**{mb(serialized_bytes(_v2(CANDIDATE_SIZE)) * MEMORY_CAPACITY)}**", "",
+              f"換句話說，**整個記憶庫（512 筆）約等於 "
+              f"{serialized_bytes(_v2(CANDIDATE_SIZE)) * MEMORY_CAPACITY / rec(mean_all):.0%} "
+              f"張 slide 的特徵**（{mb(serialized_bytes(_v2(CANDIDATE_SIZE)) * MEMORY_CAPACITY)} "
+              f"vs 一張 {mb(rec(mean_all))}）—— 連一張都不到。"
+              "這是「不存 feature，只存 key + index」這個設計的量化理由。", "",
+              f"對照另一個尺度：四個 task 全部 {len(allN):,} 張 slide 的特徵合計 "
+              f"**{sum(rec(n) for n in allN) / 1024**3:.1f} GB**；"
+              f"記憶庫是其中的 {serialized_bytes(_v2(CANDIDATE_SIZE)) * MEMORY_CAPACITY / sum(rec(n) for n in allN):.2%}。", ""]
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(L) + "\n")

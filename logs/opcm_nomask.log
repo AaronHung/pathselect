@@ -1,0 +1,80 @@
+═══ OPCM seed=0 order=reverse arch=flat mask=False
+    ── stage 0: OPCM-nomask(Δ[0..0])  ‖Δθ̃‖=0.6695
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+    ── stage 1: OPCM-nomask(Δ[0..1])  ‖Δθ̃‖=1.4710
+       eval tcga_esca  class-IL=0.6000 task-IL=0.8000
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+    ── stage 2: OPCM-nomask(Δ[0..2])  ‖Δθ̃‖=1.3936
+       eval tcga_esca  class-IL=0.6000 task-IL=0.8000
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9342
+       eval tcga_brca  class-IL=0.5591 task-IL=0.8925
+    ── stage 3: OPCM-nomask(Δ[0..3])  ‖Δθ̃‖=1.4893
+       eval tcga_esca  class-IL=0.6000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+       eval tcga_brca  class-IL=0.4946 task-IL=0.8710
+       eval tcga_lung  class-IL=0.6526 task-IL=0.8211
+    → /Users/aaron/research/02_pathselect/outputs/exp2/sota/per_slide/OPCM-nomask_reverse_seed0_nomask.json
+═══ OPCM seed=1 order=reverse arch=flat mask=False
+    ── stage 0: OPCM-nomask(Δ[0..0])  ‖Δθ̃‖=0.5942
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+    ── stage 1: OPCM-nomask(Δ[0..1])  ‖Δθ̃‖=1.0107
+       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9474
+    ── stage 2: OPCM-nomask(Δ[0..2])  ‖Δθ̃‖=1.0128
+       eval tcga_esca  class-IL=0.5333 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9342
+       eval tcga_brca  class-IL=0.8280 task-IL=0.8602
+    ── stage 3: OPCM-nomask(Δ[0..3])  ‖Δθ̃‖=1.1665
+       eval tcga_esca  class-IL=0.4667 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8387 task-IL=0.8925
+       eval tcga_lung  class-IL=0.7158 task-IL=0.8632
+    → /Users/aaron/research/02_pathselect/outputs/exp2/sota/per_slide/OPCM-nomask_reverse_seed1_nomask.json
+═══ OPCM seed=2 order=reverse arch=flat mask=False
+    ── stage 0: OPCM-nomask(Δ[0..0])  ‖Δθ̃‖=0.6246
+       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+    ── stage 1: OPCM-nomask(Δ[0..1])  ‖Δθ̃‖=0.8564
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9342
+    ── stage 2: OPCM-nomask(Δ[0..2])  ‖Δθ̃‖=0.9618
+       eval tcga_esca  class-IL=0.6000 task-IL=0.8000
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9342
+       eval tcga_brca  class-IL=0.7849 task-IL=0.8602
+    ── stage 3: OPCM-nomask(Δ[0..3])  ‖Δθ̃‖=1.2538
+       eval tcga_esca  class-IL=0.5333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8947 task-IL=0.9737
+       eval tcga_brca  class-IL=0.7419 task-IL=0.8710
+       eval tcga_lung  class-IL=0.7158 task-IL=0.8632
+    → /Users/aaron/research/02_pathselect/outputs/exp2/sota/per_slide/OPCM-nomask_reverse_seed2_nomask.json
+═══ OPCM seed=3 order=reverse arch=flat mask=False
+    ── stage 0: OPCM-nomask(Δ[0..0])  ‖Δθ̃‖=0.3536
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+    ── stage 1: OPCM-nomask(Δ[0..1])  ‖Δθ̃‖=0.7580
+       eval tcga_esca  class-IL=0.8000 task-IL=1.0000
+       eval tcga_rcc   class-IL=0.9605 task-IL=0.9605
+    ── stage 2: OPCM-nomask(Δ[0..2])  ‖Δθ̃‖=0.9300
+       eval tcga_esca  class-IL=0.4000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9474
+       eval tcga_brca  class-IL=0.8172 task-IL=0.8602
+    ── stage 3: OPCM-nomask(Δ[0..3])  ‖Δθ̃‖=1.1058
+       eval tcga_esca  class-IL=0.4000 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8158 task-IL=0.8816
+       eval tcga_brca  class-IL=0.5806 task-IL=0.8387
+       eval tcga_lung  class-IL=0.8632 task-IL=0.8842
+    → /Users/aaron/research/02_pathselect/outputs/exp2/sota/per_slide/OPCM-nomask_reverse_seed3_nomask.json
+═══ OPCM seed=4 order=reverse arch=flat mask=False
+    ── stage 0: OPCM-nomask(Δ[0..0])  ‖Δθ̃‖=0.6709
+       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+    ── stage 1: OPCM-nomask(Δ[0..1])  ‖Δθ̃‖=1.0338
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8421 task-IL=0.8553
+    ── stage 2: OPCM-nomask(Δ[0..2])  ‖Δθ̃‖=1.0824
+       eval tcga_esca  class-IL=0.6667 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.8421 task-IL=0.8684
+       eval tcga_brca  class-IL=0.7957 task-IL=0.8495
+    ── stage 3: OPCM-nomask(Δ[0..3])  ‖Δθ̃‖=1.2391
+       eval tcga_esca  class-IL=0.7333 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.8684 task-IL=0.9211
+       eval tcga_brca  class-IL=0.8065 task-IL=0.8817
+       eval tcga_lung  class-IL=0.5684 task-IL=0.8000
+    → /Users/aaron/research/02_pathselect/outputs/exp2/sota/per_slide/OPCM-nomask_reverse_seed4_nomask.json

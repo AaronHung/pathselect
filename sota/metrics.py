@@ -20,22 +20,29 @@
   （原註解 `# mask irrelevant logits`）—— 先把 logits 切到該任務自己的類別再
   argmax，等同本 repo 的 task-IL。基準論文明講它是 "for reference only"。
 
-* **Forgetting / BWT**（**推得的，非逐字引用**）：論文正文只寫「依
-  (Lopez-Paz and Ranzato 2017; Hayes et al. 2018; Fini et al. 2022)」，
-  **沒有印出公式**，官方 repo 也只記錄 forgetting 的**過程**（逐 epoch 在舊任務
-  val 上的預測），沒有算純量。因此採用被引文獻的標準式：
+* **BWT** —— 依 **Lopez-Paz & Ranzato (2017)**（GEM, NeurIPS）：
 
-      BWT        = mean_{j < T-1} ( A[T-1][j] - A[j][j] )
+      BWT = mean_{j < T-1} ( A[T-1][j] - A[j][j] )
+
+  基準點是**對角線** `A[j][j]`，即剛學完任務 j 當下的準確率。
+
+* **Forgetting** —— 依 **Chaudhry et al. (2018)**（Riemannian Walk, ECCV）的
+  **max-based** 定義：
+
       Forgetting = mean_{j < T-1} ( max_{l in [j, T-2]} A[l][j] - A[T-1][j] )
 
-  **支持這組式子的證據**（`docs/DR048_PROTOCOL_AUDIT.md` 記錄）：從論文表中抽出
-  28 組 (Forgetting, BWT)，**每一組都滿足 `Forgetting >= |BWT|`，零反例**；其中
-  多數恰好相等，少數明顯分離（最極端者 0.058 vs −0.021）。這正是上式的指紋 ——
-  兩者只差在基準點（`A[j][j]` vs `max_{l>=j} A[l][j]`），故恆有
-  `Forgetting >= -BWT`，並在「學完任務 j 之後準確率還會再上升」時分離。
-  這同時**否證**了「Forgetting 直接定義為 −BWT」的簡化讀法。
+  基準點是**最終階段之前的峰值**，不是對角線。這是它與 `-BWT` 唯一的差別。
 
-  ⚠️ 這是推論。若日後取得作者的公式或原始碼，須回來核對本檔。
+  ⚠️ 出處由 PI 裁定（Prompt 6 裁定 3）。基準論文正文只寫「依
+  (Lopez-Paz and Ranzato 2017; Hayes et al. 2018; Fini et al. 2022)」而
+  **沒有印出公式**，官方 repo 也只記錄 forgetting 的**過程**（逐 epoch 在舊任務
+  val 上的預測）、沒有算純量 —— 因此無法逐行核對對方的實作，只能依原始文獻。
+
+  **與基準論文數字的一致性佐證**：從其論文表抽出 28 組 (Forgetting, BWT)，
+  **每一組都滿足 `Forgetting >= |BWT|`，零反例**；多數恰好相等，少數明顯分離
+  （最極端者 ConSlide 的 0.058 vs -0.021）。這正是上面兩式的指紋 ——
+  基準點不同故恆有 `Forgetting >= -BWT`，並在「學完任務 j 之後準確率還會再上升」
+  時分離，同時**否證**了「Forgetting 直接定義為 -BWT」的簡化讀法。
 
 * **Upper-bound Ratio**：需要 JointTrain 上界，本 repo 沒有跑，
   一律回報 `None`（不猜、不用別的東西代替）。

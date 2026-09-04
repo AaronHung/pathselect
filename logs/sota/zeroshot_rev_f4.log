@@ -1,0 +1,24 @@
+═══ zero-shot meanpool fold=4 seed=4 order=reverse
+    stage 0  tcga_esca  class-IL=0.5625 task-IL=0.8125
+    stage 1  tcga_esca  class-IL=0.5625 task-IL=0.8125
+    stage 1  tcga_rcc   class-IL=0.8077 task-IL=0.8077
+    stage 2  tcga_esca  class-IL=0.5625 task-IL=0.8125
+    stage 2  tcga_rcc   class-IL=0.8077 task-IL=0.8077
+    stage 2  tcga_brca  class-IL=0.5426 task-IL=0.6383
+    stage 3  tcga_esca  class-IL=0.5625 task-IL=0.8125
+    stage 3  tcga_rcc   class-IL=0.8077 task-IL=0.8077
+    stage 3  tcga_brca  class-IL=0.5426 task-IL=0.6383
+    stage 3  tcga_lung  class-IL=0.7946 task-IL=0.8214
+    → /Users/aaron/research/02_pathselect/outputs/exp2/sota/per_slide/ZS-mean_reverse_seed4_f4.json
+═══ zero-shot rand8 fold=4 seed=4 order=reverse
+    stage 0  tcga_esca  class-IL=0.5000 task-IL=0.7500
+    stage 1  tcga_esca  class-IL=0.5000 task-IL=0.7500
+    stage 1  tcga_rcc   class-IL=0.8462 task-IL=0.8718
+    stage 2  tcga_esca  class-IL=0.5000 task-IL=0.7500
+    stage 2  tcga_rcc   class-IL=0.8462 task-IL=0.8718
+    stage 2  tcga_brca  class-IL=0.5319 task-IL=0.6383
+    stage 3  tcga_esca  class-IL=0.5000 task-IL=0.7500
+    stage 3  tcga_rcc   class-IL=0.8462 task-IL=0.8718
+    stage 3  tcga_brca  class-IL=0.5319 task-IL=0.6383
+    stage 3  tcga_lung  class-IL=0.7143 task-IL=0.7589
+    → /Users/aaron/research/02_pathselect/outputs/exp2/sota/per_slide/ZS-rand8_reverse_seed4_f4.json
