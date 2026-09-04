@@ -13,7 +13,18 @@ Forgetting 與 BWT 必然為 0。這不是「不遺忘的好方法」，而是�
 `docs/SOTA_TABLE.md` 必須把它標成參照線而不是 CL 方法。
 
 輸出的 per_slide 欄位與 `scripts/run_exp2.py` 的 `evaluate` 對齊，
-好讓 `sota/metrics.py` 直接吃。
+好讓 `sota/metrics.py` 直接吃。每筆都帶 `pooling` 欄位（`"all"` / `"random"`）
+明講這一筆是怎麼來的。
+
+⚠️ **`meanpool` 不帶 `B` / `selected_idx` / `weights_*`**，理由有兩層：
+
+1. **語意**：它沒有預算，也沒有做選取 —— 整張 slide 一起彙總。
+   `tests/test_per_slide_records.py` 正是以「有沒有 `B`」判定一份存檔算不算
+   選取類評估，並註明沒有 patch 選取這回事的只需滿足 REQUIRED。
+2. **量體**：曾經照抄選取類的欄位寫過一版，`selected_idx` 就是 `range(n)`、
+   權重是 n 份相同的數，**單折 57 MB**（n 最大到 8466），十折 570 MB 全是冗餘；
+   而且 `round(1/n, 6)` 在 n 幾千時累積誤差達 1.7e-3，權重根本歸不了一
+   （被上面那條測試抓到）。`n_patch` + `pooling` 已經完整說明了發生什麼事。
 """
 from __future__ import annotations
 
@@ -37,6 +48,8 @@ from selector.utility import sequential_utility_total                   # noqa: 
 #: 與 `scripts/run_exp2.py` 同一個根，好讓 SOTA 主表只讀一個目錄
 OUT_ROOT = ROOT / "outputs" / "exp2"
 VARIANTS = {"meanpool": "ZS-mean", "rand8": "ZS-rand8"}
+#: 記錄裡的 `pooling` 欄位 —— 明講這一筆是「全部彙總」還是「抽樣選取」
+POOLING = {"meanpool": "all", "rand8": "random"}
 
 
 def select(variant: str, n_patch: int, budget: int,
@@ -64,23 +77,26 @@ def evaluate_task(ctx, task: str, variant: str, order_name: str, seed: int,
         quota = [0] * NUM_GROUPS
         for j in grp.assignment.index_select(0, idx).tolist():
             quota[j] += 1
-        out.append({
+        r = {
             "arm": arm, "order": order_name, "seed": seed, "stage": stage,
             "task": task, "slide_id": rec.sid, "true": rec.label,
             "pred_class_il": int(logits.argmax()),
             "pred_task_il": lo + int(logits[lo:lo + 2].argmax()),
             "pred_softmax": int(logits.argmax()),
-            "selected_idx": idx.tolist(),
-            "weights_softmax": [round(1.0 / idx.numel(), 6)] * idx.numel(),
-            "weights_uniform": [round(1.0 / idx.numel(), 6)] * idx.numel(),
-            "group_quota": quota, "n_patch": n,
+            "group_quota": quota, "n_patch": n, "pooling": POOLING[variant],
             "mem_capacity": args.mem_capacity or MEMORY_CAPACITY,
             "arch": args.arch, "prior": args.prior,
             "allocation": args.allocation, "fold": args.fold,
             "utility_total": sequential_utility_total(rec.Z, idx, ctx.f_txt,
                                                       ctx.logit_scale, rec.label),
-            "B": idx.numel(),
-        })
+        }
+        if variant != "meanpool":
+            # 有預算才算「選取類評估」：`tests/test_per_slide_records.py` 以
+            # `B` 欄位的有無判定，沒有 B 的只需滿足 REQUIRED。
+            r |= {"B": idx.numel(), "selected_idx": idx.tolist(),
+                  "weights_softmax": [round(1.0 / idx.numel(), 6)] * idx.numel(),
+                  "weights_uniform": [round(1.0 / idx.numel(), 6)] * idx.numel()}
+        out.append(r)
     return out
 
 

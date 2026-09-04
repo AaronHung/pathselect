@@ -13,6 +13,17 @@ bash scripts/jobwatch.sh -f     # 快照 + 即時跟著現在這一步（Ctrl-C 
 ```
 
 `-f` 的 Ctrl-C 只停掉 `tail`，**不會動到 job**。
+`-f` 會在佇列跳到下一折時**自動換到新的 log**（見下面第 5 點）。
+
+快照最重要的一行是 **log 的新鮮度**：
+
+```
+目前這個 run：logs/sota/A5_flat_rev_f10.log
+   ✅ 正在寫（18 秒前）
+```
+
+✅ = 活著、🟡 = 5–20 分沒動（可能在跑長 epoch）、🔴 = 20 分以上沒動（要查）。
+**這一行就是「job 還在不在」的答案**，不用去猜。
 
 ## 手動版
 
@@ -20,13 +31,14 @@ bash scripts/jobwatch.sh -f     # 快照 + 即時跟著現在這一步（Ctrl-C 
 |---|---|
 | 還活著嗎 | `pgrep -f sota_queue.sh` |
 | 跑到第幾步 | `tail -3 logs/sota_queue.log` |
-| 這一步在做什麼 | `tail -f logs/sota/<name>.log` |
+| 這一步在做什麼 | `tail -f "$(/bin/ls -t logs/sota/*.log \| head -1)"` |
+| **log 多久沒動** | `stat -f %Sm -t %H:%M:%S "$(/bin/ls -t logs/sota/*.log \| head -1)"` |
 | 完成幾個產物 | `/bin/ls outputs/exp2/sota/per_slide/ \| wc -l` |
 | 有沒有失敗 | `cat logs/sota/FAILED.txt` |
 | 防睡眠還在嗎 | `pgrep -x caffeinate` |
 | **全部停掉** | `kill -TERM -$(ps -o pgid= -p $(cat logs/sota_queue.pid) \| tr -d ' ')` |
 
-## 四個會咬人的細節
+## 六個會咬人的細節
 
 ### 1. `kill <pid>` 停不乾淨
 
@@ -111,12 +123,56 @@ tail -1 "$(/bin/ls -t logs/sota/*.log | head -1)"  # ✅
 **寫腳本一律用 `/bin/ls`**（腳本裡不會載入 `.zshrc` 的別名，但手打指令會，
 一旦把手打的內容貼進腳本就會踩到，所以乾脆統一）。
 
+### 5. 每一步是不同的 log 檔，`tail -f` 固定檔名會騙你
+
+佇列每跑完一折就換下一個檔：`A5_flat_rev_f1.log`、`f2.log`、`f3.log`……
+如果你 `tail -f logs/sota/A5_flat_rev_f2.log`，在 fold 2 跑完之後那個檔案
+**再也不會有新內容**，畫面就此凝固 —— 看起來跟 job 掛掉一模一樣。
+
+正確：永遠取「最新的那一個」，或直接用 `jobwatch.sh -f`（它會自動換）。
+
+```bash
+tail -f "$(/bin/ls -t logs/sota/*.log | head -1)"   # 取當下最新
+bash scripts/jobwatch.sh -f                          # 會自動跟著換，推薦
+```
+
+### 6. 腳本裡 `$VAR` 後面接全形字要寫 `${VAR}`
+
+```bash
+echo "跟著 $CUR（Ctrl-C 離開）"     # ❌ set -u 下報 CUR<byte>: unbound variable
+echo "跟著 ${CUR}（Ctrl-C 離開）"   # ✅
+```
+
+bash 會把全形括號的位元組併進變數名。這個 repo 的腳本註解與訊息都是中文，
+很容易踩到，**一律加大括號**。
+
 ## Activity Monitor 看得到嗎
 
 看得到「有沒有在跑」，看不到「跑到哪一折」。
 
-* 搜尋 **`python`** → 會看到一個 CPU 約 100%、記憶體數 GB 的 `python`。
-  這是**目前這一步**的 `run_exp2.py`，每完成一折就換一個新的（pid 會變）。
+**先把欄位開出來**：預設視窗可能只顯示 `Process Name` 一欄，
+連 %CPU 都看不到。選單 **View → Columns → 勾 `% CPU`**（或把視窗拉寬），
+再點 **%CPU** 標頭排序（點兩下變降冪）。
+
+* 搜尋 **`python3.12`**（不是 `python`）→ 目前這一步的 `run_exp2.py`，
+  CPU 約 150–180%，每完成一折換一個新的（pid 會變）。
+
+### ⚠️ 「Idle 74%」不代表沒在跑
+
+底部那三個數字是**全機 10 核加總**的百分比：
+
+| | |
+|---|---|
+| python 實測 | 173% ＝ 1.73 個核心滿載 |
+| 換算全機 | 173 ÷ 10 = **17.3%** |
+| 於是 Idle | 約 **83%** |
+
+一個單行程的訓練**最多也只能吃掉 1/10 到 2/10 的全機容量**，
+所以 `Idle 70–85%` 跟「job 正在全速跑」完全不矛盾。
+底部的 `User: 19.5%` 那一格**就是**這個 job。
+
+**不要用底部的 Idle 判斷 job 死活** —— 看行程列的 %CPU，或者更直接：
+`bash scripts/jobwatch.sh` 的新鮮度那一行。
 * 搜尋 **`caffeinate`** → 確認防睡眠還在。
 * 搜尋 **`bash`** → 佇列本身，CPU 幾乎 0%（它只負責依序叫 python）。
 

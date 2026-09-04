@@ -75,7 +75,13 @@ fi
 hr
 LATEST=$(/bin/ls -t "$RUNDIR"/*.log 2>/dev/null | head -1)
 if [ -n "${LATEST:-}" ]; then
+  AGE=$(( $(date +%s) - $(stat -f %m "$LATEST") ))
+  if   [ "$AGE" -lt 300 ];  then FRESH="✅ 正在寫（${AGE} 秒前）"
+  elif [ "$AGE" -lt 1200 ]; then FRESH="🟡 ${AGE} 秒沒動 —— 可能在跑長的 epoch，再等等"
+  else                           FRESH="🔴 $((AGE/60)) 分沒動 —— 有問題，往上看 python 還在不在"
+  fi
   echo "目前這個 run：$LATEST"
+  echo "   $FRESH"
   tail -3 "$LATEST" | sed 's/^/   /'
 fi
 
@@ -84,7 +90,27 @@ if [ -s "$RUNDIR/FAILED.txt" ]; then
 fi
 hr
 
-if [ "${1:-}" = "-f" ] && [ -n "${LATEST:-}" ]; then
-  echo "跟著 $LATEST（Ctrl-C 離開，不會影響佇列）"; echo
-  tail -f "$LATEST"
+# ⚠️ 每一步是**不同的 log 檔**。單純 `tail -f <某一檔>` 在佇列跳到下一折之後
+#    會永遠安靜，看起來就像 job 掛了 —— 這裡自動跟著換到最新的那一個。
+# ⚠️ 變數後面接全形字一律寫 ${VAR} —— `"$CUR（…"` 會被 bash 把全形括號的
+#    位元組併進變數名，在 set -u 下報 unbound variable。
+if [ "${1:-}" = "-f" ]; then
+  TAILPID=""
+  cleanup() { [ -n "$TAILPID" ] && kill "$TAILPID" 2>/dev/null; echo; echo "（離開，佇列不受影響）"; exit 0; }
+  trap cleanup INT TERM
+  CUR=""
+  while :; do
+    NEW=$(/bin/ls -t "$RUNDIR"/*.log 2>/dev/null | head -1)
+    if [ -n "$NEW" ] && [ "$NEW" != "$CUR" ]; then
+      [ -n "$TAILPID" ] && kill "$TAILPID" 2>/dev/null
+      CUR="$NEW"
+      echo; echo "═══ 跟著 ${CUR}（Ctrl-C 離開，不影響佇列）═══"
+      tail -n 5 -f "$CUR" & TAILPID=$!
+    fi
+    sleep 10
+    if ! pgrep -f sota_queue.sh > /dev/null; then
+      sleep 3; kill "$TAILPID" 2>/dev/null
+      echo; echo "═══ 佇列已結束 ═══"; break
+    fi
+  done
 fi
