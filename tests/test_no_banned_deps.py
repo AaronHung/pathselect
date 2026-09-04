@@ -41,6 +41,11 @@ EXEMPT: dict[str, dict[str, str]] = {
     "third_party/conch/PROVENANCE.md": {
         "qpmil": "來源查核紀錄：必須指名才能陳述『QPMIL 沒有改過 CONCH 原始碼』",
     },
+    "scripts/audit_benchmark_protocol.py": {
+        "qpmil": "DR-048 協定稽核：必須指名才能陳述『本機切分與 QPMIL-VL 官方協定的差異』。"
+                 "本檔**只記錄其設定值**（路徑格式、fold 數、任務順序、標籤位移），"
+                 "不引入任何 QPMIL 程式碼、不 import 其模組。",
+    },
     "scripts/v9_reference.py": {
         "qpmil": "唯讀存檔讀取器：說明 v9 側的對照條件",
         "zeronav": "reference/v9 存檔 JSON 的既有 key 名，讀它就得指名",
