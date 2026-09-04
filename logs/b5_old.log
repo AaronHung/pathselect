@@ -1,0 +1,26 @@
+Exp2  arms=['A5']  order=reverse  seeds=[0]  B=8 c=1 epochs=1 arch=flat alloc=per_budget prior=discriminative beta_u=0.1 replay_k=1 λ=(1.0,1.0,1.0)
+  ▶ A5 (Ours (Replay+KD+eq)) seed=0
+    ── stage 0: tcga_esca
+      epoch 1/1 n=120 mean_loss=0.5796
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=0.8667 task-IL=1.0000
+    ── stage 1: tcga_rcc
+      epoch 1/1 n=616 mean_loss=0.6518
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9605 task-IL=0.9605
+    ── stage 2: tcga_brca
+      epoch 1/1 n=763 mean_loss=1.2606
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.7333 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9211 task-IL=0.9605
+       eval tcga_brca  class-IL=0.8387 task-IL=0.8925
+    ── stage 3: tcga_lung
+      epoch 1/1 n=774 mean_loss=1.8131
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.3333 task-IL=0.8000
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9342
+       eval tcga_brca  class-IL=0.7634 task-IL=0.8710
+       eval tcga_lung  class-IL=0.8211 task-IL=0.8526
+
+→ /Users/aaron/research/02_pathselect/outputs/exp2/b5_old/EXP2.md

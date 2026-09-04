@@ -289,6 +289,9 @@ def write_report(blocks, arch_order, check_lines):
     L = ["# DR-046 — 離線 CL 指標表", "",
          f"來源：`outputs/exp2/main/per_slide/*.json`（order = **{ORDER}**，"
          f"B=8、c=1、\\|M\\|=512）。**純重算，未訓練、未改動任何結果檔。**", "",
+         "⚠️ **不可與 [`docs/SOTA_TABLE.md`](SOTA_TABLE.md) 混讀**（DR-048 PI 裁定 2）："
+         "本表是 **fold 1 上的 5 個 model seed**，SOTA 表是 **10 折、每折一個 run、"
+         "seed = 折號**。兩者的 ± 量的是不同的隨機來源，並排比較沒有意義。", "",
          "⚠️ **flat 與 hier 分表**（PI 裁定）：同一個臂在兩種架構下是**兩個實驗**，"
          "混在一起會讓 `arm_metrics` 把兩批 (arm, seed) 疊起來算。缺 `arch` 欄位的"
          "舊記錄視為 flat —— 該欄位是 commit `e6d13df` 才加入的，而 `main` tag "

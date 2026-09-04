@@ -66,7 +66,7 @@
 | [046](DR-046.md) | CL 消融 Phase 0/A：測試對照組照准；ΔUtility 取代比值 | ACTIVE | 自建測試對照組允許、改 production 須先問；utility 會變號故比值不可讀 |
 
 | [047](DR-047.md) | replay 預算與記憶庫 policy 的敏感度（選配未跑） | PARKED | 依 PI 工作清單 C6/F12 與 Review 手冊補位；擱置至擴充版 |
-| [048](DR-048.md) | SOTA 主表：QPMIL-VL 協定下只跑我方方法 | PARKED | 協定稽核完成；順序與平均對象兩處不同，待 PI 裁定後才啟動佇列 |
+| [048](DR-048.md) | SOTA 主表：QPMIL-VL 協定下只跑我方方法 | ACTIVE | PI 裁定：order=reverse（其 Tab. 2）、10 折 seed=fold、訓練設定維持我方；B 段完成，佇列啟動 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

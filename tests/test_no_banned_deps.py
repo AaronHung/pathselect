@@ -1,7 +1,8 @@
 """方法程式不得與 QPMIL（或其舊命名）有任何相依。
 
-指導教授已否決 QPMIL：selector/ data/ scripts/ configs/ 底下不得再出現該方法的
-任何識別字，舊的 ZeroNav / Router 命名也一併淘汰。
+指導教授已否決 QPMIL：selector/ data/ scripts/ configs/ sota/ 底下不得再出現該方法的
+任何識別字（`sota/` 於 DR-048 加入 —— PI 紅線「sota/ 內亦不得引入 QPMIL 程式碼，
+只能讀其切分／manifest 檔」在此之前沒有被任何測試強制），舊的 ZeroNav / Router 命名也一併淘汰。
 
 third_party/ 也一起掃：那裡是 CONCH text tower 的原樣複製，必須確認它沒有夾帶
 任何舊方法的東西（實測四個 vendored 檔案含 BPE 詞表都零命中）。"conch" 是模型
@@ -19,7 +20,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SCANNED_DIRS = ("selector", "data", "scripts", "configs", "third_party")
+SCANNED_DIRS = ("selector", "data", "scripts", "configs", "third_party", "sota")
 SCANNED_SUFFIXES = {".py", ".yaml", ".yml", ".json", ".sh", ".toml", ".cfg", ".md"}
 
 # 舊方法（QPMIL）的識別字 + 已淘汰的舊命名。大小寫不敏感。

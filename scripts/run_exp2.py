@@ -281,7 +281,7 @@ def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
             "group_quota": quota, "n_patch": int(rec.Z.shape[0]),
             "mem_capacity": args.mem_capacity or MEMORY_CAPACITY,
             "arch": args.arch, "prior": args.prior,
-            "allocation": args.allocation,
+            "allocation": args.allocation, "fold": args.fold,
             "utility_total": u_total, "B": args.budget,
             **(diag or {}),
         })
@@ -508,12 +508,17 @@ def main() -> int:
                          "per_chunk = 舊版，c=1 時會退化為單組")
     ap.add_argument("--arch", choices=list(ARCH), default=DEFAULT_ARCH,
                     help="flat = 只用 Patch Selector；hier = Group → 配額 → Patch")
+    ap.add_argument("--fold", type=int, default=1,
+                    help="資料切分折號（外部基準協定為 1..10，見 docs/DR048_PROTOCOL_AUDIT.md）。"
+                         "預設 1 與加入本旗標前位元等價：cfg['fold'] 本來就是 1，"
+                         "且產物檔名只有 fold != 1 時才加後綴。")
     ap.add_argument("--tag", default="main")
     ap.add_argument("--no-resume", action="store_true")
     ap.add_argument("--report-only", action="store_true")
     args = ap.parse_args()
 
     cfg = load_config()
+    cfg["fold"] = args.fold          # selector/evaluate.py 由 cfg["fold"] 取切分檔
     arms = [a.strip() for a in args.arms.split(",") if a.strip()]
     seeds = [int(x) for x in args.seeds.split(",")]
     out_dir = OUT_ROOT / args.tag
@@ -537,6 +542,8 @@ def main() -> int:
     for arm in arms:
         for seed in seeds:
             suffix = f"_M{args.mem_capacity}" if args.mem_capacity else ""
+            if args.fold != 1:
+                suffix += f"_f{args.fold}"      # fold 1 不加 → 既有產物檔名不變
             if args.arch != DEFAULT_ARCH:
                 suffix += f"_{args.arch}"
             if args.prior != MAINLINE_PRIOR:
