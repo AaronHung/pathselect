@@ -19,6 +19,7 @@
 | `docs/` | 治理層：`CONSTITUTION.md`（跨實驗規則）、`CLAIMS.md`（可/不可宣稱）、`ledger/`（DR-001..042、GRAVEYARD、SEEDS） | 寫作與決策 |
 | `outputs/` | 所有實驗產物：逐 slide JSON、報告 md、log、`_status/` job 狀態、`cache/` 文字特徵快取 | 報告腳本重算來源 |
 | `reference/` | v9 唯讀存檔（`SHA256SUMS.txt` 凍結）：skill bank、eval JSON、conch 相關 | `run_exp0_baselines.py`、`verify_v9_delta.py`（只讀） |
+| `docs/JOBWATCH.md` | 從新終端機看長跑 job 的 SOP（`scripts/jobwatch.sh`、process group 的停法、`pgrep -f` vs `-x`、Activity Monitor 看得到什麼） | 人 |
 | `sota/` | DR-048 的 SOTA 協定線：指標（`metrics.py`）、正交投影合併（`opcm.py`）、zero-shot 參照線（`zeroshot.py`）、主表（`report_sota.py`）。**與 DR-046 的產物分表**，協定不同不可混讀 | `scripts/sota_queue.sh` |
 | `third_party/` | vendored 的 CONCH 推論程式（`conch/`） | `selector/text_encoder.py` |
 
