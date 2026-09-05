@@ -118,12 +118,72 @@ def _provenance(runs: list[tuple[int, int]]) -> str:
 #: 逐折配對比較（PI 指定，Prompt 7-4）。(名稱, A 的 key, B 的 key)
 #: key = (arm, arch, order)。一律報 **A − B**。
 PAIRS = [("hier − flat（A5, reverse）", ("A5", "hier", "reverse"), ("A5", "flat", "reverse")),
+         ("hier − flat（A5, forward）", ("A5", "hier", "main"), ("A5", "flat", "main")),
          ("A5 − A3（flat, reverse）",   ("A5", "flat", "reverse"), ("A3", "flat", "reverse")),
          ("A5 − A1（flat, reverse）",   ("A5", "flat", "reverse"), ("A1", "flat", "reverse"))]
 
 #: 配對只報這三軸（PI 指定）。(key, 顯示名, 越大越好)
 PAIR_METRICS = [("acc", "ACC", True), ("masked_acc", "Masked ACC", True),
                 ("forgetting", "Forgetting", False)]
+
+
+# ── 消融協定的配對（DR-046：fold 1、seed 0–4）────────────────────────────────
+#
+# ⚠️ 這一組與上面的 10 折配對**協定不同、不可混讀**，所以分成獨立小節。
+# 它跨兩個目錄：`A5` / `C1` 在 DR-046 的 `outputs/exp2/main/`，
+# `OPCM` 兩版在 `outputs/exp2/sota/`。稿件引用的正是這一組差值，
+# 之前沒有任何產物記錄它們（`verify_doc_numbers` 因此判定溯源失敗）。
+
+ABLATION_SEEDS = [0, 1, 2, 3, 4]
+ABLATION_FOLD = 1
+
+#: 標籤 → (哪個 tag 的目錄, arm, arch, order)
+ABLATION_ARMS = {
+    "full method (A5)":  ("main", "A5", "flat", "reverse"),
+    "plain summation (C1)": ("main", "C1", "flat", "reverse"),
+    "OPCM":              ("sota", "OPCM", "flat", "reverse"),
+    "OPCM-nomask":       ("sota", "OPCM-nomask", "flat", "reverse"),
+}
+ABLATION_PAIRS = [("full method (A5)", "OPCM"),
+                  ("OPCM", "plain summation (C1)"),
+                  ("OPCM-nomask", "plain summation (C1)")]
+
+
+def ablation_runs(root: Path) -> dict:
+    """`{標籤: {seed: records}}`，只取 fold 1 的 seed 0–4。"""
+    cache, out = {}, {}
+    for label, (tag, arm, arch, order) in ABLATION_ARMS.items():
+        if tag not in cache:
+            cache[tag] = load_runs(root / "outputs" / "exp2" / tag / "per_slide",
+                                   list(ORDERS))
+        rr = cache[tag].get((arm, arch, order), {})
+        got = {s: recs for (f, s), recs in rr.items()
+               if f == ABLATION_FOLD and s in ABLATION_SEEDS}
+        if got:
+            out[label] = got
+    return out
+
+
+def ablation_paired(runs: dict, a: str, b: str) -> list[dict]:
+    """同 seed 配對。回傳與 `paired` 相同的結構。"""
+    ra, rb = runs.get(a, {}), runs.get(b, {})
+    tasks = ORDERS["reverse"]
+    out = []
+    for key, lab, higher in PAIR_METRICS:
+        d = []
+        for s in sorted(set(ra) & set(rb)):
+            try:
+                va, vb = all_metrics(ra[s], tasks)[key], all_metrics(rb[s], tasks)[key]
+            except ValueError:
+                continue
+            if va is not None and vb is not None:
+                d.append((s, va - vb))
+        if d:
+            vals = [x for _s, x in d]
+            out.append({"label": lab, "n": len(vals), "higher": higher,
+                        "better": sum((x > 0) if higher else (x < 0) for x in vals),
+                        "mean": statistics.mean(vals), "per_seed": d})
+    return out
 
 
 def paired(runs: dict, ka, kb) -> list[dict]:
@@ -234,6 +294,27 @@ def main(argv=None) -> int:
                      f"**{r['mean']:+.4f}** | **{r['better']}/{r['n']}** |")
         L += [""]
 
+    # ── 消融協定的配對（DR-046：fold 1、seed 0–4）──────────────────────────
+    abl = ablation_runs(ROOT)
+    L += ["### 消融協定下的配對（**fold 1、seed 0–4**，不是 10 折）", "",
+          "⚠️ **與上面的 10 折配對協定不同，不可混讀。** 這一組跨兩個目錄："
+          "`A5` / `C1` 在 DR-046 的 `outputs/exp2/main/`，`OPCM` 兩版在 "
+          "`outputs/exp2/sota/`；OPCM 只在這個協定下存在（它吃 C 臂的 delta 快取）。", "",
+          "同 seed 配對，報均值差（百分點）與 k/5。方向同上（Forgetting 越小越佳）。", ""]
+    for a, b in ABLATION_PAIRS:
+        rows = ablation_paired(abl, a, b)
+        L += [f"**{a} − {b}**", ""]
+        if not rows:
+            L += ["⚠️ 缺資料。", ""]
+            continue
+        L += ["| 指標 | 逐 seed 差值（pp） | 均值差（pp） | 前者較佳的 seed 數 |",
+              "|---|---|---|---|"]
+        for r in rows:
+            per = ", ".join(f"{x * 100:+.2f}" for _s, x in r["per_seed"])
+            L.append(f"| {r['label']}{'' if r['higher'] else ' ↓'} | {per} | "
+                     f"**{r['mean'] * 100:+.2f}** | **{r['better']}/{r['n']}** |")
+        L += [""]
+
     L += ["## 外部方法（基準論文 Tab. 2，reverse、10 折）", ""]
     L += [f"* {c}" for c in CAVEATS]
     L += ["* **forward 順序（其 Tab. 1）的外部數字本輪不填** —— "
@@ -259,6 +340,12 @@ def main(argv=None) -> int:
     for title, ka, kb in PAIRS:
         for r in paired(runs, ka, kb):
             print(f"  {title:26s} {r['label']:11s} {r['mean']:+.4f}  {r['better']}/{r['n']}")
+    abl = ablation_runs(ROOT)
+    for a, b in ABLATION_PAIRS:
+        for r in ablation_paired(abl, a, b):
+            if r["label"] == "ACC":
+                print(f"  [消融] {a} − {b}: {r['mean'] * 100:+.2f} pp  "
+                      f"{r['better']}/{r['n']}")
     return 0
 
 
