@@ -1,0 +1,9 @@
+→ /Users/aaron/research/02_pathselect/docs/SOTA_TABLE.md
+  A1        flat  n=10  ACC=0.452 ± 0.071  Forgetting=0.601 ± 0.122
+  A3        flat  n=10  ACC=0.821 ± 0.036  Forgetting=0.114 ± 0.038
+  A5        flat  n=10  ACC=0.830 ± 0.029  Forgetting=0.090 ± 0.043
+  A5        hier  n=10  ACC=0.854 ± 0.044  Forgetting=0.060 ± 0.041
+  OPCM      flat  n=5  ACC=0.709 ± 0.035  Forgetting=0.128 ± 0.082
+  OPCM-nomask flat  n=5  ACC=0.706 ± 0.036  Forgetting=0.132 ± 0.085
+  ZS-mean   flat  n=10  ACC=0.679 ± 0.032  Forgetting=0.000 ± 0.000
+  ZS-rand8  flat  n=10  ACC=0.646 ± 0.025  Forgetting=0.000 ± 0.000

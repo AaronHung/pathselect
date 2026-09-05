@@ -57,3 +57,11 @@ CAVEATS = [
     "因此本表適合讀成「在同一份 benchmark 上各方法各自的絕對水準」，"
     "**不適合**讀成「我們的方法優於／劣於某一列」。",
 ]
+
+
+#: 任務順序的說明。與外部列同一個理由放在本檔 —— 要指名對方論文的表號
+#: 才講得清楚是哪一個順序，而 `sota/` 其他檔案不得出現該識別字。
+ORDER_NOTE = {
+    "reverse": "reverse 順序（其 Tab. 2）",
+    "main": "**forward 順序（QPMIL-VL Tab. 1 forward order）**",
+}

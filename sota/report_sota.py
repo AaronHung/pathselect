@@ -30,7 +30,8 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from run_exp2 import ARMS, DEFAULT_ARCH, ORDERS                      # noqa: E402
-from sota.external_baselines import CAVEATS, CITATION, ROWS         # noqa: E402
+from sota.external_baselines import (CAVEATS, CITATION,              # noqa: E402
+                                     ORDER_NOTE, ROWS)
 from sota.metrics import all_metrics                                 # noqa: E402
 
 OUT = ROOT / "docs" / "SOTA_TABLE.md"
@@ -45,19 +46,29 @@ LABEL = {"OPCM": "OPCM-Merge (adapted, paper Alg. 1)",
 _OPCM_PROTO = "DR-046 協定（fold 1、seed 0–4）—— **不是** 10 折"
 PROTOCOL = {"OPCM": _OPCM_PROTO, "OPCM-nomask": _OPCM_PROTO}
 DEFAULT_PROTOCOL = "SOTA 協定（10 折，seed = 折號）"
+def protocol_of(arm: str, order: str) -> str:
+    base = PROTOCOL.get(arm, DEFAULT_PROTOCOL)
+    return f"{base}；{ORDER_NOTE.get(order, order)}"
 
 METRICS = [("acc", "ACC ↑"), ("masked_acc", "Masked ACC ↑"),
            ("forgetting", "Forgetting ↓"), ("bwt", "BWT ↑")]
 
 
-def load_runs(src: Path, order: str) -> dict:
-    """`{(arm, arch): {(fold, seed): [records]}}`。一個檔案 = 一個 run。"""
+def load_runs(src: Path, orders) -> dict:
+    """`{(arm, arch, order): {(fold, seed): [records]}}`。一個檔案 = 一個 run。
+
+    ⚠️ `order` 進 key —— 不同任務順序是**不同的實驗**，
+    而且 `all_metrics` 要用該 order 自己的 task 序（forward 是
+    LUNG→BRCA→RCC→ESCA），混在一起算出來的準確率矩陣會錯位。
+    """
+    want = {orders} if isinstance(orders, str) else set(orders)
     runs: dict = defaultdict(lambda: defaultdict(list))
     for f in sorted(src.glob("*.json")):
         for r in json.loads(f.read_text()):
-            if r.get("order") != order:
+            o = r.get("order")
+            if o not in want:
                 continue
-            key = (r["arm"], r.get("arch") or DEFAULT_ARCH)
+            key = (r["arm"], r.get("arch") or DEFAULT_ARCH, o)
             runs[key][(r.get("fold", 1), r["seed"])].append(r)
     return runs
 
@@ -104,25 +115,70 @@ def _provenance(runs: list[tuple[int, int]]) -> str:
     return ", ".join(f"fold{f}/seed{s}" for f, s in runs)
 
 
+#: 逐折配對比較（PI 指定，Prompt 7-4）。(名稱, A 的 key, B 的 key)
+#: key = (arm, arch, order)。一律報 **A − B**。
+PAIRS = [("hier − flat（A5, reverse）", ("A5", "hier", "reverse"), ("A5", "flat", "reverse")),
+         ("A5 − A3（flat, reverse）",   ("A5", "flat", "reverse"), ("A3", "flat", "reverse")),
+         ("A5 − A1（flat, reverse）",   ("A5", "flat", "reverse"), ("A1", "flat", "reverse"))]
+
+#: 配對只報這三軸（PI 指定）。(key, 顯示名, 越大越好)
+PAIR_METRICS = [("acc", "ACC", True), ("masked_acc", "Masked ACC", True),
+                ("forgetting", "Forgetting", False)]
+
+
+def paired(runs: dict, ka, kb) -> list[dict]:
+    """同折配對：只取兩邊都有的 fold，逐折相減。"""
+    ra, rb = runs.get(ka, {}), runs.get(kb, {})
+    ta, tb = ORDERS[ka[2]], ORDERS[kb[2]]
+    common = sorted(set(ra) & set(rb))
+    out = []
+    for key, lab, higher in PAIR_METRICS:
+        d = []
+        for rk in common:
+            try:
+                va = all_metrics(ra[rk], ta)[key]
+                vb = all_metrics(rb[rk], tb)[key]
+            except ValueError:
+                continue
+            if va is not None and vb is not None:
+                d.append((rk[0], va - vb))
+        if not d:
+            continue
+        vals = [x for _f, x in d]
+        better = sum((x > 0) if higher else (x < 0) for x in vals)
+        out.append({"label": lab, "n": len(vals), "better": better,
+                    "mean": statistics.mean(vals),
+                    "per_fold": d, "higher": higher})
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--tag", default="sota")
-    ap.add_argument("--order", default="reverse", choices=list(ORDERS))
+    ap.add_argument("--order", default="reverse", choices=list(ORDERS),
+                    help="主順序；forward（`main`）的臂會另列一行，不需分開跑")
+    ap.add_argument("--src", default=None,
+                    help="改讀別的 per_slide 目錄（測試用；預設由 --tag 決定）")
+    ap.add_argument("--out", default=None,
+                    help="改寫到別的路徑（測試用；預設 docs/SOTA_TABLE.md）")
     args = ap.parse_args(argv)
 
-    src = ROOT / "outputs" / "exp2" / args.tag / "per_slide"
+    src = Path(args.src) if args.src else ROOT / "outputs" / "exp2" / args.tag / "per_slide"
+    out = Path(args.out) if args.out else OUT
     if not src.is_dir():
         print(f"⚠️ 沒有 {src} —— 佇列還沒跑出東西")
         return 1
-    tasks = ORDERS[args.order]
-    runs = load_runs(src, args.order)
+    runs = load_runs(src, list(ORDERS))
     if not runs:
-        print(f"⚠️ {src} 裡沒有 order = {args.order} 的記錄")
+        print(f"⚠️ {src} 裡沒有任何可用記錄")
         return 1
 
+    main_tasks = ORDERS[args.order]
     L = ["# SOTA 主表（DR-048）", "",
-         f"任務順序：`{args.order}`＝ {' → '.join(t.replace('tcga_', '').upper() for t in tasks)}"
-         "（對應基準論文 Tab. 2）。", "",
+         f"主順序：`{args.order}`＝ "
+         f"{' → '.join(t.replace('tcga_', '').upper() for t in main_tasks)}"
+         "（對應基準論文 Tab. 2）。**forward 順序的臂另列一行**，"
+         "協定欄逐列標明是哪一個順序。", "",
          "⚠️ **不可與 `docs/DR046_TABLE.md` 混讀。** 該表是 **fold 1 上的 5 個 seed**；"
          "本表是 **10 折、每折一個 run、seed = 折號**。兩者的 ± 量的是不同的東西"
          "（前者只含初始化／順序的隨機性，後者含資料切分的隨機性），"
@@ -144,19 +200,44 @@ def main(argv=None) -> int:
          " | n runs | 協定 | 溯源 |",
          "|---|---|" + "---|" * len(METRICS) + "---|---|---|"]
 
-    for (arm, arch), rr in sorted(runs.items()):
-        a = agg(rr, tasks)
+    #: reverse 在前、forward 在後；其餘照臂名排序
+    order_rank = {args.order: 0}
+    for (arm, arch, order), rr in sorted(
+            runs.items(), key=lambda kv: (order_rank.get(kv[0][2], 1), kv[0][0], kv[0][1])):
+        a = agg(rr, ORDERS[order])          # ⚠️ 用該 order 自己的 task 序
         name = LABEL.get(arm) or (ARMS[arm]["name"] if arm in ARMS else arm)
-        prov = _provenance(a["runs"])
         L.append(f"| {name}（`{arm}`） | `{arch}` | " +
                  " | ".join(cell(a[k]) for k, _lab in METRICS) +
-                 f" | {a['n']} | {PROTOCOL.get(arm, DEFAULT_PROTOCOL)} | `{prov}` |")
+                 f" | {a['n']} | {protocol_of(arm, order)} | `{_provenance(a['runs'])}` |")
         if a["skipped"]:
             L.append(f"| ↳ ⚠️ 未完成、未計入 | | | | | | {len(a['skipped'])} | | "
                      f"`{', '.join(f'fold{f}/seed{s}' for f, s in a['skipped'])}` |")
 
-    L += ["", "## 外部方法（基準論文 Tab. 2，reverse、10 折）", ""]
-    L += [f"* {c}" for c in CAVEATS] + [""]
+    # ── 逐折配對 ────────────────────────────────────────────────────────────
+    L += ["", "## 配對（逐折，同折相減）", "",
+          "只報 **k/10 的折數**與**均值差**，**不貼三級標籤** —— "
+          "DR-020 的三級規則是為 5 個 model seed 校準的，這裡的變異源是**資料切分**，"
+          "沒有重新校準過，套用會是誤用（PI 裁定，Prompt 7-4）。", "",
+          "「較佳折數」的方向：**ACC / Masked ACC 越大越佳、Forgetting 越小越佳** ——"
+          "三軸都以「A 較佳」計數，不是一律數正號。", ""]
+    for title, ka, kb in PAIRS:
+        rows = paired(runs, ka, kb)
+        L += [f"### {title}", ""]
+        if not rows:
+            L += ["⚠️ 缺資料。", ""]
+            continue
+        L += ["| 指標 | 逐折差值（fold 1→10） | 均值差 | A 較佳的折數 |",
+              "|---|---|---|---|"]
+        for r in rows:
+            per = ", ".join(f"{x:+.3f}" for _f, x in r["per_fold"])
+            L.append(f"| {r['label']}{' ↓' if not r['higher'] else ' ↑'} | {per} | "
+                     f"**{r['mean']:+.4f}** | **{r['better']}/{r['n']}** |")
+        L += [""]
+
+    L += ["## 外部方法（基準論文 Tab. 2，reverse、10 折）", ""]
+    L += [f"* {c}" for c in CAVEATS]
+    L += ["* **forward 順序（其 Tab. 1）的外部數字本輪不填** —— "
+          "PI 未指定，腳本不自行從論文擷取。", ""]
     L += ["| 方法 | ACC ↑ | Masked ACC ↑ | Forgetting ↓ | BWT ↑ | 出處 |",
           "|---|---|---|---|---|---|"]
     dash = lambda v: "–" if v is None else v
@@ -168,13 +249,16 @@ def main(argv=None) -> int:
           f"產生：`python sota/report_sota.py --tag {args.tag} --order {args.order}`。"
           f"資料源：`outputs/exp2/{args.tag}/per_slide/*.json`。", ""]
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text("\n".join(L) + "\n")
-    print(f"→ {OUT}")
-    for (arm, arch), rr in sorted(runs.items()):
-        a = agg(rr, tasks)
-        acc_, f_ = a["acc"], a["forgetting"]
-        print(f"  {arm:9s} {arch:5s} n={a['n']}  ACC={cell(acc_)}  Forgetting={cell(f_)}")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(L) + "\n")
+    print(f"→ {out}")
+    for (arm, arch, order), rr in sorted(runs.items()):
+        a = agg(rr, ORDERS[order])
+        print(f"  {arm:12s} {arch:5s} {order:8s} n={a['n']}  ACC={cell(a['acc'])}  "
+              f"Forgetting={cell(a['forgetting'])}")
+    for title, ka, kb in PAIRS:
+        for r in paired(runs, ka, kb):
+            print(f"  {title:26s} {r['label']:11s} {r['mean']:+.4f}  {r['better']}/{r['n']}")
     return 0
 
 
