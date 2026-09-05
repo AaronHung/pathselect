@@ -1,4 +1,4 @@
-% VERSION MAP: v0.5 method-first (09-01) | v0.6 question-first + genealogy (09-03 Fable) | v0.61 narrative-first (09-03 Sol) | v0.7 = Sol spine + Fable body, PI rulings (09-03) | v0.71 = Sol red-team R2 adjudicated (09-03) | v0.8 = SOTA comparison filled (09-05) | v0.81 = PathSelect row = hier, flat as ablation, own A1/A3 rows under comparison protocol, paired 10-fold statistics; OPCM sentence corrected (09-05) | v0.82 = Sol R3 adjudicated: quoted-vs-rerun framing, no parity/SOTA wording, memory storage boundary, controlled-variants block, 2x2 novelty framing (09-06) | v0.83 = PI restructure: main table = 12 quoted + PathSelect only; ablations rebuilt as leave-out narrative; six-question and lifecycle tables removed; codes stripped (09-06) | v0.84 = forward-order results and order-dependent hierarchy reported (09-06)
+% VERSION MAP: v0.5 method-first (09-01) | v0.6 question-first + genealogy (09-03 Fable) | v0.61 narrative-first (09-03 Sol) | v0.7 = Sol spine + Fable body, PI rulings (09-03) | v0.71 = Sol red-team R2 adjudicated (09-03) | v0.8 = SOTA comparison filled (09-05) | v0.81 = PathSelect row = hier, flat as ablation, own A1/A3 rows under comparison protocol, paired 10-fold statistics; OPCM sentence corrected (09-05) | v0.82 = Sol R3 adjudicated: quoted-vs-rerun framing, no parity/SOTA wording, memory storage boundary, controlled-variants block, 2x2 novelty framing (09-06) | v0.83 = PI restructure: main table = 12 quoted + PathSelect only; ablations rebuilt as leave-out narrative; six-question and lifecycle tables removed; codes stripped (09-06)
 \documentclass{article}
 \usepackage{spconf,amsmath,amssymb,graphicx,hyperref}
 \usepackage{booktabs}
@@ -299,7 +299,7 @@ With five seeds, comparisons are paired by seed and accompanied by win counts; 5
 
 \begin{table*}[t]
 \centering\footnotesize
-\caption{\textbf{Comparison under QPMIL-VL's reverse-order splits and evaluation protocol} (ESCA$\rightarrow$RCC$\rightarrow$BRCA$\rightarrow$NSCLC, ten-fold CV, mean$\pm$sd). Published rows are quoted from QPMIL-VL's Table~2 \cite{gou2025qpmil} and were not rerun by us; PathSelect uses the identical public split files and metric definitions, while training implementations and hyperparameters follow each method and are therefore not controlled across papers. Unlike the cited MIL baselines, PathSelect adapts only the evidence selector and keeps the diagnostic pathway frozen, so parameter counts characterize adaptation cost rather than capacity-matched architectures; external rows provide published benchmark context rather than a controlled reimplementation comparison. Buffer sizes in WSIs; PathSelect's Selection Memory holds 512 behavioral snapshots (3.1\,MB, excluding the feature store required for replay). Forward-order results are in Table~\ref{tab:order}.}
+\caption{\textbf{Comparison under QPMIL-VL's reverse-order splits and evaluation protocol} (ESCA$\rightarrow$RCC$\rightarrow$BRCA$\rightarrow$NSCLC, ten-fold CV, mean$\pm$sd). Published rows are quoted from QPMIL-VL's Table~2 \cite{gou2025qpmil} and were not rerun by us; PathSelect uses the identical public split files and metric definitions, while training implementations and hyperparameters follow each method and are therefore not controlled across papers. Unlike the cited MIL baselines, PathSelect adapts only the evidence selector and keeps the diagnostic pathway frozen, so parameter counts characterize adaptation cost rather than capacity-matched architectures; external rows provide published benchmark context rather than a controlled reimplementation comparison. Buffer sizes in WSIs; PathSelect's Selection Memory holds 512 behavioral snapshots (3.1\,MB, excluding the feature store required for replay).}
 \label{tab:sota}
 \begin{tabular}{llccccc}
 \toprule
@@ -350,22 +350,8 @@ $-$ learned selection (frozen head, mean pooling) & $0.679{\pm}.032$ & --- & $0.
 Learned selection is itself meaningful: in a preliminary budget sweep with a learned flat selector (inference only; seven budgets $\times$ four tasks), learned selection beat random selection in all 28 cells and peaked at $B=8$ ($0.8797$ vs.\ $0.6607$).
 Table~\ref{tab:leaveout} then removes one part of PathSelect at a time under the comparison protocol.
 The largest loss comes from removing preservation altogether: fine-tuning only the selector drops ACC from $0.830$ to $0.452$ and raises forgetting from $0.090$ to $0.601$, in every fold on every metric---while still beating full-model fine-tuning under the same splits ($0.234$ in Table~\ref{tab:sota}), so the frozen pathway alone halves the collapse.
-Replay recovers most of the accuracy ($0.821$); distillation and the utility hinge then add $0.8$ ACC points (7/10 folds) and remove $2.4$ forgetting points (8/10); the hierarchy adds $2.5$ ACC points (8/10) and removes $2.9$ forgetting points (7/10) under the canonical reverse order. Under the forward order (QPMIL-VL's Table~1 protocol) the sign flips: the flat selector is better ($0.841$ vs.\ $0.811$ ACC, 9/10 folds; Table~\ref{tab:order}), so the hierarchy's benefit is order-dependent; we retain it as the pre-registered choice on the canonical order and report both.
+Replay recovers most of the accuracy ($0.821$); distillation and the utility hinge then add $0.8$ ACC points (7/10 folds) and remove $2.4$ forgetting points (8/10); the hierarchy adds $2.5$ ACC points (8/10) and removes $2.9$ forgetting points (7/10).
 Without any learned selection the frozen head reaches $0.679$, so the policy contributes $17.5$ points.
-
-\begin{table}[t]
-\centering\footnotesize
-\caption{\textbf{Order robustness} (ten-fold CV ACC, mean$\pm$sd). QPMIL-VL values are reported in \cite{gou2025qpmil} (Tables~1--2). The hierarchical selector is better in the reverse order (8/10 folds) and worse in the forward order (9/10 folds).}
-\label{tab:order}
-\begin{tabular}{lccc}
-\toprule
-Task order & PathSelect (hier.) & PathSelect (flat) & QPMIL-VL (reported) \\
-\midrule
-ESCA$\rightarrow$RCC$\rightarrow$BRCA$\rightarrow$LUNG (reverse) & $0.854{\pm}.044$ & $0.830{\pm}.029$ & $0.859{\pm}.032$ \\
-LUNG$\rightarrow$BRCA$\rightarrow$RCC$\rightarrow$ESCA (forward) & $0.811{\pm}.029$ & $0.841{\pm}.043$ & $0.890{\pm}.021$ \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \begin{table}[t]
 \centering
@@ -444,7 +430,7 @@ Our claims remain bounded.
 The benchmark uses four organ-separated TCGA tasks, one frozen foundation model (CONCH), one main budget ($B=8$), known task boundaries during training, and five seeds.
 The tasks are highly separable (a linear probe separates them at 98.21\%), and explicit task conditioning failed its registered gate, so harder within-organ or mixed-task streams may yield different conclusions.
 PathSelect is also a one-shot evidence-acquisition policy, not a multi-step navigation agent.
-Its task-free shared selector can serve as a foundation for continual evidence-navigation systems, but sequential stateful acquisition is left to future work. The memory is compact but is not claimed to provide a formal privacy guarantee. The hierarchical substrate's advantage is order-dependent (Table~\ref{tab:order}); the preservation mechanism was pre-registered and validated on the canonical reverse order, and its forward-order counterpart is reported as measured.
+Its task-free shared selector can serve as a foundation for continual evidence-navigation systems, but sequential stateful acquisition is left to future work. The memory is compact but is not claimed to provide a formal privacy guarantee.
 
 % -----------------------------------------------------------------------------
 \section{Conclusion}
