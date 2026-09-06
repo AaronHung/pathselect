@@ -1,0 +1,25 @@
+[2026-09-06 06:51:03] ═══ 外部基準重現檢查開始 ═══
+[2026-09-06 06:51:03] clone → /Users/aaron/research/ext/QPMIL-VL
+[2026-09-06 06:51:04] 執行：/opt/miniconda3/bin/python main.py --config --help-probe --help  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=120s）
+[2026-09-06 06:51:09] `--help` returncode=1；輸出尾端：
+Traceback (most recent call last):
+  File "/Users/aaron/research/ext/QPMIL-VL/main.py", line 1, in <module>
+    from utils import get_args, get_config, init, print_config
+  File "/Users/aaron/research/ext/QPMIL-VL/utils/__init__.py", line 1, in <module>
+    from .tools import *
+  File "/Users/aaron/research/ext/QPMIL-VL/utils/tools.py", line 14, in <module>
+    import wandb
+ModuleNotFoundError: No module named 'wandb'
+[2026-09-06 06:51:09]   dataset_root_dir → /Users/aaron/research/can_dataset
+[2026-09-06 06:51:09]   conch_ckpt_path → /Users/aaron/research/01_navipath/checkpoints/conch/pytorch_model.bin
+[2026-09-06 06:51:09] 設定檔已產生：/Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml
+[2026-09-06 06:51:09] ── smoke：reverse、fold 1、1 epoch ──
+[2026-09-06 06:51:09] 執行：/opt/miniconda3/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=5400s）
+[2026-09-06 06:51:12] smoke returncode=1，耗時 0.0 分
+[2026-09-06 06:51:12] ❌ smoke 未通過
+→ /Users/aaron/research/02_pathselect/logs/sota/QPMIL_REPRO_INFEASIBLE.txt
+nfig_smoke.yaml
+[2026-09-06 06:51:09] ── smoke：reverse、fold 1、1 epoch ──
+[2026-09-06 06:51:09] 執行：/opt/miniconda3/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=5400s）
+[2026-09-06 06:51:12] smoke returncode=1，耗時 0.0 分
+[2026-09-06 06:51:12] ❌ smoke 未通過

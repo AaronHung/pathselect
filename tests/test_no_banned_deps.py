@@ -47,6 +47,12 @@ EXEMPT: dict[str, dict[str, str]] = {
                  "本檔**只記錄其設定值**（路徑格式、fold 數、任務順序、標籤位移），"
                  "不引入任何 QPMIL 程式碼、不 import 其模組。",
     },
+    "scripts/repro_baseline_coords.py": {
+        "qpmil": "DR-048 重現檢查的座標（Prompt 10-5）：必須指名才能寫出 clone URL "
+                 "與產物目錄名。本檔是**唯讀**資料模組 —— 不寫檔、不 import 其模組、"
+                 "不含其任何程式碼；clone 目標在 repo 之外且不進版控。"
+                 "實際執行由 scripts/repro_external.py 負責，那一支不含禁用字。",
+    },
     "sota/external_baselines.py": {
         "qpmil": "DR-048 SOTA 主表的外部列：必須指名才能標出處（bibtex key "
                  "`gou2025qpmil`）並說明那些數字是引用而非重算。本檔是**唯讀**"

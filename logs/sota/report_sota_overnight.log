@@ -1,0 +1,34 @@
+→ /Users/aaron/research/02_pathselect/docs/SOTA_TABLE.md
+  A1           flat  main     n=10  ACC=0.529 ± 0.077  Forgetting=0.503 ± 0.100
+  A1           flat  reverse  n=10  ACC=0.452 ± 0.071  Forgetting=0.601 ± 0.122
+  A3           flat  main     n=10  ACC=0.841 ± 0.019  Forgetting=0.064 ± 0.022
+  A3           flat  reverse  n=10  ACC=0.821 ± 0.036  Forgetting=0.114 ± 0.038
+  A5           flat  main     n=10  ACC=0.841 ± 0.043  Forgetting=0.055 ± 0.043
+  A5           flat  reverse  n=10  ACC=0.830 ± 0.029  Forgetting=0.090 ± 0.043
+  A5           hier  main     n=10  ACC=0.811 ± 0.029  Forgetting=0.061 ± 0.040
+  A5           hier  reverse  n=10  ACC=0.854 ± 0.044  Forgetting=0.060 ± 0.041
+  OPCM         flat  reverse  n=5  ACC=0.709 ± 0.035  Forgetting=0.128 ± 0.082
+  OPCM-nomask  flat  reverse  n=5  ACC=0.706 ± 0.036  Forgetting=0.132 ± 0.085
+  ZS-mean      flat  reverse  n=10  ACC=0.679 ± 0.032  Forgetting=0.000 ± 0.000
+  ZS-rand8     flat  reverse  n=10  ACC=0.646 ± 0.025  Forgetting=0.000 ± 0.000
+  hier − flat（A5, reverse）   ACC         +0.0247  8/10
+  hier − flat（A5, reverse）   Masked ACC  +0.0108  8/10
+  hier − flat（A5, reverse）   Forgetting  -0.0294  7/10
+  hier − flat（A5, forward）   ACC         -0.0295  1/10
+  hier − flat（A5, forward）   Masked ACC  -0.0156  4/10
+  hier − flat（A5, forward）   Forgetting  +0.0063  6/10
+  A5 − A3（flat, reverse）     ACC         +0.0082  7/10
+  A5 − A3（flat, reverse）     Masked ACC  -0.0054  4/10
+  A5 − A3（flat, reverse）     Forgetting  -0.0244  8/10
+  A5 − A1（flat, reverse）     ACC         +0.3771  10/10
+  A5 − A1（flat, reverse）     Masked ACC  +0.1023  10/10
+  A5 − A1（flat, reverse）     Forgetting  -0.5112  10/10
+  A5 − A3（flat, forward）     ACC         -0.0004  5/10
+  A5 − A3（flat, forward）     Masked ACC  -0.0055  3/10
+  A5 − A3（flat, forward）     Forgetting  -0.0093  8/10
+  A5 − A1（flat, forward）     ACC         +0.3117  10/10
+  A5 − A1（flat, forward）     Masked ACC  +0.1289  10/10
+  A5 − A1（flat, forward）     Forgetting  -0.4482  10/10
+  [消融] full method (A5) − OPCM: +11.46 pp  5/5
+  [消融] OPCM − plain summation (C1): +1.69 pp  3/5
+  [消融] OPCM-nomask − plain summation (C1): +1.36 pp  4/5

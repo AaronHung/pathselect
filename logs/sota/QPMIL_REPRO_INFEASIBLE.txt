@@ -1,0 +1,20 @@
+時間：2026-09-06 06:51:12
+結論：**重現檢查不可行** —— smoke 未通過（returncode=1，耗時 0.0 分）
+
+本機環境：
+  platform     darwin
+  python       3.12.2
+
+  torch        2.11.0
+  cuda         False
+  mps          True
+
+逐字錯誤／診斷：
+Traceback (most recent call last):
+  File "/Users/aaron/research/ext/QPMIL-VL/main.py", line 1, in <module>
+    from utils import get_args, get_config, init, print_config
+  File "/Users/aaron/research/ext/QPMIL-VL/utils/__init__.py", line 1, in <module>
+    from .tools import *
+  File "/Users/aaron/research/ext/QPMIL-VL/utils/tools.py", line 14, in <module>
+    import wandb
+ModuleNotFoundError: No module named 'wandb'

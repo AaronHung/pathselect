@@ -120,7 +120,9 @@ def _provenance(runs: list[tuple[int, int]]) -> str:
 PAIRS = [("hier − flat（A5, reverse）", ("A5", "hier", "reverse"), ("A5", "flat", "reverse")),
          ("hier − flat（A5, forward）", ("A5", "hier", "main"), ("A5", "flat", "main")),
          ("A5 − A3（flat, reverse）",   ("A5", "flat", "reverse"), ("A3", "flat", "reverse")),
-         ("A5 − A1（flat, reverse）",   ("A5", "flat", "reverse"), ("A1", "flat", "reverse"))]
+         ("A5 − A1（flat, reverse）",   ("A5", "flat", "reverse"), ("A1", "flat", "reverse")),
+         ("A5 − A3（flat, forward）",   ("A5", "flat", "main"),    ("A3", "flat", "main")),
+         ("A5 − A1（flat, forward）",   ("A5", "flat", "main"),    ("A1", "flat", "main"))]
 
 #: 配對只報這三軸（PI 指定）。(key, 顯示名, 越大越好)
 PAIR_METRICS = [("acc", "ACC", True), ("masked_acc", "Masked ACC", True),
