@@ -31,7 +31,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from run_exp2 import ARMS, DEFAULT_ARCH, ORDERS                      # noqa: E402
 from sota.external_baselines import (CAVEATS, CITATION,              # noqa: E402
-                                     ORDER_NOTE, ROWS)
+                                     MAIN_METHOD, ORDER_NOTE,
+                                     REPRO_SUBDIR, ROWS)
 from sota.metrics import all_metrics                                 # noqa: E402
 
 OUT = ROOT / "docs" / "SOTA_TABLE.md"
@@ -135,6 +136,11 @@ PAIR_METRICS = [("acc", "ACC", True), ("masked_acc", "Masked ACC", True),
 # 它跨兩個目錄：`A5` / `C1` 在 DR-046 的 `outputs/exp2/main/`，
 # `OPCM` 兩版在 `outputs/exp2/sota/`。稿件引用的正是這一組差值，
 # 之前沒有任何產物記錄它們（`verify_doc_numbers` 因此判定溯源失敗）。
+
+#: 外部基準「重現檢查」的彙整檔（由 sota/repro_metrics.py 產生）。
+#: 路徑由呼叫端組出來，本檔不寫死外部方法的目錄名。
+REPRO_SUMMARY = (ROOT / "outputs" / "exp2" / "sota"
+                 / REPRO_SUBDIR / "pod" / "summary.json")
 
 ABLATION_SEEDS = [0, 1, 2, 3, 4]
 ABLATION_FOLD = 1
@@ -316,6 +322,52 @@ def main(argv=None) -> int:
             L.append(f"| {r['label']}{'' if r['higher'] else ' ↓'} | {per} | "
                      f"**{r['mean'] * 100:+.2f}** | **{r['better']}/{r['n']}** |")
         L += [""]
+
+    # ── 重現檢查 ────────────────────────────────────────────────────────────
+    if REPRO_SUMMARY.is_file():
+        R = json.loads(REPRO_SUMMARY.read_text())
+        n = R["n"]
+        pub = {r[0]: r for r in ROWS}[MAIN_METHOD]   # (name, acc, forg, bwt, masked)
+        L += [f"## 重現檢查（official code, RunPod 4090, {n} folds）", "",
+              "跑的是**對方公開的實作**（非我們的重寫），reverse 順序、其預設 12 epoch、"
+              "同一份 10 折切分。指標由**它自己輸出的準確率矩陣**"
+              "（`metrics/test_acc.txt`）套**我們統一的定義**算出"
+              "（`sota/repro_metrics.py`），不是它印在畫面上的彙總。", "",
+              "環境與必要改動見 [`docs/repro/`](repro/)。", "",
+              "| 指標 | 重現（本次） | 發表值 | 差 |", "|---|---|---|---|"]
+        for key, lab, idx in (("acc", "ACC ↑", 1), ("masked_acc", "Masked ACC ↑", 4),
+                              ("forgetting", "Forgetting ↓", 2), ("bwt", "BWT ↑", 3)):
+            m, s = R["aggregate"][key]
+            p_s = pub[idx]
+            d = ""
+            if p_s:
+                pv = float(p_s.split("±")[0].replace("−", "-"))
+                d = f"**{m - pv:+.3f}**"
+            L.append(f"| {lab} | {m:.3f} ± {s:.3f} | {p_s or '–'} | {d} |")
+        L += ["", "逐折：", "",
+              "| fold | " + " | ".join(str(k) for k in sorted(R["per_fold"], key=int)) + " |",
+              "|---|" + "---|" * len(R["per_fold"])]
+        for key, lab in (("acc", "ACC"), ("masked_acc", "Masked ACC"),
+                         ("forgetting", "Forgetting")):
+            L.append(f"| {lab} | " + " | ".join(
+                f"{R['per_fold'][k][key]:.3f}"
+                for k in sorted(R["per_fold"], key=int)) + " |")
+        L += [""]
+        if R.get("errors"):
+            L += ["⚠️ 未計入的折：" + "；".join(R["errors"]), ""]
+        L += ["⚠️ **讀這一節必須連帶的限定**：", "",
+              "* 這是**我們**在別的軟硬體上跑它的公開實作，不是作者原始環境的重跑。"
+              "torch 版本（2.4.1 vs 其釘的 1.11）、GPU 型號、numpy 版本都不同。",
+              "* reverse 順序需要**重排 `class_ensemble.json` 的鍵序**才跑得起來 ——"
+              "其 `get_current_ensemble_classes` 依該檔鍵序決定任務順序、不看 config。"
+              "若其發表的 Tab. 2 是用我們沒拿到的另一條路徑產生，這裡的設定就未必等同。",
+              "* 另套用了一道 API 相容修補（`np.long` → `np.int64`，語意等價），"
+              "詳見 [`docs/repro/SHIMS.md`](repro/SHIMS.md)。",
+              "* **裝置一致性對照無法取得**：同折的 CPU 對照在 16 GB 的 Mac 上"
+              "跑到第三個任務即被系統終止（OOM），因此無法分離「裝置」與"
+              "「其餘環境差異」的貢獻。", "",
+              "**因此本節能支持的結論是「在這個環境下，用其公開程式碼與同一份切分，"
+              "得到的數字低於發表值且變異約兩倍」，不能直接讀成「原論文數字有誤」。**", ""]
 
     L += ["## 外部方法（基準論文 Tab. 2，reverse、10 折）", ""]
     L += [f"* {c}" for c in CAVEATS]

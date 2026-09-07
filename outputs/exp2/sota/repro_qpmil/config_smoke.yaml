@@ -1,7 +1,7 @@
 # training setting
 cuda_id: 0 # which gpu to use
 loss_function: cross_entropy # the loss function
-result_dir: results # directory to save results when train
+result_dir: /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil
 task_num: 0 # task num
 epochs: [1, 1, 1, 1]
 bp_every_batch: 16 # mini-batch when train
@@ -24,7 +24,7 @@ dataset_root_dir: /Users/aaron/research/can_dataset
 path_split: /{}/datasplit/fold_{}.npz # the path of data split
 path_feat: /{}/feats-l1-s256_{}/pt_files # the dir path of feat
 path_table: /{}/table/{}_path_subtype_x10_processed.csv # the path of table
-class_ensemble_path: class_ensemble/class_ensemble.json # the path of class ensemble (adapted from CONCH: https://github.com/mahmoodlab/CONCH)
+class_ensemble_path: class_ensemble/class_ensemble_reverse.json
 feat_format: pt # instance features format
 batch_size: 1 # Can only be 1.
 num_workers: 4 # set 0 for debug, default: 4

@@ -65,3 +65,9 @@ ORDER_NOTE = {
     "reverse": "reverse 順序（其 Tab. 2）",
     "main": "**forward 順序（QPMIL-VL Tab. 1 forward order）**",
 }
+
+
+#: 重現檢查產物的子目錄名，以及 `ROWS` 裡「該論文自己的方法」那一列的名稱。
+#: 與外部列同一個理由放本檔 —— 兩者都必須指名，而 `sota/` 其他檔案不得出現該識別字。
+REPRO_SUBDIR = "repro_qpmil"
+MAIN_METHOD = "QPMIL-VL"

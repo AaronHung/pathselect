@@ -31,6 +31,14 @@ PATCH_KEYS = {
     "conch_ckpt_path": "CONCH 權重",
 }
 
+#: ⚠️ 對方的 `utils/tools.py::get_current_ensemble_classes` 是依
+#: `class_ensemble.json` 的**鍵序**累積類別、遇到當前 dataset 才停 ——
+#: 它完全不看 config 的 `dataset_names`。因此任務順序其實**寫死在那個資料檔裡**，
+#: 光改 config 的 `dataset_names` 會讓第一個任務就累積到全部 8 類
+#: （其可訓練的任務向量只有 2 類 → shape mismatch）。
+#: 跑 reverse 必須另備一份鍵序重排的副本。
+CLASS_ENSEMBLE_REVERSE = "class_ensemble/class_ensemble_reverse.json"
+
 #: reverse 順序（其 Tab. 2）的任務序與對應的標籤位移／子型別數。
 REVERSE_DATASET_NAMES = ["tcga_esca", "tcga_rcc", "tcga_brca", "tcga_lung"]
 REVERSE_LABEL_SHIFT = [0, 2, 4, 6]

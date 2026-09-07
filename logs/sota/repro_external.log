@@ -23,3 +23,125 @@ nfig_smoke.yaml
 [2026-09-06 06:51:09] 執行：/opt/miniconda3/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=5400s）
 [2026-09-06 06:51:12] smoke returncode=1，耗時 0.0 分
 [2026-09-06 06:51:12] ❌ smoke 未通過
+[2026-09-07 09:36:22] ═══ 外部基準重現檢查開始 ═══
+[2026-09-07 09:36:22] 已存在，重用：/Users/aaron/research/ext/QPMIL-VL
+[2026-09-07 09:36:22] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config --help-probe --time 20260907-093622 --help  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=120s）
+[2026-09-07 09:36:31] `--help` returncode=2；輸出尾端：
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+usage: main.py [-h] --config CONFIG [--seed SEED] --time TIME
+main.py: error: argument --config/-f: expected one argument
+[2026-09-07 09:36:31]   dataset_root_dir → /Users/aaron/research/can_dataset
+[2026-09-07 09:36:31]   conch_ckpt_path → /Users/aaron/research/01_navipath/checkpoints/conch/pytorch_model.bin
+[2026-09-07 09:36:31]   result_dir → /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil
+[2026-09-07 09:36:31] 設定檔已產生：/Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml
+[2026-09-07 09:36:31] ── smoke：reverse、fold 1、1 epoch ──
+[2026-09-07 09:36:31] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml --time 20260907-093631 --seed 1  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=3000s）
+[2026-09-07 09:36:45] smoke returncode=1，耗時 0.2 分
+[2026-09-07 09:36:45] ❌ smoke 未通過
+[2026-09-07 09:37:53] ═══ 外部基準重現檢查開始 ═══
+[2026-09-07 09:37:53] 已存在，重用：/Users/aaron/research/ext/QPMIL-VL
+[2026-09-07 09:37:53] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config --help-probe --time 20260907-093753 --help  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=120s）
+[2026-09-07 09:37:59] `--help` returncode=2；輸出尾端：
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/torch/jit/_script.py:1643: FutureWarning: `torch.jit.interface` is deprecated. Please use `torch.compile` instead.
+  warnings.warn(
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+usage: main.py [-h] --config CONFIG [--seed SEED] --time TIME
+main.py: error: argument --config/-f: expected one argument
+[2026-09-07 09:37:59]   dataset_root_dir → /Users/aaron/research/can_dataset
+[2026-09-07 09:37:59]   conch_ckpt_path → /Users/aaron/research/01_navipath/checkpoints/conch/pytorch_model.bin
+[2026-09-07 09:37:59]   result_dir → /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil
+[2026-09-07 09:37:59] 設定檔已產生：/Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml
+[2026-09-07 09:37:59] ── smoke：reverse、fold 1、1 epoch ──
+[2026-09-07 09:37:59] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml --time 20260907-093759 --seed 1  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=3000s）
+[2026-09-07 09:38:28] smoke returncode=1，耗時 0.5 分
+[2026-09-07 09:38:28] ❌ smoke 未通過
+[2026-09-07 09:39:13] ═══ 外部基準重現檢查開始 ═══
+[2026-09-07 09:39:13] 已存在，重用：/Users/aaron/research/ext/QPMIL-VL
+[2026-09-07 09:39:13] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config --help-probe --time 20260907-093913 --help  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=120s）
+[2026-09-07 09:39:19] `--help` returncode=2；輸出尾端：
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/torch/jit/_script.py:1643: FutureWarning: `torch.jit.interface` is deprecated. Please use `torch.compile` instead.
+  warnings.warn(
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+usage: main.py [-h] --config CONFIG [--seed SEED] --time TIME
+main.py: error: argument --config/-f: expected one argument
+[2026-09-07 09:39:19]   dataset_root_dir → /Users/aaron/research/can_dataset
+[2026-09-07 09:39:19]   conch_ckpt_path → /Users/aaron/research/01_navipath/checkpoints/conch/pytorch_model.bin
+[2026-09-07 09:39:19]   result_dir → /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil
+[2026-09-07 09:39:19] 設定檔已產生：/Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml
+[2026-09-07 09:39:19] ── smoke：reverse、fold 1、1 epoch ──
+[2026-09-07 09:39:19] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml --time 20260907-093919 --seed 1  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=3000s）
+[2026-09-07 09:39:48] smoke returncode=1，耗時 0.5 分
+[2026-09-07 09:39:48] ❌ smoke 未通過
+[2026-09-07 09:40:08] ═══ 外部基準重現檢查開始 ═══
+[2026-09-07 09:40:08] 已存在，重用：/Users/aaron/research/ext/QPMIL-VL
+[2026-09-07 09:40:08] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config --help-probe --time 20260907-094008 --help  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=120s）
+[2026-09-07 09:40:13] `--help` returncode=2；輸出尾端：
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/torch/jit/_script.py:1643: FutureWarning: `torch.jit.interface` is deprecated. Please use `torch.compile` instead.
+  warnings.warn(
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+usage: main.py [-h] --config CONFIG [--seed SEED] --time TIME
+main.py: error: argument --config/-f: expected one argument
+[2026-09-07 09:40:13]   dataset_root_dir → /Users/aaron/research/can_dataset
+[2026-09-07 09:40:13]   conch_ckpt_path → /Users/aaron/research/01_navipath/checkpoints/conch/pytorch_model.bin
+[2026-09-07 09:40:13]   result_dir → /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil
+[2026-09-07 09:40:13] 設定檔已產生：/Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml
+[2026-09-07 09:40:13] ── smoke：reverse、fold 1、1 epoch ──
+[2026-09-07 09:40:13] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml --time 20260907-094013 --seed 1  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=3000s）
+[2026-09-07 09:40:40] smoke returncode=1，耗時 0.4 分
+[2026-09-07 09:40:40] ❌ smoke 未通過
+[2026-09-07 09:41:13] ═══ 外部基準重現檢查開始 ═══
+[2026-09-07 09:41:13] 已存在，重用：/Users/aaron/research/ext/QPMIL-VL
+[2026-09-07 09:41:13] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config --help-probe --time 20260907-094113 --help  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=120s）
+[2026-09-07 09:41:18] `--help` returncode=2；輸出尾端：
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/torch/jit/_script.py:1643: FutureWarning: `torch.jit.interface` is deprecated. Please use `torch.compile` instead.
+  warnings.warn(
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+usage: main.py [-h] --config CONFIG [--seed SEED] --time TIME
+main.py: error: argument --config/-f: expected one argument
+[2026-09-07 09:41:18]   dataset_root_dir → /Users/aaron/research/can_dataset
+[2026-09-07 09:41:18]   conch_ckpt_path → /Users/aaron/research/01_navipath/checkpoints/conch/pytorch_model.bin
+[2026-09-07 09:41:18]   result_dir → /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil
+[2026-09-07 09:41:18] 設定檔已產生：/Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml
+[2026-09-07 09:41:18] ── smoke：reverse、fold 1、1 epoch ──
+[2026-09-07 09:41:18] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml --time 20260907-094118 --seed 1  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=3000s）
+[2026-09-07 09:42:19] smoke returncode=1，耗時 1.0 分
+[2026-09-07 09:42:19] ❌ smoke 未通過
+[2026-09-07 10:00:34] ═══ 外部基準重現檢查開始 ═══
+[2026-09-07 10:00:34] 已存在，重用：/Users/aaron/research/ext/QPMIL-VL
+[2026-09-07 10:00:34] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config --help-probe --time 20260907-100034 --help  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=120s）
+[2026-09-07 10:00:44] `--help` returncode=2；輸出尾端：
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/torch/jit/_script.py:1643: FutureWarning: `torch.jit.interface` is deprecated. Please use `torch.compile` instead.
+  warnings.warn(
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+usage: main.py [-h] --config CONFIG [--seed SEED] --time TIME
+main.py: error: argument --config/-f: expected one argument
+[2026-09-07 10:00:44]   dataset_root_dir → /Users/aaron/research/can_dataset
+[2026-09-07 10:00:44]   conch_ckpt_path → /Users/aaron/research/01_navipath/checkpoints/conch/pytorch_model.bin
+[2026-09-07 10:00:44]   result_dir → /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil
+[2026-09-07 10:00:44]   class_ensemble_path → class_ensemble/class_ensemble_reverse.json
+[2026-09-07 10:00:44] 設定檔已產生：/Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml
+[2026-09-07 10:00:44] ── smoke：reverse、fold 1、1 epoch ──
+[2026-09-07 10:00:44] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_smoke.yaml --time 20260907-100044 --seed 1  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=5400s）
+[2026-09-07 10:47:27] smoke returncode=0，耗時 46.7 分
+[2026-09-07 10:47:27] 單折推估 561 分（1 epoch 實測 46.7 分 × 12）
+[2026-09-07 10:47:27] ⚠️ 單折推估 561 分 > 預算 90 分 → 依裁定只跑前 1 折 [1]
+[2026-09-07 10:47:27]   dataset_root_dir → /Users/aaron/research/can_dataset
+[2026-09-07 10:47:27]   conch_ckpt_path → /Users/aaron/research/01_navipath/checkpoints/conch/pytorch_model.bin
+[2026-09-07 10:47:27]   result_dir → /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil
+[2026-09-07 10:47:27]   class_ensemble_path → class_ensemble/class_ensemble_reverse.json
+[2026-09-07 10:47:27] 設定檔已產生：/Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_full.yaml
+[2026-09-07 10:47:27] ── fold 1 ──
+[2026-09-07 10:47:27] 執行：/Users/aaron/research/ext/qpmil-repro/bin/python main.py --config /Users/aaron/research/02_pathselect/outputs/exp2/sota/repro_qpmil/config_full.yaml --time 20260907-104727 --seed 1  （cwd=/Users/aaron/research/ext/QPMIL-VL, timeout=7200s）
+[2026-09-07 12:01:16] fold 1 returncode=-15，耗時 73.8 分
+[2026-09-07 12:01:16] ❌ fold 1 失敗：__} is deprecated, please import via timm.layers", FutureWarning)
+/Users/aaron/research/ext/qpmil-repro/lib/python3.12/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+/opt/miniconda3/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 20 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+[2026-09-07 12:01:16] ═══ 結束：完成 0 折 []；失敗 1 折 [1] ═══

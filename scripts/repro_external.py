@@ -93,6 +93,7 @@ def patched_config(fh, repo: Path, work: Path, *, smoke: bool) -> Path | None:
     subs = {
         "dataset_root_dir": cfg["dataset_root_dir"],
         "conch_ckpt_path": cfg["conch_ckpt_path"],
+        "result_dir": str(work),          # 產物落到我們的目錄，不寫進對方 repo
     }
     for key, val in subs.items():
         text, n = re.subn(rf"^{key}:.*$", f"{key}: {val}", text, count=1, flags=re.M)
@@ -100,7 +101,12 @@ def patched_config(fh, repo: Path, work: Path, *, smoke: bool) -> Path | None:
             log(fh, f"⚠️ 設定檔沒有 `{key}`，未覆寫")
         else:
             log(fh, f"  {key} → {val}")
-    # reverse 順序（其 Tab. 2）
+    # reverse 順序（其 Tab. 2）—— 除了 config，還必須換掉 class ensemble 的鍵序
+    text, n = re.subn(r"^class_ensemble_path:.*$",
+                      f"class_ensemble_path: {C.CLASS_ENSEMBLE_REVERSE}",
+                      text, count=1, flags=re.M)
+    log(fh, f"  class_ensemble_path → {C.CLASS_ENSEMBLE_REVERSE}"
+            f"{'' if n else '（⚠️ 未覆寫）'}")
     for key, val in (("dataset_names", C.REVERSE_DATASET_NAMES),
                      ("dataset_label_shift", C.REVERSE_LABEL_SHIFT),
                      ("dataset_subtype_num", C.REVERSE_SUBTYPE_NUM)):
@@ -115,12 +121,17 @@ def patched_config(fh, repo: Path, work: Path, *, smoke: bool) -> Path | None:
     return out
 
 
-def run_entry(fh, repo: Path, cfg_path: Path, extra: list[str], timeout: int):
-    """跑對方的進入點。回傳 (returncode, 秒數, 尾端輸出)。"""
+def run_entry(fh, repo: Path, cfg_path: Path, extra: list[str], timeout: int,
+              python: str | None = None):
+    """跑對方的進入點。回傳 (returncode, 秒數, 尾端輸出)。
+
+    `--time` 是對方的**必填**旗標（`main.py --help` 確認），這裡自動帶上。
+    """
     env = dict(os.environ)
     env["WANDB_MODE"] = "offline"          # 過夜不可能有人去登入
     env["WANDB_SILENT"] = "true"
-    cmd = [sys.executable, C.ENTRY, "--config", str(cfg_path), *extra]
+    cmd = [python or sys.executable, C.ENTRY, "--config", str(cfg_path),
+           "--time", time.strftime("%Y%m%d-%H%M%S"), *extra]
     log(fh, f"執行：{' '.join(cmd)}  （cwd={repo}, timeout={timeout}s）")
     t0 = time.time()
     try:
@@ -140,6 +151,18 @@ def main(argv=None) -> int:
                     help="smoke 的硬性逾時秒數（預設 90 分）")
     ap.add_argument("--fold-timeout", type=int, default=7200)
     ap.add_argument("--folds", default="1,2,3,4,5,6,7,8,9,10")
+    ap.add_argument("--python", default=None,
+                    help="跑對方程式的直譯器（獨立環境的 venv）；預設用本行程的")
+    ap.add_argument("--fold-budget-min", type=float, default=float(C.FOLD_BUDGET_MIN),
+                    help="單折預算（分）。超過就只跑 --folds-over-budget 折")
+    ap.add_argument("--folds-over-budget", type=int, default=3)
+    ap.add_argument("--skip-smoke", type=float, default=None, metavar="EST_MIN",
+                    help="跳過 smoke，直接用給定的單折推估（分）。"
+                         "只在**同一輪已經量過** smoke、要接續跑其餘折時使用；"
+                         "值必須是實測推導的，不得憑空填。")
+    ap.add_argument("--deadline", default=None,
+                    help="不再**開始**新的一折的時刻，格式 YYYY-MM-DDTHH:MM。"
+                         "已開始的那一折會跑完。")
     args = ap.parse_args(argv)
 
     ext_dir = Path(args.ext_dir).expanduser().resolve()
@@ -154,41 +177,60 @@ def main(argv=None) -> int:
         if repo is None:
             return infeasible("clone 失敗", "見 logs/sota/repro_external.log")
 
-        rc, _s, tail = run_entry(fh, repo, Path("--help-probe"), ["--help"], 120)
+        rc, _s, tail = run_entry(fh, repo, Path("--help-probe"), ["--help"], 120,
+                                 args.python)
         log(fh, f"`--help` returncode={rc}；輸出尾端：\n{tail[:900]}")
 
         cfg_s = patched_config(fh, repo, work, smoke=True)
         if cfg_s is None:
             return infeasible("無法產生設定檔", "見 log")
 
-        log(fh, "── smoke：reverse、fold 1、1 epoch ──")
-        rc, secs, tail = run_entry(fh, repo, cfg_s, [], args.smoke_timeout)
-        log(fh, f"smoke returncode={rc}，耗時 {secs / 60:.1f} 分")
-        if rc != 0:
-            log(fh, "❌ smoke 未通過")
-            return infeasible(
-                f"smoke 未通過（returncode={rc}，耗時 {secs / 60:.1f} 分）", tail)
-
-        est = secs * 12                      # 1 epoch → 預設 12 epoch 的線性外推
-        log(fh, f"單折推估 {est / 60:.0f} 分（1 epoch 實測 {secs / 60:.1f} 分 × 12）")
-        if est / 60 > C.FOLD_BUDGET_MIN:
-            return infeasible(
-                f"單折推估 {est / 60:.0f} 分，超過 {C.FOLD_BUDGET_MIN} 分預算",
-                f"smoke 1 epoch 實測 {secs / 60:.1f} 分；線性外推 ×12。")
+        if args.skip_smoke is not None:
+            est = args.skip_smoke * 60
+            log(fh, f"⏭ 依 --skip-smoke 跳過 smoke，沿用先前實測推導的單折推估 "
+                    f"{args.skip_smoke:.0f} 分")
+        else:
+            log(fh, "── smoke：reverse、fold 1、1 epoch ──")
+            rc, secs, tail = run_entry(fh, repo, cfg_s, ["--seed", "1"],
+                                       args.smoke_timeout, args.python)
+            log(fh, f"smoke returncode={rc}，耗時 {secs / 60:.1f} 分")
+            if rc != 0:
+                log(fh, "❌ smoke 未通過")
+                return infeasible(
+                    f"smoke 未通過（returncode={rc}，耗時 {secs / 60:.1f} 分）", tail)
+            est = secs * 12                  # 1 epoch → 預設 12 epoch 的線性外推
+            log(fh, f"單折推估 {est / 60:.0f} 分（1 epoch 實測 {secs / 60:.1f} 分 × 12）")
+        folds = [int(x) for x in args.folds.split(",")]
+        if est / 60 > args.fold_budget_min:
+            folds = folds[:args.folds_over_budget]
+            log(fh, f"⚠️ 單折推估 {est / 60:.0f} 分 > 預算 {args.fold_budget_min:.0f} 分 "
+                    f"→ 依裁定只跑前 {len(folds)} 折 {folds}")
+        else:
+            log(fh, f"單折推估在預算內 → 跑 {len(folds)} 折")
 
         cfg_f = patched_config(fh, repo, work, smoke=False)
         if cfg_f is None:
             return infeasible("無法產生正式設定檔", "見 log")
-        bad = []
-        for k in [int(x) for x in args.folds.split(",")]:
+        deadline = None
+        if args.deadline:
+            deadline = time.mktime(time.strptime(args.deadline, "%Y-%m-%dT%H:%M"))
+            log(fh, f"截止：{args.deadline}（之後不再開始新的一折）")
+        bad, done = [], []
+        for k in folds:
+            if deadline and time.time() >= deadline:
+                log(fh, f"⏹ 已過截止時刻，停止；完成 {len(done)} 折 {done}")
+                break
             log(fh, f"── fold {k} ──")
             rc, secs, tail = run_entry(fh, repo, cfg_f, ["--seed", str(k)],
-                                       args.fold_timeout)
+                                       args.fold_timeout, args.python)
             log(fh, f"fold {k} returncode={rc}，耗時 {secs / 60:.1f} 分")
             if rc != 0:
                 bad.append(k)
                 log(fh, f"❌ fold {k} 失敗：{tail[-600:]}")
-        log(fh, f"═══ 結束：失敗 {len(bad)} 折 {bad if bad else ''} ═══")
+            else:
+                done.append(k)
+        log(fh, f"═══ 結束：完成 {len(done)} 折 {done}；失敗 {len(bad)} 折 "
+                f"{bad if bad else ''} ═══")
     return 0
 
 
