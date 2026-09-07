@@ -352,7 +352,18 @@ def main(argv=None) -> int:
             L.append(f"| {lab} | " + " | ".join(
                 f"{R['per_fold'][k][key]:.3f}"
                 for k in sorted(R["per_fold"], key=int)) + " |")
-        L += [""]
+        eq = all(abs(v["forgetting"] + v["bwt"]) < 1e-12 for v in R["per_fold"].values())
+        if eq:
+            L += ["", f"BWT 逐折未另列：**這 {n} 折全部滿足 `Forgetting == −BWT`**，"
+                  "逐折 BWT 就是上一列取負號。", "",
+                  "這代表每一折的每個任務，準確率的峰值都**恰好落在剛學完它的那一階段**、"
+                  "之後不再上升 —— 兩個定義只在「學完之後還會再升高」時才分離"
+                  "（見 [`sota/metrics.py`](../sota/metrics.py)）。"
+                  "對照：本表最上方我們自己的 `A5`／`flat`／reverse 一列，"
+                  "Forgetting 與 −BWT 並不相等，兩者確實分離。", ""]
+        else:
+            L += ["", "⚠️ 有折的 `Forgetting != −BWT`，逐折 BWT 另附於 "
+                  "`summary.json`。", ""]
         if R.get("errors"):
             L += ["⚠️ 未計入的折：" + "；".join(R["errors"]), ""]
         L += ["⚠️ **讀這一節必須連帶的限定**：", "",
