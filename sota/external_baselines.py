@@ -71,3 +71,18 @@ ORDER_NOTE = {
 #: 與外部列同一個理由放本檔 —— 兩者都必須指名，而 `sota/` 其他檔案不得出現該識別字。
 REPRO_SUBDIR = "repro_qpmil"
 MAIN_METHOD = "QPMIL-VL"
+
+
+#: Tab. 1（**forward** 順序）該論文自己方法的發表值。
+#: ⚠️ 目前只有 ACC 由 PI 指定；其餘欄位待自論文補齊，**未補的一律留 None，不猜**。
+TAB1_MAIN = {"acc": "0.890±0.021", "masked_acc": None,
+             "forgetting": None, "bwt": None}
+TAB1_CITATION = "[gou2025qpmil], Tab. 1"
+
+#: 重現檢查的兩條線：(標籤, 產物子目錄, 順序說明, 發表值來源)
+REPRO_RUNS = [
+    ("reverse（其 Tab. 2）", "pod",
+     "reverse 順序 —— **需重排 `class_ensemble.json` 的鍵序才跑得起來**", "tab2"),
+    ("forward（其 Tab. 1，原生設定）", "pod_forward",
+     "forward 順序 —— **其原生順序，未動任何順序設定或資料檔**", "tab1"),
+]
