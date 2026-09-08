@@ -33,7 +33,8 @@ from run_exp2 import ARMS, DEFAULT_ARCH, ORDERS                      # noqa: E40
 from sota.external_baselines import (CAVEATS, CITATION,              # noqa: E402
                                      MAIN_METHOD, ORDER_NOTE,
                                      REPRO_RUNS, REPRO_SUBDIR, ROWS,
-                                     TAB1_CITATION, TAB1_MAIN)
+                                     TAB1_CITATION, TAB1_MAIN,
+                                     TAB1_SETTING)
 from sota.metrics import all_metrics                                 # noqa: E402
 
 OUT = ROOT / "docs" / "SOTA_TABLE.md"
@@ -353,6 +354,8 @@ def main(argv=None) -> int:
                 d = f"**{m - float(pv.split('±')[0].replace('−', '-')):+.3f}**"
             L.append(f"| {mlab} | {m:.3f} ± {s:.3f} | {pv or '（待補）'} | "
                      f"{d or '—'} | {cite} |")
+        if src == "tab1":
+            L += ["", TAB1_SETTING + "。", ""]
         L += ["", "逐折 ACC：" + " ／ ".join(
             f"{R['per_fold'][k]['acc']:.3f}" for k in sorted(R["per_fold"], key=int)), ""]
         if all(abs(v["forgetting"] + v["bwt"]) < 1e-12 for v in R["per_fold"].values()):

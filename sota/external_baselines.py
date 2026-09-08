@@ -73,16 +73,22 @@ REPRO_SUBDIR = "repro_qpmil"
 MAIN_METHOD = "QPMIL-VL"
 
 
-#: Tab. 1（**forward** 順序）該論文自己方法的發表值。
-#: ⚠️ 目前只有 ACC 由 PI 指定；其餘欄位待自論文補齊，**未補的一律留 None，不猜**。
-TAB1_MAIN = {"acc": "0.890±0.021", "masked_acc": None,
-             "forgetting": None, "bwt": None}
+#: Tab. 1（**forward** 順序）該論文自己方法的發表值。由 PI 逐格指定並核對。
+TAB1_MAIN = {"acc": "0.890±0.021", "masked_acc": "0.930±0.018",
+             "forgetting": "0.027±0.014", "bwt": "−0.027±0.014"}
 TAB1_CITATION = "[gou2025qpmil], Tab. 1"
+
+#: Tab. 1 的設定，讀該欄數字時必須連帶。
+TAB1_SETTING = ("其設定：12 epoch；mini-batch **正向 16／反向 8**"
+                "（兩個順序的 mini-batch 並不相同）")
 
 #: 重現檢查的兩條線：(標籤, 產物子目錄, 順序說明, 發表值來源)
 REPRO_RUNS = [
     ("reverse（其 Tab. 2）", "pod",
-     "reverse 順序 —— **需重排 `class_ensemble.json` 的鍵序才跑得起來**", "tab2"),
+     "reverse 順序。**與其發表設定有兩處已知偏離**：(a) 需重排 "
+     "`class_ensemble.json` 的鍵序才跑得起來；(b) 本輪用其 config 預設的 "
+     "mini-batch **16**，而其 Tab. 2 的發表設定是 **8**（見下方 forward 節的設定說明）"
+     "—— 當時無從得知這個差別。**差距因此有具體成因，不可歸因於原論文**。", "tab2"),
     ("forward（其 Tab. 1，原生設定）", "pod_forward",
      "forward 順序 —— **其原生順序，未動任何順序設定或資料檔**", "tab1"),
 ]
