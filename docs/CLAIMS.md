@@ -233,6 +233,40 @@ class-IL +5.849（4/5，單軸不足以依雙軸判準宣稱）。
 
 證據檔：`outputs/exp2/arch/ARCH_COMPLETENESS.md`
 
+### C-30 八類 cosine 頭自第一個任務起固定，無類別累積（**設定事實**）
+
+**診斷損失 `L_diag` 的 logits 自始至終涵蓋全部 8 個類別，不隨任務累積。**
+
+這不是實驗結果，是**架構設定的直接陳述**，可由程式碼逐行核對：
+
+* `run_exp2.Ctx.f_txt` = 四個 task 的 class-text 特徵串接 → **`(8, 512)`，建構一次
+  後不再改變**（`scripts/run_exp2.py:147`）
+* 訓練呼叫 `train_step(..., ctx.f_txt, ...)` 傳的就是這個完整 8-way
+  （`scripts/run_exp2.py:219`；`selector/train.py:208` 的註解寫明「8-way，兩種模式共用」）
+* `frozen_head` 回傳 `logit_scale * (pooled @ f_txt.t())` → 8 個 logits
+  （`selector/train.py:67`）
+* `l_diag` 直接對這 8 個 logits 做 cross-entropy，target 是**全域**標籤
+  （已位移 `2 × task_pos`：esca→0/1、rcc→2/3、brca→4/5、lung→6/7）
+
+⚠️ **「至今所有類別」與「全部類別」在本方法是不同的，我們是後者。** 訓練第一個
+任務（ESCA）時，logits 已經涵蓋另外三個 task 的 6 個**尚未見過**的類別，模型必須
+把機率壓在它們上面。
+
+⚠️ **與外部累積式協定不同。** QPMIL-VL 的 `get_current_ensemble_classes` 依
+`class_ensemble.json` 的鍵序**逐步累積**、遇到當前 dataset 就停 —— 它訓練任務 τ
+時 logits 只涵蓋**至今看過**的類別。我們沒有這個機制：CONTRACT-4 的凍結 CONCH
+頭，其文字特徵是預先算好的常數，不隨任務成長。
+
+**因此本方法的 class-IL 目標比累積式設定更嚴格**（第一個任務就要對抗全部干擾
+類別）。這是**設定差異，不是效能主張** —— 不得寫成「我們的方法更強」，
+只能寫成「兩者的 class-IL 難度不同，比較時須註明」。
+
+訓練與評估同口徑：`evaluate` 用同一個 `ctx.f_txt` 算 `pred_class_il`，
+沒有 train/test 落差；`pred_task_il` 只是**評估時**再切片 `logits[lo:lo+2]`，
+不影響訓練目標。
+
+出處：DR-048「八類頭固定、無累積」一節；凍結頭的歸因後果見 C-22 與 DR-012。
+
 ### C-29 group-level semantic prior preserves quota distribution
 
 **group 層語意先驗使 group 配額分佈的 KL 系統性降低 0.005（−0.005 ± 0.004，5/5）。**
