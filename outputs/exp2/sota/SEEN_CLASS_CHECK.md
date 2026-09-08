@@ -52,13 +52,10 @@ PathSelect（`arm=A5`）十折，四個設定。把 class-IL 的 argmax 從**固
 stage `i` 的已見類別 = 該 order 前 `i+1` 個 task 各自的兩個全域類別欄位
 （全域索引固定：esca 0–1、rcc 2–3、brca 4–5、lung 6–7）。
 
-⚠️ **重建忠實度已驗證**：對 40 筆記錄重建八類 argmax，與存檔的
-`pred_class_il` **40/40 完全一致** —— 確認 `weights_softmax` 存到六位小數
-的捨入不影響 argmax。
+⚠️ **重建忠實度已驗證**：本次抽驗 1600 筆，重建的八類 argmax
+與存檔的 `pred_class_il` **全數一致** —— 不一致會直接中止，不會產表。
 
 ⚠️ **最終階段不重算**：已見類別即全部八類，直接沿用存檔值。
 
-⚠️ **本檔的產生腳本未入庫**（PI 指定本輪只收產物）。上面的方法描述足以
-重新導出，但目前沒有一鍵重跑的入口 —— 這是與本 repo「每個產物都有產生器」
-慣例的一處偏離，已知悉並記錄。
+產生：`python scripts/report_seen_class_check.py`。
 

@@ -289,18 +289,30 @@ def artifact_numbers() -> list[float]:
     return pool
 
 
+#: 小數值改用**相對**容差的門檻與比例。
+#: 絕對容差 5e-3 對 |v| < 0.05 的數字形同虛設 —— 稿內的 `0.007` 會接受
+#: 0.002–0.012 的任何池值（±71% 的窗口），實測 `-1.21` 經 ÷100 得 0.0121 即通過。
+#: 這是 `scan_paper()` 已記錄的池比對弱點在小數值上的放大，此處收緊。
+SMALL_ABS = 0.05
+SMALL_REL = 0.05          # 5%
+
+
 def traceable(tok: str, pool: list[float]) -> bool:
     """稿內數字能否溯源。
 
-    ⚠️ 容差是「**先對齊稿內的位數**再比 5e-3」，不是對原值取 5e-3 ——
-    稿裡寫 `34.0`（1 位）而產物是 `-34.03`，直接比會差 0.03 而誤判。
-    同時容許 ×100 / ÷100（產物用比例 0.9821、稿裡用百分比 98.21）。
+    ⚠️ 容差**先對齊稿內的位數**再比 —— 稿裡寫 `34.0`（1 位）而產物是 `-34.03`，
+    直接比會差 0.03 而誤判。同時容許 ×100 / ÷100
+    （產物用比例 0.9821、稿裡用百分比 98.21）。
+
+    ⚠️ **|value| < 0.05 時改用相對容差 5%**。絕對的 5e-3 在那個量級等於
+    ±71%，等於沒有檢查（見 SMALL_ABS 的說明）。位數對齊仍先做。
     """
     v = abs(float(norm(tok)))
     k = len(tok.split(".")[1])
+    tol = max(v * SMALL_REL, 10.0 ** -k / 2) if v < SMALL_ABS else PAPER_TOL
     for y in pool:
         for cand in (abs(y), abs(y) * 100.0, abs(y) / 100.0):
-            if abs(round(cand, k) - round(v, k)) <= PAPER_TOL:
+            if abs(round(cand, k) - round(v, k)) <= tol:
                 return True
     return False
 

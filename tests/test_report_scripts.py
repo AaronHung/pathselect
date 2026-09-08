@@ -193,3 +193,40 @@ def test_paper_scan_still_sees_real_numbers_next_to_units():
     import verify_doc_numbers as V
     got = [t for _i, t, _c in V.paper_numbers(r"gains $+3.28$ pp and $0.8239$ accuracy")]
     assert got == ["+3.28", "0.8239"], got
+
+
+# ── traceable 的小數值容差（DR-048：0.007 曾靠巧合通過）─────────────────────
+
+def test_small_values_use_relative_tolerance():
+    """|value| < 0.05 時必須用相對容差，否則絕對的 5e-3 等於沒有檢查。
+
+    起因：稿內的 `0.007` 在真正的產物（0.0067）進池**之前**就已「可溯源」——
+    絕對容差 5e-3 對這個量級是 ±71% 的窗口，池裡 `-1.21` 經 ÷100 得 0.0121
+    就能通過。這是 `scan_paper()` 已記錄的池比對弱點在小數值上的放大。
+    """
+    from verify_doc_numbers import traceable
+    assert traceable("0.007", [0.0067]), "0.0067 在池中時 0.007 必須綠燈"
+    assert not traceable("0.007", [0.0121]), \
+        "0.0121 與 0.007 差 73%，不得算溯源到（舊的絕對容差會誤放）"
+    assert not traceable("0.007", [-1.21]), "−1.21 ÷100 = 0.0121，同上"
+
+
+def test_paper_token_0009_is_not_traceable_to_the_0007_artifact():
+    """把稿內數字改成 0.009 必須紅燈 —— 產物是 0.0067，差 34%。"""
+    from verify_doc_numbers import traceable
+    assert not traceable("0.009", [0.0067])
+
+
+def test_large_values_keep_the_absolute_tolerance():
+    """|value| >= 0.05 的行為不變，否則會把既有的溯源全部弄紅。"""
+    from verify_doc_numbers import traceable
+    assert traceable("0.8797", [0.8797])
+    assert traceable("34.0", [-34.03]), "位數對齊後 34.0 vs 34.0，仍須通過"
+    assert traceable("98.21", [0.9821]), "×100 的換算仍須通過"
+
+
+def test_rounding_at_the_declared_precision_still_wins():
+    """稿內只寫到小數第三位時，0.0067 四捨五入即 0.007，必須通過。"""
+    from verify_doc_numbers import traceable
+    assert traceable("0.007", [0.00674])
+    assert not traceable("0.007", [0.0090]), "0.009 與 0.007 差 29%，不得通過"
