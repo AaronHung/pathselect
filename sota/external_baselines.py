@@ -84,11 +84,17 @@ TAB1_SETTING = ("其設定：12 epoch；mini-batch **正向 16／反向 8**"
 
 #: 重現檢查的兩條線：(標籤, 產物子目錄, 順序說明, 發表值來源)
 REPRO_RUNS = [
-    ("reverse（其 Tab. 2）", "pod",
+    ("reverse, mini-batch 16（前輪，設定未對齊）", "pod",
      "reverse 順序。**與其發表設定有兩處已知偏離**：(a) 需重排 "
      "`class_ensemble.json` 的鍵序才跑得起來；(b) 本輪用其 config 預設的 "
      "mini-batch **16**，而其 Tab. 2 的發表設定是 **8**（見下方 forward 節的設定說明）"
      "—— 當時無從得知這個差別。**差距因此有具體成因，不可歸因於原論文**。", "tab2"),
+    ("reverse, mini-batch 8（其論文反向設定）", "pod_reverse_b8",
+     "reverse 順序，**mini-batch 改為其論文反向所報的 8**（前輪誤用程式預設 16）。"
+     "其餘設定與前輪**逐行相同**（重排鍵序、12 epoch、路徑）—— 單變數對照。"
+     "⚠️ 本輪跑在 A100-SXM4-80GB，前兩輪是 RTX 4090，"
+     "故嚴格說 batch 與 GPU 同時變動；但差距朝發表值移動了 5.4 個百分點，"
+     "遠大於一般 GPU 差異的量級。", "tab2"),
     ("forward（其 Tab. 1，原生設定）", "pod_forward",
      "forward 順序 —— **其原生順序，未動任何順序設定或資料檔**", "tab1"),
 ]
