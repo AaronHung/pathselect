@@ -1,15 +1,9 @@
-% VERSION MAP: v0.5 method-first (09-01) | v0.6 question-first + genealogy (09-03 Fable) | v0.61 narrative-first (09-03 Sol) | v0.7 = Sol spine + Fable body, PI rulings (09-03) | v0.71 = Sol red-team R2 adjudicated (09-03) | v0.8 = SOTA comparison filled (09-05) | v0.81 = PathSelect row = hier, flat as ablation, own A1/A3 rows under comparison protocol, paired 10-fold statistics; OPCM sentence corrected (09-05) | v0.82 = Sol R3 adjudicated: quoted-vs-rerun framing, no parity/SOTA wording, memory storage boundary, controlled-variants block, 2x2 novelty framing (09-06) | v0.83 = PI restructure: main table = 12 quoted + PathSelect only; ablations rebuilt as leave-out narrative; six-question and lifecycle tables removed; codes stripped (09-06) | v0.84 = forward-order results and order-dependent hierarchy reported (09-06) | v0.85 = forward-order leave-out chain; robustness synthesis (09-06) | v0.86 = QPMIL-VL reproduction check with released code, both orders (09-07); v0.87 | v0.88 = leave-out and order tables merged; float barrier before Discussion (09-07) | v0.89 = Fig.1 v2.0 integrated (09-08); v0.89a = batch-size deviation disclosed; quoting-precedent sentence made precise; benchmark named after ConSlide (09-08) | v0.89c = reverse reproduction rerun with the paper's mini-batch reproduces published values in both orders (09-08) | v0.89d = Abstract, Introduction, Contributions rewritten (Sol proposals adjudicated); attribution caveat moved to protocol (09-08) | v0.89e = Related Work rewritten (09-08) | v0.89f = Method rewritten for precision: L_sem prior defined, replay data flow, defensive parenthetical removed (09-08) | v0.89g = fixed eight-way head disclosed (09-08) | v0.89h = Sol cold-read of Method adjudicated: E, normalization, per-layer merge, softmax in KL, empty groups, hyperparameters and results moved to Sec. 4 (09-08) | v0.89i = code facts confirmed (active groups, equal-weight E, KL on softmax); seen-class check sentence (09-08) | v0.89j = Experiments restructured: labeled protocol paragraphs, question-headed ablation paragraphs (09-08) | v0.89k = Sol cold-read of Sec. 4 adjudicated: naming, scoping of attribution claims, caption shortened, Table 3 caption corrected (09-08) | v0.89l = Discussion/Limitations merged into three paragraphs with five bounded claims; Conclusion compressed (09-08) | v0.89m = official ICASSP 2027 kit files installed (byte-identical to prior); ethics statement added (09-08) | v0.89n = Sol full-manuscript consistency read adjudicated: Table 3 narrative corrected, terminology fixed (09-08) | v0.89o = figure path restored to v1_0 (09-08) | v0.89p = compression cut 1: abstract to 150 words, Related Work to two paragraphs (09-08) | v0.89q = compression cut 2: 3.3, 3.5, 4.1, 4.2 tightened, no number changes (09-08) | v0.89r = compression cut 3: Tables 3+4 merged, limitations to three points, conclusion shortened (09-08)
+% VERSION MAP: v0.5 method-first (09-01) | v0.6 question-first + genealogy (09-03 Fable) | v0.61 narrative-first (09-03 Sol) | v0.7 = Sol spine + Fable body, PI rulings (09-03) | v0.71 = Sol red-team R2 adjudicated (09-03) | v0.8 = SOTA comparison filled (09-05) | v0.81 = PathSelect row = hier, flat as ablation, own A1/A3 rows under comparison protocol, paired 10-fold statistics; OPCM sentence corrected (09-05) | v0.82 = Sol R3 adjudicated: quoted-vs-rerun framing, no parity/SOTA wording, memory storage boundary, controlled-variants block, 2x2 novelty framing (09-06) | v0.83 = PI restructure: main table = 12 quoted + PathSelect only; ablations rebuilt as leave-out narrative; six-question and lifecycle tables removed; codes stripped (09-06) | v0.84 = forward-order results and order-dependent hierarchy reported (09-06) | v0.85 = forward-order leave-out chain; robustness synthesis (09-06) | v0.86 = QPMIL-VL reproduction check with released code, both orders (09-07); v0.87 | v0.88 = leave-out and order tables merged; float barrier before Discussion (09-07) | v0.89 = Fig.1 v2.0 integrated (09-08); v0.89a = batch-size deviation disclosed; quoting-precedent sentence made precise; benchmark named after ConSlide (09-08) | v0.89c = reverse reproduction rerun with the paper's mini-batch reproduces published values in both orders (09-08) | v0.89d = Abstract, Introduction, Contributions rewritten (Sol proposals adjudicated); attribution caveat moved to protocol (09-08) | v0.89e = Related Work rewritten (09-08) | v0.89f = Method rewritten for precision: L_sem prior defined, replay data flow, defensive parenthetical removed (09-08) | v0.89g = fixed eight-way head disclosed (09-08) | v0.89h = Sol cold-read of Method adjudicated: E, normalization, per-layer merge, softmax in KL, empty groups, hyperparameters and results moved to Sec. 4 (09-08) | v0.89i = code facts confirmed (active groups, equal-weight E, KL on softmax); seen-class check sentence (09-08) | v0.89j = Experiments restructured: labeled protocol paragraphs, question-headed ablation paragraphs (09-08) | v0.89k = Sol cold-read of Sec. 4 adjudicated: naming, scoping of attribution claims, caption shortened, Table 3 caption corrected (09-08) | v0.89l = Discussion/Limitations merged into three paragraphs with five bounded claims; Conclusion compressed (09-08) | v0.89m = official ICASSP 2027 kit files installed (byte-identical to prior); ethics statement added (09-08) | v0.89n = Sol full-manuscript consistency read adjudicated: Table 3 narrative corrected, terminology fixed (09-08) | v0.89o = figure path restored to v1_0 (09-08) | v0.89p = compression cut 1: abstract to 150 words, Related Work to two paragraphs (09-08) | v0.89q = compression cut 2: 3.3, 3.5, 4.1, 4.2 tightened, no number changes (09-08)
 \documentclass{article}
 \usepackage{spconf,amsmath,amssymb,graphicx,hyperref}
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{placeins}
-\renewcommand{\topfraction}{0.95}
-\renewcommand{\bottomfraction}{0.6}
-\renewcommand{\textfraction}{0.05}
-\renewcommand{\floatpagefraction}{0.85}
-\setcounter{topnumber}{3}
-\setcounter{totalnumber}{5}
 
 \def\x{{\mathbf x}}
 \def\L{{\cal L}}
@@ -169,7 +163,7 @@ Across our controlled variants the eight-way class-text head is fixed at every s
 \subsection{Where does PathSelect stand among published methods?}
 \label{ssec:sota}
 
-\begin{table*}[!t]
+\begin{table*}[t]
 \centering\footnotesize
 \caption{\textbf{Comparison on the ConSlide four-cohort benchmark} \cite{huang2023conslide} (CONCH features, reverse order ESCA$\rightarrow$RCC$\rightarrow$BRCA$\rightarrow$LUNG, ten-fold CV, mean$\pm$sd). Published rows are quoted from the most recent published table on this benchmark (Table~2 of \cite{gou2025qpmil}) and were not rerun by us; PathSelect uses the identical public split files and metric definitions, while training implementations and hyperparameters follow each method. Unlike the cited MIL baselines, PathSelect adapts only the evidence selector and keeps the diagnostic pathway frozen (a cosine head fixed to all eight class prompts from the first task), so parameter counts characterize adaptation cost rather than capacity-matched architectures. Replay memory is given in stored WSIs for the published rows; PathSelect's Selection Memory holds 512 behavioral snapshots (3.1\,MB of metadata, excluding the feature store required for replay). Forward-order results are in Table~\ref{tab:chain}. $^\ddagger$Our released-code reproduction matches the reported results within $0.01$ in both orders; settings-level details (class-ensemble ordering, mini-batch, hardware) are documented in the released repository.}
 \label{tab:sota}
@@ -205,7 +199,7 @@ Table~\ref{tab:sota} places PathSelect in the continual WSI landscape on the Con
 \subsection{Ablations}
 \label{ssec:ablation}
 
-\begin{table}[!htb]
+\begin{table}[t]
 \centering\footnotesize
 \setlength{\tabcolsep}{4pt}
 \caption{\textbf{Leave-out chain in both task orders} (ConSlide benchmark, ten-fold CV; ACC mean$\pm$sd, forgetting mean). Reverse = ESCA$\rightarrow$RCC$\rightarrow$BRCA$\rightarrow$LUNG; forward = the opposite. Fold-paired win counts are given in the text. Last two rows: the strongest published method, as reported in \cite{gou2025qpmil} and as rerun by us with its released code.}
@@ -232,23 +226,22 @@ QPMIL-VL (reproduced, released code) & $.868{\pm}.046$ & $.064$ & $.884{\pm}.033
 \textbf{Which part matters, and does it hold in both task orders? (Table~\ref{tab:chain})}
 Learned selection is itself meaningful: in a preliminary budget sweep with a learned flat selector (inference only; seven budgets $\times$ four tasks), learned selection beat random selection in all 28 cells and peaked at $B=8$ ($0.8797$ vs.\ $0.6607$). Table~\ref{tab:chain} then removes one part of PathSelect at a time under the comparison protocol. On the flat substrate, removing continual preservation altogether drops ACC from $0.830$ to $0.452$ and raises forgetting from $0.090$ to $0.601$, in every fold on every metric. Selector-only fine-tuning nevertheless remains above the published full-model fine-tuning reference ($0.452$ vs.\ $0.234$); because the implementations are not controlled, we treat this comparison as context rather than attribution. Replay recovers most of the accuracy ($0.821$); distillation and the utility hinge then add $0.8$ ACC points (7/10 folds) and remove $2.4$ forgetting points (8/10); the hierarchy adds $2.5$ ACC points (8/10) and removes $2.9$ forgetting points (7/10) under the canonical reverse order. Under the forward order the chain is $0.529\rightarrow0.841$ (replay) $\rightarrow0.841$ (full, flat) $\rightarrow0.811$ (full, hierarchical): preservation is again decisive (10/10 folds on every metric), distillation and the hinge no longer add accuracy (5/10) but still reduce forgetting ($-0.9$ points, 8/10), and the hierarchy costs $3.0$ points (9/10). Across both orders, what is robust is the preservation framework itself and the forgetting reduction from distillation and utility preservation; their accuracy increment and the substrate's benefit are order-dependent, and we report both rather than select an order. The hierarchy is retained as the pre-registered choice on the canonical order.
 
-\begin{table}[!htb]
-\centering\footnotesize
-\setlength{\tabcolsep}{3.5pt}
-\caption{\textbf{Preservation-component ablation with selection-level metrics} (flat, fold 1, 5-seed means). Replay restores old-task competence, the utility-preservation hinge preserves functional utility, and distillation stabilizes selection behavior; no single term or pair matches the full set. Jaccard and $\Delta U$ are reported for the lifecycle arms.}
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{\textbf{Preservation-component ablation} (flat, fold 1, 5-seed means). Replay restores old-task competence, the utility-preservation hinge preserves functional utility, and distillation stabilizes selection behavior; no single term or pair matches the full set.}
 \label{tab:ablation}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccc|ccc|cc}
+\resizebox{0.95\columnwidth}{!}{%
+\begin{tabular}{ccc|ccc}
 \toprule
-Arm & Rep. & Dist. & Util. & Class-IL$\uparrow$ & Task-IL$\uparrow$ & Leak.$\downarrow$ & Jaccard$\uparrow$ & $\Delta U\uparrow$ \\
+Replay & Distill. & Utility & Class-IL$\uparrow$ & Task-IL$\uparrow$ & Leak.$\downarrow$\\
 \midrule
-Sequential fine-tuning (no LoRA) & & & & .477 & .809 & .441 & .002 & $-220$ \\
-LoRA merge only & & & & .447 & .811 & .476 & .001 & $-301$ \\
-& & \checkmark & & .600 & .853 & .323 & --- & --- \\
-& & & \checkmark & .809 & .885 & .091 & --- & --- \\
-& \checkmark & & & .778 & .907 & .104 & .086 & $-21.2$ \\
-& \checkmark & \checkmark & & .797 & .897 & .117 & .175 & $-31.9$ \\
-Full preservation (flat) & \checkmark & \checkmark & \checkmark & \textbf{.824} & \textbf{.915} & \textbf{.101} & .161 & $\mathbf{-16.8}$ \\
+ & & & .447 & .811 & .476\\
+ & \checkmark & & .600 & .853 & .323\\
+ & & \checkmark & .809 & .885 & .091\\
+\checkmark & & & .778 & .907 & .104\\
+\checkmark & \checkmark & & .797 & .897 & .117\\
+\checkmark & \checkmark & \checkmark & \textbf{.824} & \textbf{.915} & \textbf{.101}\\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -256,8 +249,25 @@ Full preservation (flat) & \checkmark & \checkmark & \checkmark & \textbf{.824} 
 \textbf{Do the three preservation losses do different jobs? (Table~\ref{tab:ablation})}
 Distillation alone leaves leakage at $0.323$, three times the full method---in one seed 59 of 76 renal slides land in the lung classes---so distillation preserves \emph{how} the selector scores but not \emph{which task} the evidence belongs to. Replay ($0.104$) and the utility hinge ($0.091$) each restore task attribution on their own; among single terms the hinge reaches the highest class-IL ($0.809$) and replay the highest task-IL ($0.907$). In the ten-fold chain of Table~\ref{tab:chain}, where components are added in order, replay accounts for most of the accuracy recovery, and the hinge's increment on top of replay and distillation is order-sensitive, as reported above. Under the hierarchy, removing the group level of distillation costs $3.95$ task-IL and $3.71$ class-IL points (5/5), so quota-level and patch-level preservation act at different resolutions. No single loss or pair matches the full set.
 
+\begin{table}[t]
+\centering\footnotesize
+\caption{\textbf{Selection-level metrics under the ablation protocol} (flat, fold 1, mean over 5 seeds): what accuracy alone cannot show.}
+\label{tab:selmetrics}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Method & Class-IL$\uparrow$ & Sel.\ Jaccard$\uparrow$ & Leakage$\downarrow$ & $\Delta U\uparrow$ \\
+\midrule
+Sequential fine-tuning & $0.4774$ & $0.0023$ & $0.4408$ & $-220$ \\
+LoRA merge only & $0.4466$ & $0.0010$ & $0.4756$ & $-301$ \\
+$+$ replay & $0.7778$ & $0.0864$ & $0.104$ & $-21.2$ \\
+$+$ distillation & $0.7972$ & $0.1752$ & $0.117$ & $-31.9$ \\
+Full preservation (flat) & $0.8239$ & $0.1613$ & $0.1005$ & $-16.8$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
 
-\textbf{What does accuracy alone not show? (Table~\ref{tab:ablation}, right)}
+\textbf{What does accuracy alone not show? (Table~\ref{tab:selmetrics})}
 Unprotected selectors retain almost none of their original evidence (Jaccard $0.0023$/$0.0010$) and lose old-task utility by an order of magnitude more than the fully preserved selector ($\Delta U$ $-220$/$-301$ vs.\ $-16.8$). LoRA merging alone shows no systematic difference from full fine-tuning (3/5): merging is the deployment substrate, not the preservation mechanism. Distillation without the hinge retains slightly more identity ($0.1752$ vs.\ $0.1613$) yet is less accurate and forgets more: preserving \emph{where} the policy looks does not secure \emph{how useful} what it finds is---the gap the utility hinge closes. Three further interventions raised Jaccard without matching the full method's diagnostic performance: warm-starting task~1 with full-parameter training, damping each fold-in to half, and composing independently trained residuals post hoc.
 
 \textbf{Are the update-protocol choices necessary?}
@@ -272,12 +282,12 @@ PathSelect suggests that continual learning in budgeted perception should distin
 
 The study also shows what is \emph{not} sufficient. LoRA merging alone does not protect the selector. Warm start, damped merging, and post-hoc composition each increase selection Jaccard without matching the full method's diagnostic performance (Sec.~\ref{ssec:ablation}), so ``choose the same patches'' is not a complete continual-learning objective: selection stability is not sufficient for diagnostic preservation, and identity and function must be measured separately. This is why behavioral and functional preservation are treated as complementary constraints rather than redundant regularizers.
 
-Our claims are bounded in three ways. First, the benchmark uses four organ-separated, highly separable TCGA tasks (a linear probe separates them at 98.21\%), one frozen foundation model, one main budget ($B=8$), known task boundaries during training, and five seeds or ten folds, so harder within-organ or mixed-task streams may yield different conclusions. Second, the hierarchical substrate's advantage and the accuracy increment of distillation and the utility hinge over replay are order-dependent (Table~\ref{tab:chain}), while their forgetting reduction holds in 8/10 folds in both orders; pre-specified comparisons were made on the canonical reverse order and forward-order results are reported as measured. Third, the frozen head assumes the full class vocabulary as text from the start, the memory stores no image or feature tensors but replay requires access to the feature store and no formal privacy guarantee is claimed, and the fold-to-fold spread of our runs and of the reproduced baseline (sd $0.03$--$0.05$) exceeds the gaps between the top methods. PathSelect is a one-shot evidence-acquisition policy; its task-free shared selector can serve as a foundation for continual evidence-navigation systems, but sequential, stateful acquisition is left to future work.
+Our claims are bounded in five ways. (i) The benchmark uses four organ-separated TCGA tasks, one frozen foundation model, one main budget ($B=8$), known task boundaries during training, and five seeds or ten folds; the tasks are highly separable (a linear probe separates them at 98.21\%), so harder within-organ or mixed-task streams may yield different conclusions. (ii) The hierarchical substrate's advantage and the accuracy increment of distillation and the utility hinge over replay are order-dependent (Table~\ref{tab:chain}), while their forgetting reduction holds in 8/10 folds in both orders; all pre-specified comparisons were made on the canonical reverse order and forward-order results are reported as measured. (iii) The frozen head assumes that the full class vocabulary is available as text from the start, even though slides of future tasks are not. (iv) The memory is compact and stores no image or feature tensors, but replay requires training-time access to the feature store, and no formal privacy guarantee is claimed. (v) The fold-to-fold spread of our runs and of the reproduced baseline (sd $0.03$--$0.05$) exceeds the gaps between the top methods, so single-split rankings on this benchmark should be read with that variance in mind. Finally, PathSelect is a one-shot evidence-acquisition policy rather than a multi-step navigation agent; its task-free shared selector can serve as a foundation for continual evidence-navigation systems, but sequential, stateful acquisition is left to future work.
 
 % -----------------------------------------------------------------------------
 \section{Conclusion}
 
-PathSelect reframes continual WSI learning around an under-measured question: after learning new diagnostic tasks, does the model still know where to look? Freezing the diagnostic pathway isolates the evidence selector as the continual-learning object; within tasks, semantic and counterfactual signals teach it to find useful evidence, and across tasks one shared selector is preserved at two levels---distillation maintains selection behavior, while a utility-preservation hinge lets evidence identity change without letting usefulness regress. On a public four-cohort benchmark the method is competitive with the strongest published result while adapting 16.4k selector parameters per task, and direct selection-level measurements show that evidence identity and evidence utility drift differently. Continual learning for budgeted perception should therefore preserve not only what a model predicts, but also the policy by which it acquires the evidence used to predict.
+PathSelect reframes continual WSI learning around an under-measured question: after learning new diagnostic tasks, does the model still know where to look? By freezing the diagnostic pathway, it isolates the evidence selector as the continual-learning object; within tasks, semantic and counterfactual signals teach the selector to find useful evidence, and across tasks a single shared selector is preserved at two levels---distillation maintains selection behavior, while a utility-preservation hinge allows evidence identity to change without letting usefulness regress---with replay maintaining old-task competence. On a public four-cohort benchmark the method is competitive with the strongest published result while adapting 16.4k selector parameters per task and inferring with one task-free selector, and direct selection-level measurements show that evidence identity and evidence utility drift differently. Continual learning for budgeted perception should therefore preserve not only what a model predicts, but also the policy by which it acquires the evidence used to predict.
 
 \section*{Compliance with Ethical Standards}
 This study uses publicly available, de-identified whole-slide images from The Cancer Genome Atlas (TCGA), released under its data-use policies; no new human-subject data were collected and no additional ethical approval was required. Funding is acknowledged on the first page.
