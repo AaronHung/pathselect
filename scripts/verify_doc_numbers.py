@@ -242,7 +242,9 @@ PAPER_ARTIFACTS = ["docs/DR046_TABLE.md", "docs/RESULTS_DOSSIER.md",
                    "outputs/exp0/BASELINES.md",
                    # DR-048 SOTA 協定線（Prompt 6-5：verify 擴掃納入 sota/ 產物）
                    "docs/SOTA_TABLE.md", "docs/MEMORY_FOOTPRINT.md",
-                   "outputs/exp2/sota/EXP2.md"]
+                   "outputs/exp2/sota/EXP2.md",
+                   # 已見類別限制版的量化檢查（稿內引用最大位移 0.007）
+                   "outputs/exp2/sota/SEEN_CLASS_CHECK.md"]
 PAPER_TOL = 5e-3
 
 #: 稿內合法但**不是實驗結果**的數字，逐個列出理由。不得用來塞不會溯源的結果值。
