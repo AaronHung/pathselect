@@ -67,6 +67,7 @@
 
 | [047](DR-047.md) | replay 預算與記憶庫 policy 的敏感度（選配未跑） | PARKED | 依 PI 工作清單 C6/F12 與 Review 手冊補位；擱置至擴充版 |
 | [048](DR-048.md) | SOTA 主表：QPMIL-VL 協定下只跑我方方法 | ACTIVE | PI 裁定：order=reverse（其 Tab. 2）、10 折 seed=fold、訓練設定維持我方；B 段完成，佇列啟動 |
+| [049](DR-049.md) | 投稿模板：官方 ICASSP 2027 kit | ACTIVE | 逐檔核對：spconf.sty 除換行符外位元相同、IEEEbib.bst 零變動 → 換版為 no-op；7 頁待對照 CFP |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。
