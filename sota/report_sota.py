@@ -43,7 +43,9 @@ OUT = ROOT / "docs" / "SOTA_TABLE.md"
 LABEL = {"OPCM": "OPCM-Merge (adapted, paper Alg. 1)",
          "OPCM-nomask": "OPCM (released code, no-op mask)",
          "ZS-mean": "Zero-shot, mean-pool (all patches)",
-         "ZS-rand8": "Zero-shot, random-B patches"}
+         "ZS-rand8": "Zero-shot, random-B patches",
+         # DR-051 E1：用 max_c cos(x_i, t_c) 直接挑 top-B，等權，凍結頭
+         "ZS-top8": "Zero-shot, top-B by max class-text cosine"}
 
 #: 每一列的協定註記。key 是臂名。
 _OPCM_PROTO = "DR-046 協定（fold 1、seed 0–4）—— **不是** 10 折"
@@ -125,7 +127,13 @@ PAIRS = [("hier − flat（A5, reverse）", ("A5", "hier", "reverse"), ("A5", "f
          ("A5 − A3（flat, reverse）",   ("A5", "flat", "reverse"), ("A3", "flat", "reverse")),
          ("A5 − A1（flat, reverse）",   ("A5", "flat", "reverse"), ("A1", "flat", "reverse")),
          ("A5 − A3（flat, forward）",   ("A5", "flat", "main"),    ("A3", "flat", "main")),
-         ("A5 − A1（flat, forward）",   ("A5", "flat", "main"),    ("A1", "flat", "main"))]
+         ("A5 − A1（flat, forward）",   ("A5", "flat", "main"),    ("A1", "flat", "main")),
+         # DR-051 E1：learned selector 對零樣本 top-B 選片
+         ("A5 − ZS-top8（flat, reverse）", ("A5", "flat", "reverse"), ("ZS-top8", "flat", "reverse")),
+         ("A5 − ZS-top8（hier, reverse）", ("A5", "hier", "reverse"), ("ZS-top8", "flat", "reverse")),
+         ("A5 − ZS-top8（flat, forward）", ("A5", "flat", "main"),    ("ZS-top8", "flat", "main")),
+         ("A5 − ZS-top8（hier, forward）", ("A5", "hier", "main"),    ("ZS-top8", "flat", "main")),
+         ("ZS-top8 − ZS-rand8（reverse）", ("ZS-top8", "flat", "reverse"), ("ZS-rand8", "flat", "reverse"))]
 
 #: 配對只報這三軸（PI 指定）。(key, 顯示名, 越大越好)
 PAIR_METRICS = [("acc", "ACC", True), ("masked_acc", "Masked ACC", True),

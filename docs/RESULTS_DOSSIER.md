@@ -554,4 +554,34 @@ hier-full 的 b_j 為**評估期**落點（訓練期未落檔，DR-050 NOT FOUND
 `scripts/run_exp2.py:233`（group 項係數預設 1.0）；但 flat 下 r 不進選取與 head。
 來源：`outputs/exp2/dr051/E0C_DELTA_U.md`。
 
-### 10.4 E1／E3／E2 — 待補（依 DR-051 順序執行後追加於此）
+### 10.4 E1 — 零樣本 top-B 參照線 `ZS-top8`（只評估；`sota/zeroshot_topb.py`）
+
+每張切片取 `max_c cos(x_i, t_c)`（c 跑遍固定 8 類 class-text，C-30）最高的 B=8 片，
+等權池化、凍結頭；無參數、與 stage 無關（Forgetting／BWT 必為 0）。十折 seed = fold，
+與 Table 2 相同的 test 切分；reverse 與 forward 的 ACC 由構造相同。
+
+| 方法 | ACC | Masked ACC | 逐任務 class-IL（esca／rcc／brca／lung，十折） |
+|---|---|---|---|
+| ZS-top8 | **0.812 ± 0.024** | 0.899 ± 0.019 | 0.7604／0.9361／0.7673／0.7842 |
+| ZS-rand8（既有） | 0.646 ± 0.025 | 0.760 ± 0.027 | — |
+| ZS-mean（既有） | 0.679 ± 0.032 | 0.776 ± 0.029 | — |
+
+fold 1 單獨：esca 0.800／rcc 0.947／brca 0.753／lung 0.747（ACC 0.812）。
+
+逐折配對（A − B；ACC 越大越佳的折數）：
+
+| 配對 | ACC 均值差 | 折數 | Masked ACC 均值差 | 折數 |
+|---|---|---|---|---|
+| A5 flat − ZS-top8（reverse） | +0.0175 | 6/10 | +0.0152 | 7/10 |
+| A5 hier − ZS-top8（reverse） | +0.0422 | 9/10 | +0.0259 | 9/10 |
+| A5 flat − ZS-top8（forward） | +0.0286 | 8/10 | +0.0142 | 9/10 |
+| A5 hier − ZS-top8（forward） | −0.0009 | 6/10 | −0.0014 | 5/10 |
+| ZS-top8 − ZS-rand8（reverse） | +0.1662 | 10/10 | +0.1387 | 10/10 |
+
+讀法（不貼三級標籤，DR-048 規則）：零樣本 top-B 選片離 learned selector 只差 1.8–4.2 pp
+（reverse），forward 的 hier 與它持平；它與隨機 8 片差 16.6 pp（10/10）—— 「選片本身」
+的價值大半可由類別語意直接取得，learned selector 的增量是其上的 1.8–4.2 pp。
+來源：`docs/SOTA_TABLE.md`（`sota/report_sota.py` 重產）、
+`outputs/exp2/sota/per_slide/ZS-top8_*.json`（20 檔）。
+
+### 10.5 E3／E2 — 待補（依 DR-051 順序執行後追加於此）

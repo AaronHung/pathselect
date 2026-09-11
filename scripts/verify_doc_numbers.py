@@ -128,6 +128,14 @@ QUOTED += [
     ("E0c A3 M2", "docs/RESULTS_DOSSIER.md", "-0.3460 ± 0.1866", E0C, "-0.346 ± 0.187"),
     ("E0c A2 M2", "docs/RESULTS_DOSSIER.md", "-4.9051 ± 1.7030", E0C, "-4.905 ± 1.703"),
     ("E0c logit scale", "docs/RESULTS_DOSSIER.md", "56.3477", E0C),
+    # E1：ZS-top8 進 SOTA_TABLE（docs/ 下的產物，路徑相對 outputs/ 要往上一層）
+    ("E1 ZS-top8 ACC", "docs/RESULTS_DOSSIER.md", "0.812 ± 0.024", "../docs/SOTA_TABLE.md"),
+    ("E1 ZS-top8 Masked", "docs/RESULTS_DOSSIER.md", "0.899 ± 0.019", "../docs/SOTA_TABLE.md"),
+    ("E1 A5flat−ZS rev", "docs/RESULTS_DOSSIER.md", "+0.0175", "../docs/SOTA_TABLE.md"),
+    ("E1 A5hier−ZS rev", "docs/RESULTS_DOSSIER.md", "+0.0422", "../docs/SOTA_TABLE.md"),
+    ("E1 A5flat−ZS fwd", "docs/RESULTS_DOSSIER.md", "+0.0286", "../docs/SOTA_TABLE.md"),
+    ("E1 A5hier−ZS fwd", "docs/RESULTS_DOSSIER.md", "-0.0009", "../docs/SOTA_TABLE.md"),
+    ("E1 ZS−rand8", "docs/RESULTS_DOSSIER.md", "+0.1662", "../docs/SOTA_TABLE.md"),
 ]
 
 #: RESULTS_DOSSIER 的 38 條（PROMPT DOSSIER-FIGURES-20260826 §A2）。
