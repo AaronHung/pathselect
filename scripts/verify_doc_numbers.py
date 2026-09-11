@@ -105,6 +105,31 @@ QUOTED = [
      "exp2/memory_hier/MEMORY_HIER.md"),
 ]
 
+#: DR-051 §10（2026-09-11）：E0 的關鍵數字 ↔ `outputs/exp2/dr051/` 產物。
+E0A, E0B, E0C = ("exp2/dr051/E0A_FIRE_RATE.md", "exp2/dr051/E0B_TRAJECTORY.md",
+                 "exp2/dr051/E0C_DELTA_U.md")
+QUOTED += [
+    ("E0a B2 stage1", "docs/RESULTS_DOSSIER.md", "0.0329 ± 0.0149", E0A),
+    ("E0a B2 stage2", "docs/RESULTS_DOSSIER.md", "0.0455 ± 0.0044", E0A),
+    ("E0a B2 stage3", "docs/RESULTS_DOSSIER.md", "0.1114 ± 0.0059", E0A),
+    ("E0a A5 flat stage3", "docs/RESULTS_DOSSIER.md", "0.0740 ± 0.0054", E0A),
+    ("E0a A5 hier stage3", "docs/RESULTS_DOSSIER.md", "0.0887 ± 0.0081", E0A),
+    ("E0a A5nG stage3", "docs/RESULTS_DOSSIER.md", "0.0909 ± 0.0107", E0A),
+    ("E0a fwd flat stage1", "docs/RESULTS_DOSSIER.md", "0.0708 ± 0.0085", E0A, "0.0708"),
+    ("E0a fwd hier stage3", "docs/RESULTS_DOSSIER.md", "0.1357 ± 0.0198", E0A, "0.1357"),
+    ("E0b flat t3 lung", "docs/RESULTS_DOSSIER.md", "0.7843 ± 0.0846", E0B),
+    ("E0b hier t3 lung", "docs/RESULTS_DOSSIER.md", "0.7421 ± 0.0906", E0B),
+    ("E0b hier t1 brca", "docs/RESULTS_DOSSIER.md", "0.8129 ± 0.0511", E0B),
+    ("E0b first lag class-IL", "docs/RESULTS_DOSSIER.md", "-0.0366", E0B),
+    ("E0b first lag task-IL", "docs/RESULTS_DOSSIER.md", "-0.0101", E0B),
+    ("E0c A5 M1", "docs/RESULTS_DOSSIER.md", "-0.7429 ± 0.3094", E0C, "-0.743 ± 0.309"),
+    ("E0c A5 M2", "docs/RESULTS_DOSSIER.md", "-0.2742 ± 0.1947", E0C, "-0.274 ± 0.195"),
+    ("E0c A3 M1", "docs/RESULTS_DOSSIER.md", "-0.7775 ± 0.2471", E0C, "-0.777 ± 0.247"),
+    ("E0c A3 M2", "docs/RESULTS_DOSSIER.md", "-0.3460 ± 0.1866", E0C, "-0.346 ± 0.187"),
+    ("E0c A2 M2", "docs/RESULTS_DOSSIER.md", "-4.9051 ± 1.7030", E0C, "-4.905 ± 1.703"),
+    ("E0c logit scale", "docs/RESULTS_DOSSIER.md", "56.3477", E0C),
+]
+
 #: RESULTS_DOSSIER 的 38 條（PROMPT DOSSIER-FIGURES-20260826 §A2）。
 #: 第 5 欄（可選）= 文件端的字串，只在總表刻意寫縮寫時登記。**不是容忍，是明列。**
 #: ⚠️ 總表用 U+2212（−），產物用 ASCII（-）。**正規化在檢查器裡做，不改總表的數字。**
@@ -244,7 +269,11 @@ PAPER_ARTIFACTS = ["docs/DR046_TABLE.md", "docs/RESULTS_DOSSIER.md",
                    "docs/SOTA_TABLE.md", "docs/MEMORY_FOOTPRINT.md",
                    "outputs/exp2/sota/EXP2.md",
                    # 已見類別限制版的量化檢查（稿內引用最大位移 0.007）
-                   "outputs/exp2/sota/SEEN_CLASS_CHECK.md"]
+                   "outputs/exp2/sota/SEEN_CLASS_CHECK.md",
+                   # DR-051：E0 抽取（hinge 觸發率、正向軌跡矩陣、ΔU 三口徑）
+                   "outputs/exp2/dr051/E0A_FIRE_RATE.md",
+                   "outputs/exp2/dr051/E0B_TRAJECTORY.md",
+                   "outputs/exp2/dr051/E0C_DELTA_U.md"]
 PAPER_TOL = 5e-3
 
 #: 稿內合法但**不是實驗結果**的數字，逐個列出理由。不得用來塞不會溯源的結果值。

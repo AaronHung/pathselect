@@ -44,6 +44,12 @@ REPORTS = {
                                     ["## G5 前置：no-op 檢查",
                                      "## G4 前置：q_tau 是否真的進入計算",
                                      "## 主表", "## 配對比較與落判", "## 總結"]),
+    # DR-051 E0：只讀抽取；引文行號在 main() 內逐條自檢，引錯就非零退出
+    "report_dr051_e0.py": ("outputs/exp2/main/per_slide",
+                           "outputs/exp2/dr051/E0C_DELTA_U.md",
+                           ["## (i) 現行腳本的口徑", "## (ii) 兩種逐切片平均",
+                            "## (iii) CE 的 temperature／logit scale",
+                            "## (iv) flat 是否存並蒸餾 r_old"]),
     "report_b1_landing.py": ("outputs/exp2/ablation/per_slide",
                              "outputs/exp2/ablation/B1_LANDING.md",
                              ["## KD 與 replay 保存的是不同的東西",

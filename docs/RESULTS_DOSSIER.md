@@ -480,3 +480,78 @@ linear probe 預測 4-way task id（train 訓練、test 評估；多數類基準
 | 架構圖 v3 手繪（移除 Panel E；q_τ 移出主圖；L_sem 標 patch-level） | PI | 標籤定稿已凍結 |
 | 論文晉稿 | Fable | PI 讀完本 dossier 給回饋後開工 |
 | F3 要不要 | — | 建議正式取消（KD 已證是弱環節；gating 實作成本不低） |
+
+---
+
+## 10. DR-051 預註冊修訂（2026-09-11）— E0 抽取、E1／E3 評估、E2 門控對照
+
+基準 commit `a2734ee155e67bf55b142caeb549a89f61ca65f9`（Fig.1 v3.0 之後、DR-051 之前）。
+零改主線程式碼；E0 由 `scripts/report_dr051_e0.py` 只讀既有產物產生，
+引文行號逐條自檢。判準與讀法見 [`ledger/DR-051.md`](ledger/DR-051.md)。
+
+### 10.1 E0a — hinge 觸發率 `l_eq_fire_rate`（fold 1、reverse、seeds 0–4；stage 1／2／3）
+
+| 臂 | stage 1 rcc | stage 2 brca | stage 3 lung |
+|---|---|---|---|
+| B2 hinge-only（只 L_eq） | **0.0329 ± 0.0149** | **0.0455 ± 0.0044** | **0.1114 ± 0.0059** |
+| A5 full flat（replay + KD + hinge；audit C1 引用） | 0.0169 ± 0.0106 | 0.0305 ± 0.0042 | 0.0740 ± 0.0054 |
+| A5 full hier | 0.0135 ± 0.0107 | 0.0369 ± 0.0122 | 0.0887 ± 0.0081 |
+| A5nG hier（無 group-KD） | 0.0143 ± 0.0098 | 0.0326 ± 0.0068 | 0.0909 ± 0.0107 |
+
+十折補充（seed = fold）：A5 flat reverse 0.0169／0.0356／0.0719；A5 flat forward
+**0.0708／0.0706／0.0903**；A5 hier forward 0.0885／0.1326／0.1357 —— 正向順序的
+觸發率明顯高於反向。replay 步數各 stage 3080／3815／3870（五 seed 相同）。
+⚠️ `outputs/exp2/ablation/A5_*` 與 `hier2/A5_*` 與 `main/` 逐位元相同，非獨立重跑。
+來源：`outputs/exp2/dr051/E0A_FIRE_RATE.md`。
+
+### 10.2 E0b — 正向順序逐任務準確率矩陣（A5 full，十折 mean ± sd；描述性）
+
+class-IL，列 = 學完任務 t，欄 = 任務（lung → brca → rcc → esca）：
+
+| flat | lung | brca | rcc | esca |
+|---|---|---|---|---|
+| t=0 | 0.8723 ± 0.0439 | — | — | — |
+| t=1 | 0.8590 ± 0.0371 | 0.8495 ± 0.0349 | — | — |
+| t=2 | 0.8497 ± 0.0438 | 0.8580 ± 0.0430 | 0.9284 ± 0.0206 | — |
+| t=3 | 0.7843 ± 0.0846 | 0.8242 ± 0.0642 | 0.9061 ± 0.0355 | 0.8477 ± 0.1081 |
+
+| hier | lung | brca | rcc | esca |
+|---|---|---|---|---|
+| t=0 | 0.8705 ± 0.0489 | — | — | — |
+| t=1 | 0.8494 ± 0.0471 | 0.8129 ± 0.0511 | — | — |
+| t=2 | 0.8424 ± 0.0658 | 0.8181 ± 0.0480 | 0.8936 ± 0.0497 | — |
+| t=3 | 0.7421 ± 0.0906 | 0.7716 ± 0.0662 | 0.9049 ± 0.0355 | 0.8258 ± 0.0984 |
+
+hier − flat 十格全為負。**hier 首次落後 flat 超過 0.010：class-IL 在 t=1（學完 brca）、
+任務 brca，−0.0366（hier 勝 4/10）；task-IL 在 t=1、任務 lung，−0.0101（3/10）。**
+hier-full 的 b_j 為**評估期**落點（訓練期未落檔，DR-050 NOT FOUND）：group 0 在各
+(stage, task) 佔 4.9–7.0 個名額，其餘七組合計 1–3 個。task-IL 矩陣與 b_j 全表見
+`outputs/exp2/dr051/E0B_TRAJECTORY.md`；來源 CSV `docs/audit_C1_forward_trajectory/`。
+
+### 10.3 E0c — ΔU 口徑
+
+(i) 現行（Table 3）= **各任務先對切片加總、再跨任務平均**（`scripts/report_dr046.py:166-168`、
+`scripts/run_exp2.py:620`）；不是逐切片平均，也不是所有舊任務切片一起平均。
+
+(ii) 三種口徑並列（fold 1、reverse、seeds 0–4、flat；mean ± sd over seeds）：
+
+| 臂 | S 現行（加總再平均） | M1 各任務先平均再跨任務平均 | M2 所有舊任務切片一起 |
+|---|---|---|---|
+| A1 | −220.38 ± 89.45 | −3.796 ± 1.548 | −3.593 ± 1.459 |
+| A2 | −300.84 ± 104.45 | −4.705 ± 1.445 | −4.905 ± 1.703 |
+| A3 | −21.22 ± 11.45 | −0.777 ± 0.247 | −0.346 ± 0.187 |
+| A4 | −31.94 ± 19.32 | −0.950 ± 0.531 | −0.521 ± 0.315 |
+| A5 | −16.82 ± 11.94 | −0.743 ± 0.309 | −0.274 ± 0.195 |
+
+次序 A2 < A1 ≪ A4 < A3 < A5 在三種口徑下一致。M2 以片數加權（esca 15／rcc 76／brca 93）。
+
+(iii) CE 無另設 temperature：`F.cross_entropy` 直接吃 `logit_scale × cos`
+（`selector/utility.py:44,53,71`；hinge 側 `selector/continual.py:68` ← `selector/train.py:67`）；
+`logit_scale` 取自 CONCH checkpoint = **56.3477**（`selector/text_encoder.py:12,142`）。
+
+(iv) flat **存並蒸餾 r_old**：`selector/rounds.py:131`（r 不分架構都算）、
+`selector/train.py:308`（存入 entry）、`selector/train.py:337`（`l_kd` 蒸餾）、
+`scripts/run_exp2.py:233`（group 項係數預設 1.0）；但 flat 下 r 不進選取與 head。
+來源：`outputs/exp2/dr051/E0C_DELTA_U.md`。
+
+### 10.4 E1／E3／E2 — 待補（依 DR-051 順序執行後追加於此）
