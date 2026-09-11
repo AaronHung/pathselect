@@ -620,4 +620,34 @@ telescoping 定義由構造成立 —— 即 **Table 3 的 ΔU（逐切片口徑
 來源：`outputs/exp2/dr051/E3_DECOMPOSITION.md`、`outputs/exp2/dr051_e3/per_slide/`、
 `outputs/exp2/dr051_e3/ckpt/A5_reverse_seed{0..4}_stage3.pt`。
 
-### 10.6 E2 — 待補（E3 結束後已啟動，判準凍結於 DR-051）
+### 10.6 E2 — 門控對照 `A5ce`（常開等權 CE）vs `A5`（hinge）；fold 1、reverse、seeds 0–4、flat
+
+判準凍結於 DR-051（commit `a943369`）後才啟動。`A5ce` 與 A5 唯一差異：`L_eq` 由
+`max(0, U_old − U_new)` 換成同一張重播切片上的 `CE(logits_uniform, y)`，常開、λ = λ_eq = 1；
+以 runtime injection 替換 `selector.train.l_eq`（`scripts/run_dr051_e2.py`），主線零改。
+啟動前四項生效性實測全過（注入可見、值 == CE、與 hinge 不同、梯度 == CE 梯度）；
+訓練中注入函式被呼叫 53,825 次（= 全部 replay 步數）。
+
+| 軸（A5ce − A5） | A5（hinge） | A5ce（常開 CE） | 差 mean ± sd | A5ce 較佳 | 三級 |
+|---|---|---|---|---|---|
+| class-IL final（pp） | 82.39 ± 2.84 | 82.65 ± 2.44 | +0.26 ± 4.49 | 2/5 | within noise |
+| task-IL final（pp） | 91.47 ± 1.41 | 90.01 ± 2.06 | −1.45 ± 2.76 | 1/5 | within noise |
+| 跨任務洩漏率（pp，越低越佳） | 10.05 ± 2.55 | 10.07 ± 1.49 | +0.02 ± 3.92 | 3/5 | within noise |
+| selection Jaccard | 0.1294 ± 0.0617 | 0.1361 ± 0.0454 | +0.0068 ± 0.0791 | 3/5 | within noise |
+| ΔU（S 現行） | −16.82 ± 11.94 | −9.72 ± 14.82 | +7.10 ± 20.44 | 3/5 | within noise |
+| ΔU（M1 逐切片） | −0.743 ± 0.309 | −0.628 ± 0.472 | +0.115 ± 0.508 | 3/5 | within noise |
+
+照判準的字面：五軸全部 ≤ 3/5，**沒有任何一軸能區分 hinge 門控與常開 CE**；逐 seed 差值
+正負交錯、量級與 seed 間變異同級（class-IL ±4.49 pp vs A5 自身 sd 2.84）。
+本節不寫「等價」——它只說明在 fold 1 五 seed 下，門控相對常開 CE 的差值落在雜訊內。
+
+⚠️ 預註冊寫錯處（照實記錄）：預期 A5ce 的 `l_eq_fire_rate` 恆為 1.0，實測 0.65–0.93
+（stage 1/2/3 平均約 0.89／0.71／0.87）。差額是 CE 在 float32 下恰為 0 的步驟
+（等權池化後 softmax 飽和、正確類機率 == 1.0；同一現象在 test 紀錄上為
+`utility_total == log 8`，A5 fold 1 約 16–20% 的切片）。該步 hinge 與 CE 的梯度皆為零，
+對兩臂皆 no-op，不影響注入的生效性（由四項實測與呼叫次數證明）。判準未動。
+
+對照 §10.1：hinge 只在 1.7–7.4% 的 replay 步驟有梯度，常開 CE 在 65–93% 的步驟有梯度，
+兩者在五軸上仍無可辨識差異 —— 這是關於 L_eq 這一項貢獻的直接量化背景，與 audit C1 §5
+的發現一致。來源：`outputs/exp2/dr051/E2_GATED_CONTROL.md`、
+`outputs/exp2/dr051_e2/per_slide/A5ce_reverse_seed{0..4}.json`。

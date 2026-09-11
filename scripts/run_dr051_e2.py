@@ -18,8 +18,12 @@ replay、KD、LoRA、記憶體、seed、epochs、lr、fold 全部不變。
 1. `continual_terms.__globals__["l_eq"]` 必須是注入後的函式（不是原 hinge）；
 2. 隨機 logits 上，注入版的值 == 獨立算的 `F.cross_entropy`（容差 1e-6）；
 3. 同一輸入下注入版與原 hinge 的值**不同**（U_old < U_new 時 hinge = 0，CE > 0）；
-4. 訓練結束後注入函式的呼叫次數 > 0，且 per_slide 的 `l_eq_fire_rate` 在 stage 1–3
-   **恆為 1.0**（CE > 0 → 每步都「觸發」）—— 記錄層的第二道證據。
+4. 訓練結束後注入函式的呼叫次數 > 0；per_slide 的 `l_eq_fire_rate` 在此臂 = 「CE > 0
+   的步驟比例」。⚠️ 預註冊時寫的是「恆為 1.0」—— **實測 0.73–0.88**：差額是 CE 在
+   float32 下**恰為 0** 的步驟（等權池化後 softmax 飽和、正確類機率 == 1.0；同一現象在
+   test 紀錄上表現為 `utility_total == log 8`，A5 fold 1 約 16–18% 的切片）。那些步驟
+   hinge 與 CE 的梯度皆為零，對兩臂都是 no-op；注入的生效性由 1–3 與呼叫次數證明，
+   不受此影響。預期寫錯之處照實記錄，不改判準。
 
 判準（凍結於 DR-051）：與 A5 flat（`outputs/exp2/main/`）逐 seed 配對，五軸
 （class-IL final、task-IL final、洩漏率、Jaccard、ΔU：S 現行與 M1 並報），
@@ -139,6 +143,12 @@ def train(seeds, extra: list[str]) -> int:
     return n
 
 
+def sat_frac(recs) -> float:
+    """test 紀錄中 utility_total == log 8（CE_uniform 在 float32 下恰為 0）的比例。"""
+    L8 = math.log(8)
+    return sum(abs(r["utility_total"] - L8) < 1e-6 for r in recs) / len(recs)
+
+
 def fire_rates(recs) -> dict[int, float | None]:
     out = {}
     for r in recs:
@@ -182,10 +192,15 @@ def report(seeds, n_calls: int | None) -> None:
          "「勝」= A5ce 在該軸較佳（洩漏率越低越佳，其餘越大越佳）。讀法依 DR-020 三級："
          "5/5 systematic、4/5 directional、≤3/5 within noise。**結果照報。**", "",
          "## 生效證據", ""]
-    fr_ok = all(fr[s].get(st) == 1.0 for s in seeds for st in (1, 2, 3))
-    L.append(f"* per_slide `l_eq_fire_rate`（stage 1/2/3）在 A5ce 恆為 1.0："
-             f"{'✅' if fr_ok else '❌'} " +
-             "; ".join(f"s{s}: " + "/".join(f"{fr[s].get(st)}" for st in (1, 2, 3)) for s in seeds))
+    L.append("* per_slide `l_eq_fire_rate`（此臂 = CE > 0 的 replay 步驟比例；stage 1/2/3）："
+             + "; ".join(f"s{s}: " + "/".join(f"{fr[s].get(st):.3f}" for st in (1, 2, 3))
+                         for s in seeds))
+    L.append("  ⚠️ 預註冊時預期「恆為 1.0」，實測 0.73–0.88。差額 = CE 在 float32 下恰為 0 的"
+             "步驟（等權池化後 softmax 飽和）；該步 hinge 與 CE 梯度皆為零，對兩臂皆 no-op。"
+             "同一現象在 test 紀錄上為 `utility_total == log 8`：" + "; ".join(
+                 f"A5 s{s} {sat_frac(json.loads((REF_DIR / f'{BASE}_{ORDER}_seed{s}.json').read_text())):.3f}"
+                 f"／A5ce s{s} {sat_frac(json.loads((OUT_DIR / 'per_slide' / f'{ARM}_{ORDER}_seed{s}.json').read_text())):.3f}"
+                 for s in seeds) + "。預期寫錯處照實記錄，判準不動。")
     if n_calls is not None:
         L.append(f"* 注入函式在本次訓練被呼叫 {n_calls:,} 次（= 全部 replay 步數）")
     L += ["* 啟動前四項生效性實測（注入可見、值 == CE、與 hinge 不同、梯度 == CE 梯度）"
@@ -236,6 +251,8 @@ def main(argv=None) -> int:
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--tag", default=None, help="改讀別的 tag（測試用）")
     ap.add_argument("--report", default=None, help="改寫到別的報表路徑（測試用）")
+    ap.add_argument("--n-calls", type=int, default=None,
+                    help="--report-only 時把訓練 log 印出的注入函式呼叫次數帶進報表")
     a = ap.parse_args(argv)
     seeds = [int(x) for x in a.seeds.split(",")]
     global TAG, OUT_DIR, REPORT
@@ -250,7 +267,7 @@ def main(argv=None) -> int:
         fr = fire_rates(recs)
         print(f"煙霧：呼叫 {n} 次；fire rate {fr}")
         return 0 if n > 0 and all(fr.get(st) == 1.0 for st in (1, 2, 3)) else 1
-    n = None
+    n = a.n_calls
     if not a.report_only:
         n = train(seeds, [])
     report(seeds, n)

@@ -143,6 +143,17 @@ QUOTED += [
     ("E3 esca (b)", "docs/RESULTS_DOSSIER.md", "2.609 ± 0.554", "exp2/dr051/E3_DECOMPOSITION.md"),
     ("E3 rcc 選片", "docs/RESULTS_DOSSIER.md", "+0.314", "exp2/dr051/E3_DECOMPOSITION.md"),
     ("E3 esca 退步比例", "docs/RESULTS_DOSSIER.md", "0.787", "exp2/dr051/E3_DECOMPOSITION.md"),
+    # E2：門控對照（A5ce − A5，五軸）
+    ("E2 class-IL 差", "docs/RESULTS_DOSSIER.md", "+0.26 ± 4.49", "exp2/dr051/E2_GATED_CONTROL.md"),
+    ("E2 task-IL 差", "docs/RESULTS_DOSSIER.md", "-1.45 ± 2.76", "exp2/dr051/E2_GATED_CONTROL.md"),
+    ("E2 洩漏率差", "docs/RESULTS_DOSSIER.md", "+0.02 ± 3.92", "exp2/dr051/E2_GATED_CONTROL.md"),
+    ("E2 Jaccard 差", "docs/RESULTS_DOSSIER.md", "+0.0068 ± 0.0791", "exp2/dr051/E2_GATED_CONTROL.md"),
+    ("E2 ΔU S 差", "docs/RESULTS_DOSSIER.md", "+7.0996 ± 20.4372", "exp2/dr051/E2_GATED_CONTROL.md",
+     "+7.10 ± 20.44"),
+    ("E2 ΔU M1 差", "docs/RESULTS_DOSSIER.md", "+0.1150 ± 0.5080", "exp2/dr051/E2_GATED_CONTROL.md",
+     "+0.115 ± 0.508"),
+    ("E2 A5ce class-IL", "docs/RESULTS_DOSSIER.md", "82.65 ± 2.44", "exp2/dr051/E2_GATED_CONTROL.md"),
+    ("E2 A5ce task-IL", "docs/RESULTS_DOSSIER.md", "90.01 ± 2.06", "exp2/dr051/E2_GATED_CONTROL.md"),
 ]
 
 #: RESULTS_DOSSIER 的 38 條（PROMPT DOSSIER-FIGURES-20260826 §A2）。
@@ -289,7 +300,8 @@ PAPER_ARTIFACTS = ["docs/DR046_TABLE.md", "docs/RESULTS_DOSSIER.md",
                    "outputs/exp2/dr051/E0A_FIRE_RATE.md",
                    "outputs/exp2/dr051/E0B_TRAJECTORY.md",
                    "outputs/exp2/dr051/E0C_DELTA_U.md",
-                   "outputs/exp2/dr051/E3_DECOMPOSITION.md"]
+                   "outputs/exp2/dr051/E3_DECOMPOSITION.md",
+                   "outputs/exp2/dr051/E2_GATED_CONTROL.md"]
 PAPER_TOL = 5e-3
 
 #: 稿內合法但**不是實驗結果**的數字，逐個列出理由。不得用來塞不會溯源的結果值。
