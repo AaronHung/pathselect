@@ -69,7 +69,7 @@
 | [048](DR-048.md) | SOTA 主表：QPMIL-VL 協定下只跑我方方法 | ACTIVE | PI 裁定：order=reverse（其 Tab. 2）、10 折 seed=fold、訓練設定維持我方；B 段完成，佇列啟動 |
 | [049](DR-049.md) | 投稿模板：官方 ICASSP 2027 kit | ACTIVE | 逐檔核對：spconf.sty 除換行符外位元相同、IEEEbib.bst 零變動 → 換版為 no-op；7 頁待對照 CFP |
 | [050](DR-050.md) | Audit C1：F_g 梯度路徑、池化口徑、ΔU 單位 | ACTIVE | 唯讀稽核；三項發現：flat 的 F_g 在 task 1 無 task-relevant 梯度、ΔU 為加總口徑（逐 slide 平均為 −0.743）、hinge 僅 1.7–7.4% 步驟啟動 |
-| [051](DR-051.md) | 預註冊修訂：E0 抽取、E1／E3 評估、E2 門控對照 | ACTIVE | E0：hinge-only 觸發率 0.033/0.045/0.111 為完整臂 1.5–2 倍；正向 hier 首次落後 flat >0.010 在 t=1/brca（−0.037）；ΔU 現行為「逐任務加總再平均」，逐切片 M1/M2 並列。E2 判準凍結：A5ce（常開等權 CE）vs A5 五軸配對，不寫「等價」 |
+| [051](DR-051.md) | 預註冊修訂：E0 抽取、E1／E3 評估、E2 門控對照 | ACTIVE | E0：hinge-only 觸發率 0.033/0.045/0.111 為完整臂 1.5–2 倍；正向 hier 首次落後 flat >0.010 在 t=1/brca（−0.037）；ΔU 現行為「逐任務加總再平均」，逐切片 M1/M2 並列。E2 判準凍結：A5ce（常開等權 CE）vs A5 五軸配對，不寫「等價」。E1：ZS-top8 ACC 0.812（離 A5 僅 1.8–4.2 pp）；E3：舊任務 CE 上升全來自選片改變（+0.743），重加權 ≈ 0 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

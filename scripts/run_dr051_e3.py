@@ -211,9 +211,22 @@ def analyze(seeds: list[int], arch: str, args) -> None:
                       f"{n_repro}/{n_slides} 張" + ("（全數）✅" if n_repro == n_slides else " ❌"))
         if n_repro != n_slides:
             raise SystemExit("❌ 自檢 2 失敗：ckpt 無法重現既有選片")
+    # 自檢 4（恆等式）：(a)→(b) 的三任務等權平均 = −ΔU（E0c 的 M1 口徑），由構造成立
+    from report_dr051_e0 import per_slide_deltas
+    sel_mean = statistics.mean([statistics.mean([statistics.mean(cells[(s, t)]["sel"])
+                                                 for t in tasks[:-1]]) for s in seeds])
+    m1 = statistics.mean([statistics.mean([statistics.mean(v) for v in
+                                           per_slide_deltas(load_recs(OUT_DIR / "per_slide", s, arch),
+                                                            ARM, s, tasks).values()])
+                          for s in seeds])
+    if abs(sel_mean + m1) > 1e-6:
+        raise SystemExit(f"❌ 自檢 4：(a)→(b) 平均 {sel_mean:.6f} ≠ −M1 {-m1:.6f}")
     L += ["## 自檢", ""] + [f"* {c}" for c in checks] + [
         "* 自檢 3：每張切片 (a)(b) 與紀錄的 log C − `utility_total`、(d) 與紀錄 "
-        "`weights_softmax` 重算之 CE 皆相符（容差 1e-4）✅", ""]
+        "`weights_softmax` 重算之 CE 皆相符（容差 1e-4）✅",
+        f"* 自檢 4（恆等式）：(a)→(b) 三任務等權平均 {sel_mean:+.4f} = −ΔU(M1) "
+        f"{-m1:+.4f}（E0c 的 A5 M1 = {m1:.4f}）—— (a)→(b) 就是逐切片 ΔU 的負值，"
+        "由 `utility_total` 的 telescoping 定義**由構造成立** ✅", ""]
 
     # ── 表 1：平均 CE 四格（逐任務；seed 平均 ± sd）──
     def agg(t, k):

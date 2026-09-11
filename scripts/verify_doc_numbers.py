@@ -136,6 +136,13 @@ QUOTED += [
     ("E1 A5flat−ZS fwd", "docs/RESULTS_DOSSIER.md", "+0.0286", "../docs/SOTA_TABLE.md"),
     ("E1 A5hier−ZS fwd", "docs/RESULTS_DOSSIER.md", "-0.0009", "../docs/SOTA_TABLE.md"),
     ("E1 ZS−rand8", "docs/RESULTS_DOSSIER.md", "+0.1662", "../docs/SOTA_TABLE.md"),
+    # E3：選片 vs 加權拆解
+    ("E3 選片改變", "docs/RESULTS_DOSSIER.md", "+0.7429 ± 0.3094", "exp2/dr051/E3_DECOMPOSITION.md"),
+    ("E3 重加權", "docs/RESULTS_DOSSIER.md", "-0.0025 ± 0.0119", "exp2/dr051/E3_DECOMPOSITION.md"),
+    ("E3 合計", "docs/RESULTS_DOSSIER.md", "+0.7404 ± 0.3038", "exp2/dr051/E3_DECOMPOSITION.md"),
+    ("E3 esca (b)", "docs/RESULTS_DOSSIER.md", "2.609 ± 0.554", "exp2/dr051/E3_DECOMPOSITION.md"),
+    ("E3 rcc 選片", "docs/RESULTS_DOSSIER.md", "+0.314", "exp2/dr051/E3_DECOMPOSITION.md"),
+    ("E3 esca 退步比例", "docs/RESULTS_DOSSIER.md", "0.787", "exp2/dr051/E3_DECOMPOSITION.md"),
 ]
 
 #: RESULTS_DOSSIER 的 38 條（PROMPT DOSSIER-FIGURES-20260826 §A2）。
@@ -281,7 +288,8 @@ PAPER_ARTIFACTS = ["docs/DR046_TABLE.md", "docs/RESULTS_DOSSIER.md",
                    # DR-051：E0 抽取（hinge 觸發率、正向軌跡矩陣、ΔU 三口徑）
                    "outputs/exp2/dr051/E0A_FIRE_RATE.md",
                    "outputs/exp2/dr051/E0B_TRAJECTORY.md",
-                   "outputs/exp2/dr051/E0C_DELTA_U.md"]
+                   "outputs/exp2/dr051/E0C_DELTA_U.md",
+                   "outputs/exp2/dr051/E3_DECOMPOSITION.md"]
 PAPER_TOL = 5e-3
 
 #: 稿內合法但**不是實驗結果**的數字，逐個列出理由。不得用來塞不會溯源的結果值。
