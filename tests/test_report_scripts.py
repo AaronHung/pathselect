@@ -148,19 +148,30 @@ def test_paper_tolerance_is_the_spec_value():
 
 
 def test_paper_scan_flags_a_changed_number(tmp_path, monkeypatch):
-    """稿內數字改一位 → 掃描必須報出來。"""
+    """稿內數字改一位 → 掃描必須報出來。
+
+    錨點不寫死：稿子每版都在改（v0.9 已無 +3.06），改用「稿內第一個可溯源的結果數字」
+    當擾動對象，這樣測試不會因為稿件改版而失去錨點、又永遠擾動的是真結果值。
+    """
+    import re
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
     import verify_doc_numbers as V
     src = (REPO_ROOT / "paper" / "main.tex").read_text(encoding="utf-8")
-    assert "$+3.06$" in src or "+3.06" in src, "稿內找不到用來擾動的錨點數字"
+    pool = V.artifact_numbers()
+    anchors = [tok for _ln, tok, _ctx in V.paper_numbers(src)
+               if V.traceable(tok, pool) and tok.lstrip("+-") not in V.PAPER_ALLOW]
+    assert anchors, "稿內找不到任何可溯源的結果數字可供擾動"
+    tok = anchors[0]
     fake = tmp_path / "main.tex"
     # ⚠️ 擾動值要挑**不可能在產物裡碰撞**的。掃描是「與產物數值池比對」，
-    #    改成 +9.06 之類仍會命中池子裡別的數字（例如某個標準差），
+    #    改成鄰近值仍可能命中池子裡別的數字（例如某個標準差），
     #    看起來像通過 —— 這是本掃描的已知弱點，見 scan_paper 的說明。
-    fake.write_text(src.replace("+3.06", "+77.77"), encoding="utf-8")
+    mutated = re.sub(r"(?<![\d.])" + re.escape(tok) + r"(?!\d)", "77.77", src)
+    assert mutated != src
+    fake.write_text(mutated, encoding="utf-8")
     monkeypatch.setattr(V, "PAPER", fake)
     bad = V.scan_paper()
-    assert any("77.77" in b for b in bad), f"改掉的數字沒被抓到：{bad}"
+    assert any("77.77" in b for b in bad), f"改掉的數字 {tok} 沒被抓到：{bad}"
 
 
 def test_paper_scan_flags_a_pending_usage(tmp_path, monkeypatch):
