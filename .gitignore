@@ -10,9 +10,21 @@ ckpt/
 outputs/**/_probe_features.npz
 .DS_Store
 
-# LaTeX 中間產物（paper/ 只收原始檔與定稿 PDF）
+# LaTeX 中間產物與編譯出的 PDF（paper/ 只收原始檔；PDF 由 Overleaf／本機重編，不進 git）
+paper/*.pdf
 paper/*.aux
 paper/*.log
 paper/*.blg
 paper/*.out
 paper/*.bbl
+paper/*.synctex.gz
+*.log
+*.bbl
+*.blg
+*.out
+*.synctex.gz
+# 圖檔例外：paper/figures/*.pdf 是向量圖原檔，必須追蹤
+!paper/figures/*.pdf
+# 實驗 log 例外：logs/ 與 outputs/ 下的 run log 是 DR 卡引用的證據，必須追蹤
+!logs/**/*.log
+!outputs/**/*.log

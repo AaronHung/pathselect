@@ -1,0 +1,50 @@
+# paper/versions/old/ — 歷史備份
+
+**只存於 GitHub，不同步到 Overleaf。** 這裡是 2026-09-13（v0.9 markup 巨集）之前的所有
+稿件備份、Phase B 的凍結長版 `extended_master.tex`、2027 kit 換版前的 `spconf_pre2027.sty`，
+以及舊版 Fig.1 圖檔（`archive/`）。任何一份都不再編譯、不再引用；需要時以 `git log` 追溯。
+
+## 版本地圖（自 `paper/main.tex` 首行複製，2026-09-14）
+
+- v0.5 method-first (09-01)
+- v0.6 question-first + genealogy (09-03 Fable)
+- v0.61 narrative-first (09-03 Sol)
+- v0.7 = Sol spine + Fable body, PI rulings (09-03)
+- v0.71 = Sol red-team R2 adjudicated (09-03)
+- v0.8 = SOTA comparison filled (09-05)
+- v0.81 = PathSelect row = hier, flat as ablation, own A1/A3 rows under comparison protocol, paired 10-fold statistics; OPCM sentence corrected (09-05)
+- v0.82 = Sol R3 adjudicated: quoted-vs-rerun framing, no parity/SOTA wording, memory storage boundary, controlled-variants block, 2x2 novelty framing (09-06)
+- v0.83 = PI restructure: main table = 12 quoted + PathSelect only; ablations rebuilt as leave-out narrative; six-question and lifecycle tables removed; codes stripped (09-06)
+- v0.84 = forward-order results and order-dependent hierarchy reported (09-06)
+- v0.85 = forward-order leave-out chain; robustness synthesis (09-06)
+- v0.86 = QPMIL-VL reproduction check with released code, both orders (09-07); v0.87
+- v0.88 = leave-out and order tables merged; float barrier before Discussion (09-07)
+- v0.89 = Fig.1 v2.0 integrated (09-08); v0.89a = batch-size deviation disclosed; quoting-precedent sentence made precise; benchmark named after ConSlide (09-08)
+- v0.89c = reverse reproduction rerun with the paper's mini-batch reproduces published values in both orders (09-08)
+- v0.89d = Abstract, Introduction, Contributions rewritten (Sol proposals adjudicated); attribution caveat moved to protocol (09-08)
+- v0.89e = Related Work rewritten (09-08)
+- v0.89f = Method rewritten for precision: L_sem prior defined, replay data flow, defensive parenthetical removed (09-08)
+- v0.89g = fixed eight-way head disclosed (09-08)
+- v0.89h = Sol cold-read of Method adjudicated: E, normalization, per-layer merge, softmax in KL, empty groups, hyperparameters and results moved to Sec. 4 (09-08)
+- v0.89i = code facts confirmed (active groups, equal-weight E, KL on softmax); seen-class check sentence (09-08)
+- v0.89j = Experiments restructured: labeled protocol paragraphs, question-headed ablation paragraphs (09-08)
+- v0.89k = Sol cold-read of Sec. 4 adjudicated: naming, scoping of attribution claims, caption shortened, Table 3 caption corrected (09-08)
+- v0.89l = Discussion/Limitations merged into three paragraphs with five bounded claims; Conclusion compressed (09-08)
+- v0.89m = official ICASSP 2027 kit files installed (byte-identical to prior); ethics statement added (09-08)
+- v0.89n = Sol full-manuscript consistency read adjudicated: Table 3 narrative corrected, terminology fixed (09-08)
+- v0.89o = figure path restored to v1_0 (09-08)
+- v0.89p = compression cut 1: abstract to 150 words, Related Work to two paragraphs (09-08)
+- v0.89q = compression cut 2: 3.3, 3.5, 4.1, 4.2 tightened, no number changes (09-08)
+- v0.89r = compression cut 3: Tables 3+4 merged, limitations to three points, conclusion shortened (09-08)
+- v0.89s = cut 4a: 5+1 layout for advisor review (09-09)
+- v0.89t = three-way cold read: result-independent wording fixes (STE, uniform-pooling hinge, U_old provenance, overclaims) (09-11)
+- v0.89u = E0 results: per-slide Delta U with CONCH logit scale, hinge activation rates, forward-order trajectory sentence, flat F_g note (09-11)
+- v0.89v = structural rewrite: argument-first paragraphs, info-flow Method, evidence-chain Experiments, attackable claims guarded, engineering labels removed; main table made single-column and placed as Table 1 (09-11)
+- v0.89v-abs = advisor's abstract adopted verbatim; guards covered in Sec. 3.3/4.2/4.3 (09-12)
+- v0.89v-ov = Method overview paragraph added per advisor; protocol details trimmed (09-12)
+- v0.89w-a = E1 zero-shot top-8 reference row and E3 selection-vs-weighting decomposition integrated (09-12)
+- v0.89w = E2 gated-vs-always-on control integrated; hinge described as a design choice (09-12)
+- v0.9 = Sol final check adjudicated (scope, attribution, terminology); advisor review base (09-12)
+- v0.91a purple benchmark naming (09-14)
+- v0.91b brown: items 3,5,7,8,9,11 (09-14)
+- v0.91-g1 = benchmark naming + Sec. 4.1 definition + eight subtype classes, marked (09-14)
