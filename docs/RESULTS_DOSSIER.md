@@ -688,4 +688,31 @@ Forgetting +0.0036（hier 較低 5/10）—— 兩架構在累積式頭下沒有
 來源：`outputs/exp3/B1.md`（快照）、`outputs/exp3/EXP3.md`、`outputs/exp3/sota_acc/per_slide/`（20 檔）、
 `outputs/exp3/runs/*_rev_acc_*/meta.json`（commit 5338775、platform pod-cpu-x86）。
 
-### 11.2 B2 — 固定頭・反向十折 pod 對照（待補）
+### 11.2 B2 — 固定頭・反向十折 pod 對照（2026-09-15 完成，75 分鐘）＋同平台配對
+
+| 臂（固定頭，pod） | ACC | Masked ACC | Forgetting | BWT | n |
+|---|---|---|---|---|---|
+| A5 flat | 0.844 ± 0.041 | 0.917 ± 0.023 | 0.080 ± 0.048 | −0.071 ± 0.052 | 10 |
+| A5 hier | 0.848 ± 0.036 | 0.915 ± 0.024 | 0.072 ± 0.033 | −0.066 ± 0.035 | 10 |
+
+hier − flat（固定頭 pod）：ACC +0.0037（hier 較佳 3/10）、Masked −0.0017（4/10）、Forgetting −0.0083（5/10）。
+
+**累積 − 固定（同平台 pod，逐折）**：
+
+| 架構 | ACC | Masked ACC | Forgetting | BWT |
+|---|---|---|---|---|
+| hier | **−0.0496**（累積較高 1/10） | +0.0028（7/10） | **+0.0656**（累積較低 0/10） | −0.0651（1/10） |
+| flat | **−0.0410**（2/10） | +0.0052（7/10） | **+0.0537**（1/10） | −0.0524（2/10） |
+
+只報告：累積式頭的 ACC 低 4–5 pp、Forgetting 高 5–7 pp，兩架構方向一致；Masked ACC
+（task-IL 口徑）兩者相同（差 < 0.6 pp）。ACC／Forgetting 的差有一部分由構造而來：早期
+stage 在 C_t 上的準確率較高（2 類問題），使 `max_t A[t][j]` 抬升、`A[T][j]` 的
+argmax 空間在最終 stage 才與固定頭相同。
+
+**平台差（固定頭 pod − 固定頭 Mac，同折）**：hier ACC −0.0065（4/10）、flat **+0.0144**（7/10）；
+Forgetting hier +0.0114（6/10）、flat −0.0097（3/10）。⚠️ Mac 上「hier − flat = +0.0247（8/10）」
+的反向十折結論在 pod 平台上縮成 +0.0037（3/10）：**hier 相對 flat 的優勢對 CPU 浮點平台敏感**，
+稿件引用 0.854 vs 0.830 時須註明平台，或改以 pod 同平台的 0.848 vs 0.844 並標「within noise」。
+來源：`outputs/exp3/B2.md`、`outputs/exp3/EXP3.md`、`outputs/exp3/sota_fixed/per_slide/`（20 檔）。
+
+### 11.3 B3 — 累積式頭・正向十折（待補）
