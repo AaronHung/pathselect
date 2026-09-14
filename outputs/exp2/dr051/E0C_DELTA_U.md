@@ -4,7 +4,7 @@
 
 ## (i) 現行腳本的口徑
 
-Table 3 的 ΔU 由 `scripts/report_dr046.py::delta_utility` 產生（`scripts/report_dr046.py:166`、`scripts/report_dr046.py:168`）：對每個舊任務取 `sum_u_at_end − sum_u_at_learn`，再對舊任務取 `statistics.mean`。而 `sum_u_at_*` 是**該任務 test 切片的 `utility_total` 加總**（`scripts/run_exp2.py:665`）。
+Table 3 的 ΔU 由 `scripts/report_dr046.py::delta_utility` 產生（`scripts/report_dr046.py:166`、`scripts/report_dr046.py:168`）：對每個舊任務取 `sum_u_at_end − sum_u_at_learn`，再對舊任務取 `statistics.mean`。而 `sum_u_at_*` 是**該任務 test 切片的 `utility_total` 加總**（`scripts/run_exp2.py:671`）。
 
 **答：兩者都不是 —— 是「各任務先對切片加總、再跨任務平均」。**不是逐切片平均，也不是所有舊任務切片一起平均；片數多的任務（brca 93）主導量級。
 
@@ -37,6 +37,6 @@ test 片數 esca 15／rcc 76／brca 93；M2 以片數加權（brca 佔 93/184）
 
 ## (iv) flat 是否存並蒸餾 r_old
 
-**是。** `r = f_group.score(...)` 在 `run_rounds` 內**不分架構**都會算（`selector/rounds.py:131`）；`fill_memory` 把 `last.r` 存進 entry 作 `r_old`（`selector/train.py:329`）；`continual_terms` 以 `l_kd(entry.r_old, last.r, ...)` 蒸餾（`selector/train.py:362`），group 項係數 `kd_group_weight` 預設 1.0（`scripts/run_exp2.py:254`），只有 A5nG 臂設 0。
+**是。** `r = f_group.score(...)` 在 `run_rounds` 內**不分架構**都會算（`selector/rounds.py:131`）；`fill_memory` 把 `last.r` 存進 entry 作 `r_old`（`selector/train.py:329`）；`continual_terms` 以 `l_kd(entry.r_old, last.r, ...)` 蒸餾（`selector/train.py:362`），group 項係數 `kd_group_weight` 預設 1.0（`scripts/run_exp2.py:255`），只有 A5nG 臂設 0。
 因此 flat 的 L_KD group 項是活的（audit C1 §1：flat 的 F_g 只從此項收梯度）；但 flat 下 r 不進入選取、也不進入 head（audit C1 §1），故此項不改變任何輸出。
 

@@ -288,17 +288,28 @@ CITES = {
 }
 
 
+def resolve_cite(k: str) -> tuple[str, int | None]:
+    """以片段定位目前工作樹的行號：唯一命中就用它；多處命中取離提示行號最近者；
+    沒命中回傳 None。行號因此不會因為別處插入幾行就失效，但片段消失一定會被抓到。"""
+    f, hint, frag = CITES[k]
+    lines = (ROOT / f).read_text().splitlines()
+    hits = [i + 1 for i, l in enumerate(lines) if frag in l]
+    if not hits:
+        return f, None
+    return f, min(hits, key=lambda h: abs(h - hint))
+
+
 def check_cites() -> list[str]:
     bad = []
-    for k, (f, n, frag) in CITES.items():
-        lines = (ROOT / f).read_text().splitlines()
-        if n > len(lines) or frag not in lines[n - 1]:
-            bad.append(f"{k}: {f}:{n} 不含「{frag}」")
+    for k, (f, _hint, frag) in CITES.items():
+        _f, n = resolve_cite(k)
+        if n is None:
+            bad.append(f"{k}: {f} 已不含片段「{frag}」")
     return bad
 
 
 def cite(k: str) -> str:
-    f, n, _ = CITES[k]
+    f, n = resolve_cite(k)
     return f"`{f}:{n}`"
 
 
