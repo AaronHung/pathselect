@@ -1,0 +1,285 @@
+% VERSION MAP: v0.5 method-first (09-01) | v0.6 question-first + genealogy (09-03 Fable) | v0.61 narrative-first (09-03 Sol) | v0.7 = Sol spine + Fable body, PI rulings (09-03) | v0.71 = Sol red-team R2 adjudicated (09-03) | v0.8 = SOTA comparison filled (09-05) | v0.81 = PathSelect row = hier, flat as ablation, own A1/A3 rows under comparison protocol, paired 10-fold statistics; OPCM sentence corrected (09-05) | v0.82 = Sol R3 adjudicated: quoted-vs-rerun framing, no parity/SOTA wording, memory storage boundary, controlled-variants block, 2x2 novelty framing (09-06) | v0.83 = PI restructure: main table = 12 quoted + PathSelect only; ablations rebuilt as leave-out narrative; six-question and lifecycle tables removed; codes stripped (09-06) | v0.84 = forward-order results and order-dependent hierarchy reported (09-06) | v0.85 = forward-order leave-out chain; robustness synthesis (09-06) | v0.86 = QPMIL-VL reproduction check with released code, both orders (09-07); v0.87 | v0.88 = leave-out and order tables merged; float barrier before Discussion (09-07) | v0.89 = Fig.1 v2.0 integrated (09-08); v0.89a = batch-size deviation disclosed; quoting-precedent sentence made precise; benchmark named after ConSlide (09-08) | v0.89c = reverse reproduction rerun with the paper's mini-batch reproduces published values in both orders (09-08) | v0.89d = Abstract, Introduction, Contributions rewritten (Sol proposals adjudicated); attribution caveat moved to protocol (09-08) | v0.89e = Related Work rewritten (09-08) | v0.89f = Method rewritten for precision: L_sem prior defined, replay data flow, defensive parenthetical removed (09-08) | v0.89g = fixed eight-way head disclosed (09-08) | v0.89h = Sol cold-read of Method adjudicated: E, normalization, per-layer merge, softmax in KL, empty groups, hyperparameters and results moved to Sec. 4 (09-08) | v0.89i = code facts confirmed (active groups, equal-weight E, KL on softmax); seen-class check sentence (09-08) | v0.89j = Experiments restructured: labeled protocol paragraphs, question-headed ablation paragraphs (09-08) | v0.89k = Sol cold-read of Sec. 4 adjudicated: naming, scoping of attribution claims, caption shortened, Table 3 caption corrected (09-08) | v0.89l = Discussion/Limitations merged into three paragraphs with five bounded claims; Conclusion compressed (09-08) | v0.89m = official ICASSP 2027 kit files installed (byte-identical to prior); ethics statement added (09-08) | v0.89n = Sol full-manuscript consistency read adjudicated: Table 3 narrative corrected, terminology fixed (09-08) | v0.89o = figure path restored to v1_0 (09-08) | v0.89p = compression cut 1: abstract to 150 words, Related Work to two paragraphs (09-08) | v0.89q = compression cut 2: 3.3, 3.5, 4.1, 4.2 tightened, no number changes (09-08) | v0.89r = compression cut 3: Tables 3+4 merged, limitations to three points, conclusion shortened (09-08) | v0.89s = cut 4a: 5+1 layout for advisor review (09-09) | v0.89t = three-way cold read: result-independent wording fixes (STE, uniform-pooling hinge, U_old provenance, overclaims) (09-11) | v0.89u = E0 results: per-slide Delta U with CONCH logit scale, hinge activation rates, forward-order trajectory sentence, flat F_g note (09-11) | v0.89v = structural rewrite: argument-first paragraphs, info-flow Method, evidence-chain Experiments, attackable claims guarded, engineering labels removed; main table made single-column and placed as Table 1 (09-11) | v0.89v-abs = advisor's abstract adopted verbatim; guards covered in Sec. 3.3/4.2/4.3 (09-12) | v0.89v-ov = Method overview paragraph added per advisor; protocol details trimmed (09-12) | v0.89w-a = E1 zero-shot top-8 reference row and E3 selection-vs-weighting decomposition integrated (09-12) | v0.89w = E2 gated-vs-always-on control integrated; hinge described as a design choice (09-12) | v0.9 = Sol final check adjudicated (scope, attribution, terminology); advisor review base (09-12) | v0.91a purple benchmark naming (09-14) | v0.91b brown: items 3,5,7,8,9,11 (09-14) | v0.91b-c = contributions rewritten for first-impression readers (PI draft, Sol and Fable merged) (09-14) | v0.91b-c blue: hinge activation rates moved from Sec. 3.3 to 4.2 (item 4, partial) (09-14) | v0.91e green: item 10 — Related Work merged into the Introduction as a gap paragraph; contributions shortened (09-14) | v0.91e-r = authors updated, funding moved to comment, open-comment notes added (09-14) | v0.91d green: item 12 — results paragraphs rewritten claim→evidence→interpretation (09-14) | v0.91c blue: item 4 boundary cleanup — Sec. 3 holds definitions and rationale only; capacities, variant definitions, and E2 moved to Sec. 4 (09-14) | v0.91-g1 = benchmark naming + Sec. 4.1 definition + eight subtype classes, marked (09-14)
+\documentclass{article}
+\usepackage{spconf,amsmath,amssymb,graphicx,hyperref}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{placeins}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+% ---- revision markup: \markuptrue = grey strike-out + blue insertions (advisor view); \markupfalse = clean ----
+\newif\ifmarkup \markuptrue
+\ifdefined\MARKUP \ifnum\MARKUP=1 \markuptrue\else\markupfalse\fi \fi
+\newcommand{\del}[1]{\ifmarkup\textcolor{gray}{\sout{#1}}\fi}
+\newcommand{\ins}[1]{\ifmarkup\textcolor{blue}{#1}\else#1\fi}
+\newcommand{\rep}[2]{\del{#1}\ins{#2}}
+\newcommand{\note}[1]{\textcolor{red}{\textit{#1}}}  % open comments, always shown
+\newcommand{\repc}[3]{\ifmarkup\textcolor{gray}{\sout{#2}}\textcolor{#1}{#3}\else#3\fi}
+\newcommand{\repP}[2]{\repc{violet}{#1}{#2}}  % purple: v0.91a benchmark naming
+\newcommand{\repB}[2]{\repc{brown}{#1}{#2}}   % brown: v0.91b items 3,5,7,8,9,11
+\newcommand{\repL}[2]{\repc{blue}{#1}{#2}}    % blue: item 4
+\newcommand{\repG}[2]{\repc{teal}{#1}{#2}}    % teal: items 10,12
+\newcommand{\insB}[1]{\ifmarkup\textcolor{brown}{#1}\else#1\fi}
+\newcommand{\delB}[1]{\ifmarkup\textcolor{gray}{\sout{#1}}\fi}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.85}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{5}
+\setlength{\textfloatsep}{9pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+
+\def\x{{\mathbf x}}
+\def\L{{\cal L}}
+\newcommand{\Fg}{F_g}
+\newcommand{\Fp}{F_p}
+\newcommand{\Psel}{\mathcal{P}}
+\newcommand{\Mem}{\mathcal{M}}
+\newcommand{\pending}[1]{\textbf{[#1]}}
+
+\title{REMEMBERING WHERE TO LOOK: CONTINUAL HIERARCHICAL EVIDENCE SELECTION FOR WHOLE-SLIDE IMAGES}
+
+% AUTHORS — please verify (ORCID iDs are entered in the submission system, not printed):
+%   Hsi-Ren Hung   ORCID 0009-0008-1857-3225  (ORCID record name: Hsi-Ren Hung)
+%   Kun-Lun Pan    ORCID 0009-0000-5553-944X  (ORCID record name: KUN LUN PAN; NSYSU)  alin080417@gmail.com (not public on ORCID; confirm with author)
+%   Chia-Feng Liao ORCID 0009-0007-5454-2277  (ORCID record name: Chia Feng Liao)  fengliao0512@gmail.com
+%   Huei-Fang Yang ORCID: to be added          (corresponding author)
+% FUNDING (restore at camera-ready): This work was supported in part by the National Science and Technology Council, Taiwan under Grant NSTC 112-2221-E-110-047-MY3, 114-2640-E-110-004, and 114-2634-F-006-002.
+\name{Hsi-Ren Hung \qquad Kun-Lun Pan \qquad Chia-Feng Liao \qquad Huei-Fang Yang\sthanks{corresponding author.}}
+\address{Department of Computer Science and Engineering, National Sun Yat-sen University, Taiwan}
+
+\begin{document}
+\ninept
+\maketitle
+
+% -----------------------------------------------------------------------------
+\note{Note: the abstract will be revised last, after the introduction and contributions are frozen. To propose edits anywhere, write \texttt{\textbackslash rep\{old\}\{new\}} (grey strike-out + coloured insertion; \texttt{\textbackslash repG} for narrative edits, \texttt{\textbackslash repB} for wording) so a marked PDF can be compiled; red italics are open comments.}
+
+\begin{abstract}
+Whole-slide image (WSI) diagnosis often requires selecting a small set of diagnostically relevant patches from thousands. While continual-learning methods typically focus on preserving predictions or representations, a budgeted system can fail differently: its diagnostic pathway may remain intact while its selector forgets where to look. We introduce \textbf{PathSelect}, a continual evidence-selection framework that preserves and learns where to look across sequential tasks. Crucially, preserving where to look requires maintaining both prior selection behavior and the diagnostic value of selected evidence. PathSelect therefore combines dual-level distillation to retain prior selection behavior with utility preservation that allows evidence to change without degrading diagnostic usefulness. Replay maintains old-task competence, and task-wise updates are consolidated into a single shared selector for task-free inference. \repP{On the four-cohort TCGA benchmark, PathSelect achieves competitive performance}{On the four-task TCGA continual WSI benchmark, PathSelect achieves competitive performance}, with 0.854 class-incremental accuracy and only 0.060 forgetting. Selection-level analyses further show that evidence identity and diagnostic utility are not interchangeable, highlighting the need to preserve how a model acquires evidence.
+\end{abstract}
+
+\begin{keywords}
+whole-slide images, continual learning, evidence selection, computational pathology, LoRA
+\end{keywords}
+
+% -----------------------------------------------------------------------------
+\section{Introduction}
+\label{sec:intro}
+
+A gigapixel whole-slide image (WSI) may contain tens of thousands of patches, yet a diagnosis often rests on a few of them. Practical systems therefore select a small evidence set and decide from it; if the selector fails to retrieve the tissue that supports the decision, the decision fails even when the classifier is sound.
+
+Learning new disease cohorts sequentially adds a specific difficulty: it changes the selector's preferences, and the evidence that old cohorts need can be crowded out. Final accuracy shows the resulting drop, but it cannot tell whether the drop originates in evidence selection or in the representation and classifier that conventional continual learning protects.
+
+\repG{}{Existing work addresses the two halves of this problem separately. Multiple-instance learning aggregates patch-level information for slide diagnosis \cite{ilse2018abmil,lu2021clam,shao2021transmil}, and recent methods explicitly learn where to look through tissue-aware selection \cite{huang2026histoselect} or active perception \cite{chen2026adaptivepath}, but they are not designed to preserve that selection behavior across sequential tasks. Continual WSI methods \cite{huang2023conslide,meseguer2024micil,gou2025qpmil,li2025akd,lee2025comel,bui2026mergeslide} instead preserve diagnostic competence through rehearsal, prototypes, attention distillation, or model adaptation, and judge forgetting by downstream accuracy, but do not isolate a budgeted evidence-selection policy as the component that must be retained. The gap is therefore specific: a model may preserve its diagnostic capability while forgetting where to acquire the evidence it needs.}
+
+\repG{We isolate this step. PathSelect freezes the image and text encoders of a vision--language model, which share an embedding space, and the cosine diagnostic rule; only a hierarchical group-to-patch selector, following HistoSelect \cite{huang2026histoselect}, is learned, so any change in outcome traces to the selector. Across tasks the selector is preserved at two levels: distillation keeps its old scoring preferences (\emph{behavioral continuity}), and a utility hinge penalizes any regression in the diagnostic value of the selected evidence while allowing the evidence itself to change (\emph{functional continuity}). Changing the selected patches is therefore not treated as forgetting; losing their usefulness is.}{We address this gap by isolating the selector. PathSelect freezes the image and text encoders of a vision--language model and the cosine diagnostic rule that connects them; only a hierarchical group-to-patch selector, following HistoSelect \cite{huang2026histoselect}, is learned, so any change in outcome traces to where the model looks. Across tasks the selector is preserved at two levels: distillation keeps its old scoring preferences (behavioral continuity), and a utility hinge penalizes any regression in the diagnostic value of the selected evidence while allowing the evidence itself to change (functional continuity). Changing the selected patches is therefore not treated as forgetting; losing their usefulness is.}
+
+\repG{On the four-task TCGA continual WSI benchmark introduced by ConSlide \cite{huang2023conslide}, preservation lifts unprotected sequential selection from 0.452 to 0.854 class-incremental accuracy in the reverse task order, some gains depend on task order, which we report rather than select.}{On the four-task TCGA continual WSI benchmark introduced by ConSlide \cite{huang2023conslide}, preservation lifts unprotected sequential selection from 0.452 to 0.854 class-incremental accuracy in the reverse task order and stays within one standard deviation of the strongest published method, while the benefit of the hierarchical component is task-order dependent.}
+
+\textbf{Contributions.}
+\begin{itemize}
+    \item \repG{\textbf{Continual evidence selection.} We introduce PathSelect, a framework for whole-slide diagnosis under a fixed patch budget in which only the evidence selector is updated across sequential diagnostic tasks. The encoders and diagnostic rule remain frozen, making it possible to ask whether the model still knows where to look after learning new tasks. A hierarchical selector chooses a small evidence set for each slide and serves all tasks without being told which task a slide belongs to.}{\textbf{Continual evidence selection.} PathSelect restricts sequential adaptation to a budgeted evidence selector while keeping the diagnostic pathway fixed, yielding one shared selector that serves all tasks without being told which task a slide belongs to.}
+    \item \repG{\textbf{Behavioral and functional preservation.} We preserve the selector at two complementary levels: dual-level distillation maintains how it scores tissue groups and patches, while a utility-preservation objective penalizes regression in the diagnostic value of the selected evidence. The selector may therefore choose different patches for an old task, as long as the new evidence is at least as useful as the old.}{\textbf{Behavioral and functional preservation.} Dual-level distillation preserves prior scoring behavior, while utility preservation protects diagnostic usefulness without requiring the same patches to remain selected.}
+    \item \repG{\textbf{Bounded-memory consolidation.} Preservation is supported by a bounded Selection Memory of past selector snapshots---scores, indices, and utilities, but no images or feature tensors---while task-local low-rank updates are folded into the shared selector after each task rather than retained as a growing bank of task-specific models. In the reverse task order, this design recovers most of the accuracy lost under unprotected sequential learning and performs within one standard deviation of the strongest published method.}{\textbf{Bounded-memory consolidation.} A compact Selection Memory of selector snapshots supplies replay and preservation targets, and task-local low-rank updates are folded into the shared selector rather than accumulated as task-specific models.}
+\end{itemize}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.72\textwidth]{figures/fig1_architecture_v1_0.pdf}
+    \caption{\note{Note: Fig.~1 will be redrawn to show the task sequence (Task 1 $\rightarrow$ $\cdots$ $\rightarrow$ Task $T$), the shared selector updated after each task, and the Selection Memory feeding preservation across tasks.} \textbf{PathSelect overview.} Along the diagnostic path, all model components except the evidence selector (orange) are frozen. Within a task the selector allocates a budget of $B=8$ patches across tissue groups and then within groups; only the selected evidence reaches the frozen cosine head, and inference uses this solid path alone. Training adds three within-task signals (diagnostic, semantic-prior, counterfactual-utility) and, across tasks, a Selection Memory of past selector snapshots (scores, indices, utilities; no images or feature tensors, though replay reads the training feature store) that drives replay, distillation of old scores, and a utility hinge that penalizes regression while allowing the evidence to change; task-local LoRA updates are folded into one shared selector. Selection drift is evaluated separately through evidence identity (Jaccard) and utility change ($\Delta U$).}
+    \label{fig:arch}
+\end{figure*}
+
+\repG{\textbf{Evidence selection and continual WSI learning.}
+Classical multiple-instance learning (MIL) methods such as ABMIL, CLAM, and TransMIL [ref] aggregate patch features with learned attention, whereas HistoSelect [ref] makes evidence selection explicitly tissue-aware and hierarchical; recent active-perception methods learn where to inspect in a WSI [ref] but do not address continual retention. In parallel, continual WSI methods preserve diagnostic competence through rehearsal, attention or aggregation regularization, prototypes, or model adaptation: ConSlide [ref] introduced rehearsal-based continual WSI analysis; MICIL [ref] studied class-incremental MIL; QPMIL-VL [ref] used vision--language prototypes; Li et al.\ [ref] distilled MIL attention with a pseudo-bag memory; and CoMEL [ref] and MergeSlide [ref] explored low-rank adaptation and model merging. These methods primarily adapt or preserve learned diagnostic, aggregation, attention, or prototype components rather than isolate a standalone hard evidence selector.}{}
+
+\repG{\textbf{PathSelect bridges these two lines.}
+The missing intersection is continual hard evidence selection under a fixed diagnostic pathway. PathSelect instantiates this setting with the HistoSelect group-to-patch substrate with a fixed, task-agnostic tissue vocabulary that provides a stable grouping reference across tasks, freezes the image and text encoders and the diagnostic rule, and restricts continual adaptation to the budgeted selector. Unlike methods that infer forgetting only from downstream accuracy, it measures evidence-identity and diagnostic-utility drift directly and preserves both selection behavior and usefulness. Low-rank adaptation (LoRA) [ref] and its continual-learning variants [ref] serve only as fixed-cost consolidation into one shared selector; preservation comes from replay, distillation, and the utility floor.}{}
+
+% -----------------------------------------------------------------------------
+\section{Method}
+\label{sec:method}
+
+PathSelect isolates continual forgetting at the evidence selector while keeping the diagnostic pathway fixed (Fig.~\ref{fig:arch}). A frozen pathway turns a slide into patch features and, from any set of selected patches, into a diagnosis; only the evidence selector between them is learned. Within a task, the selector learns to spend a budget of $B=8$ patches across tissue groups and then within them, supervised by the diagnosis itself, by a class-text prior, and by the measured usefulness of each candidate patch. \repB{Across tasks, the selector is preserved with three signals drawn from a memory of its own past selections---replay of old samples through reloaded frozen features, distillation of old scores, and a floor on the diagnostic value of the evidence it now selects---while task-local LoRA updates are folded into one shared selector.}{Across tasks, the selector is preserved by replay, distillation of old scores, and a floor on the diagnostic value of its evidence, all drawn from a memory of its own past selections, and task-local LoRA updates are folded into one shared selector.} At evaluation, identity and utility drift are measured separately.
+
+\subsection{From a slide to a diagnosis}
+\label{ssec:setup}
+
+Tasks $\tau=1,\ldots,T$ arrive sequentially. \repB{A slide is a set of frozen CONCH patch features $\{x_i\}_{i=1}^{N}$, $x_i\in\mathbb{R}^{512}$.}{A slide is a set of frozen patch features $\{x_i\}_{i=1}^{N}$ from the image encoder.} \repB{Eight fixed tissue prompts are encoded once into $\{p_k\}$; each patch joins the group $G_j$ with $j=\arg\max_k\cos(x_i,p_k)$,}{A fixed vocabulary of $K=8$ tissue-grouping prompts (tumor, stroma, lymphocyte, necrosis, normal epithelium, vessel, adipose, background), distinct from the diagnostic classes, is encoded once by the text encoder into $\{p_k\}_{k=1}^{K}$; each patch joins the group $G_j$ with $j=\arg\max_k\cos(x_i,p_k)$,} and each group is summarized by its mean $g_j$. The group selector $\Fg$ (a two-layer MLP, like $\Fp$) scores the prototypes, $r_j=\Fg(g_j)$, and a largest-remainder allocation converts the softmax over the scores of the non-empty groups with remaining capacity into integer quotas $b_j$ with $\sum_j b_j=B=8$; the patch selector $\Fp$ scores members, $s_i=\Fp(x_i)$, and the top $b_j$ patches of each group form the evidence set $\Psel$. The slide representation is the score-weighted, $\ell_2$-normalized mean $z=\sum_{i\in\Psel}\mathrm{softmax}(s)_i\,x_i\,/\,\bigl\|\sum_{i\in\Psel}\mathrm{softmax}(s)_i\,x_i\bigr\|_2$, and the prediction is the softmax over cosine similarities between $z$ \repB{and the frozen class-text embeddings $\{t_c\}$ of all $C=8$ benchmark classes, fixed from the first task.}{and the frozen class-text embeddings $\{t_c\}$ of the $C=8$ diagnostic subtype classes of the benchmark (Sec.~\ref{sec:exp}), fixed from the first task.} \repB{Inference is exactly this path, with no task identity, memory lookup, or trained head.}{Inference is exactly this path.} $B$ bounds the evidence reaching the head; all patches are still scored. A straight-through factor $\sigma(r)_j/\mathrm{sg}(\sigma(r)_j)$ on the selected members \repL{passes the diagnostic and utility-preservation gradients back to $\Fg$; in the flat ablation variant, $\Fg$ does not enter selection or prediction.}{passes the diagnostic and utility-preservation gradients back to $\Fg$.}
+
+
+
+\subsection{Learning to select}
+\label{ssec:within}
+
+Within a task, $\L_{\mathrm{ev}}=\L_{\mathrm{diag}}+\beta_s\L_{\mathrm{sem}}+\beta_u\L_{\mathrm{util}}$ provides three kinds of supervision. \repB{\textbf{Outcome}: $\L_{\mathrm{diag}}$ is the cross-entropy (CE) of the frozen head on the selected set; it supervises the joint outcome but assigns credit weakly among candidates.}{The outcome signal $\L_{\mathrm{diag}}$ is the cross-entropy (CE) of the frozen head on the selected set; it supervises the joint outcome but assigns credit weakly among candidates.} \repB{\textbf{Semantic prior}: with $z_{ic}=\cos(x_i,t_c)/T$, a class-text prior}{The semantic signal $\L_{\mathrm{sem}}$ aligns the selector with a class-text prior: with $z_{ic}=\cos(x_i,t_c)/T$, the prior} $p_i\propto 1-H(\mathrm{softmax}_c(z_{ic}))/\log C$ \repB{scores how discriminative each candidate appears, and}{scores how discriminative each candidate appears in the shared image--text embedding space, and} the selector's score distribution over candidates is softly aligned to it with a Kullback--Leibler (KL) term; class-derived information thus enters training only through this prior and the frozen-head losses, never as selector input at inference. \repB{\textbf{Counterfactual utility}: let $E$ be the currently selected set,}{The counterfactual-utility signal $\L_{\mathrm{util}}$ asks which candidate would actually help. Let $E$ be the currently selected set,} summarized by the equal-weight mean of its patches so that every candidate is evaluated under the same weights. \repB{For each unselected candidate $i$ among the top-256 scored patches, the marginal gain}{For each unselected candidate $i$ in a top-scored subset, the marginal gain}
+\begin{equation}
+u_i
+=
+\L_{\mathrm{diag}}(E)
+-
+\L_{\mathrm{diag}}(E\cup\{x_i\})
+\label{eq:ui}
+\end{equation}
+is positive when adding the candidate would reduce the diagnostic loss; it forms a no-gradient teacher, and $\L_{\mathrm{util}}=\mathrm{KL}(\mathrm{softmax}(u)\,\Vert\,\mathrm{softmax}(s))$ trains the patch selector to rank candidates by measured usefulness. The candidate-level $u_i$ is distinct from the value of the whole selected set, $U(\Psel)=\log C-\mathrm{CE}(\Psel,y)$, which is what must be preserved across tasks.
+
+\subsection{Preserving selection across tasks}
+\label{ssec:cl}
+
+\repB{After a task is learned, PathSelect stores at most 512 behavioral snapshots in a Selection Memory $\Mem$:}{After a task is learned, PathSelect stores a bounded set of behavioral snapshots in a Selection Memory $\Mem$:} \repL{an internal sample reference, the task tag, group scores $r_{\rm old}$, candidate indices and their patch scores $s_{\rm old}$ and utilities ($\le$256 each), and $U_{\rm old}$.}{an internal sample reference, the task tag, group scores $r_{\rm old}$, candidate indices with their patch scores $s_{\rm old}$ and utilities, and $U_{\rm old}$.} \repB{The memory holds no image or feature tensor (3.1\,MB);}{The memory holds no image or feature tensor;} \repL{during later tasks one snapshot is replayed per step by reloading the slide's frozen features from the training feature store, which replay therefore requires.}{replaying a snapshot reloads the slide's frozen features from the training feature store, which replay therefore requires.}
+
+The continual objective is
+\begin{align}
+\L_{\mathrm{CL}}
+={}&
+\lambda_{\mathrm{kd}}
+\left[
+\mathrm{KL}\bigl(\sigma(r_{\mathrm{old}})\Vert \sigma(r_{\mathrm{new}})\bigr)
++
+\mathrm{KL}\bigl(\sigma(s_{\mathrm{old}})\Vert \sigma(s_{\mathrm{new}})\bigr)
+\right]
+\nonumber\\
+&+
+\lambda_{\mathrm{eq}}
+\max(0,U_{\mathrm{old}}-U_{\mathrm{new}})
++
+\lambda_r \L_{\mathrm{diag}}^{\mathrm{rep}},
+\label{eq:lcl}
+\end{align}
+with $\sigma$ the softmax over groups and over candidates.
+
+\repB{\textbf{Behavioral continuity}: dual-level distillation preserves}{Behavioral continuity is enforced by $\L_{\rm KD}$: dual-level distillation preserves} \repB{the old soft policy---group preferences and patch-score distributions---without requiring the hard top-$B$ set to be identical.}{the old soft policy without requiring the hard top-$B$ set to be identical.} \repB{\textbf{Functional continuity}: with $U=\log C-\mathrm{CE}$ the hinge equals}{Functional continuity is encouraged by $\L_{\rm eq}$: with $U=\log C-\mathrm{CE}$ the hinge equals} $\max(0,\mathrm{CE}^{\rm unif}_{\rm new}-\mathrm{CE}^{\rm unif}_{\rm old})$, both terms with equal-weight pooling of the selected set, whereas the replay loss $\L_{\mathrm{diag}}^{\mathrm{rep}}$ uses the head's score-weighted pooling; \repL{the hinge penalizes utility regression on old slides and is inactive otherwise (active in 1.7\%, 3.1\%, and 7.4\% of replay steps at the three continual stages, reverse order, full flat method).}{the hinge penalizes utility regression on old slides and is inactive otherwise.} \repL{An always-on variant that applies the same equal-weight cross-entropy at every replay step is indistinguishable from the gated hinge on five seeds (Sec.~\ref{ssec:ablation}), so the gate is a design choice that makes the utility floor explicit rather than a measured advantage.}{We use this gated form to make the utility floor explicit.} \repB{\textbf{Task competence}: replay applies the ordinary diagnostic loss to replayed old slides.}{Task competence is maintained by replay, which applies the ordinary diagnostic loss to replayed old samples.}
+
+\repG{All terms update the current task's LoRA adapters, attached to the linear layers of $\Fg$ and $\Fp$ while the base weights stay frozen;}{Consolidation uses low-rank adaptation \cite{hu2022lora}, as in its continual variants \cite{liang2024inflora,wu2025sdlora,he2025cllora,chen2026flexem}, only as a fixed-cost parameterization: all terms update the current task's LoRA adapters, attached to the linear layers of $\Fg$ and $\Fp$ while the base weights stay frozen;} at the task boundary each residual is folded in, $W^{(\ell)}_{\tau}=W^{(\ell)}_{\tau-1}+B^{(\ell)}_\tau A^{(\ell)}_\tau$, and the adapters are reset, so model size is fixed and inference uses one shared selector.
+
+% -----------------------------------------------------------------------------
+\section{Experiments}
+\label{sec:exp}
+
+\subsection{Protocol and measurements}
+
+\repP{We use the four-cohort TCGA benchmark introduced by ConSlide \cite{huang2023conslide} in the form released by QPMIL-VL \cite{gou2025qpmil}: pre-extracted CONCH patch features and ten patient-level folds. Binary subtype tasks arrive in the reverse order ESCA$\rightarrow$RCC$\rightarrow$BRCA$\rightarrow$LUNG (LUNG denotes NSCLC; the forward order is also reported), giving eight classes.}{We follow the four-task TCGA continual WSI subtype-classification benchmark introduced by ConSlide \cite{huang2023conslide}---one task per cohort with two subtypes each, ESCA (ESAD, ESCC), RCC (CCRCC, PRCC; CHRCC excluded as in ConSlide), BRCA (IDC, ILC), and LUNG (LUAD, LUSC)---using the CONCH-feature release and ten patient-level folds released with QPMIL-VL \cite{gou2025qpmil}. Tasks arrive in the reverse order ESCA$\rightarrow$RCC$\rightarrow$BRCA$\rightarrow$LUNG; the forward order is also reported.} \repB{All runs use 5 epochs per task, $B=8$ (the peak of a preliminary budget sweep), LoRA rank 4, $\beta_s{=}\beta_u{=}0.1$, and unit $\lambda$'s; other settings are in the released code.}{We instantiate the frozen encoders with CONCH \cite{lu2024conch} (512-dimensional features). All runs use 5 epochs per task, $B=8$ (selected from a preliminary budget sweep), LoRA rank 4, $\beta_s{=}\beta_u{=}0.1$, unit $\lambda$'s, \repL{a top-256 candidate subset for the counterfactual teacher, and at most 512 memory snapshots (3.1\,MB); other settings are in the released code.}{a top-256 candidate subset for the counterfactual teacher, and at most 512 memory snapshots (3.1\,MB; $\le$256 candidates each, one replayed per training step); other settings are in the released code.}} The \emph{comparison protocol} follows the benchmark's CONCH-feature release: ten folds with the seed equal to the fold index, and average accuracy (ACC), masked ACC (task-IL), forgetting \cite{chaudhry2018rwalk}, and backward transfer (BWT) \cite{lopezpaz2017gem}. \repB{The \emph{ablation protocol} fixes fold 1 (2,273 training slides; test sizes 15/76/93/95) and varies five seeds;}{The \emph{ablation protocol} fixes fold 1 and varies five seeds;} comparisons are paired by seed with win counts (5/5 systematic, 4/5 directional; no $p$-values), \repB{criteria were fixed before the runs, and one refuted expectation is reported as measured.}{criteria were fixed before the runs.} \repL{The controlled variants are sequential fine-tuning of the selector (SeqFT), LoRA with boundary merging only, replay, replay+distillation, and full PathSelect.}{The controlled variants are sequential fine-tuning of the selector (SeqFT), LoRA with boundary merging only, replay, replay+distillation, and full PathSelect; the flat variant used in ablations removes $\Fg$ from selection and prediction.} \repB{Across these variants the eight-way head is fixed, so differences arise from selector updates and incoming data;}{The eight-way head is fixed across variants;} class-incremental (class-IL) accuracy takes the argmax over all eight classes at every stage (restricting it to seen classes changes forgetting by at most $0.007$), task-IL restricts it to the task's own pair, and leakage is the fraction predicted into another task's classes. \repP{Selection is measured separately: selection Jaccard is the overlap between the set selected right after learning a task and the set selected at the end, and $\Delta U=U_{\rm final}-U_{\rm own}$ is the change in equal-weight evidence utility on old-task test slides.}{Selection Jaccard is the overlap between the sets selected right after learning a task and at the end; $\Delta U=U_{\rm final}-U_{\rm own}$ is the change in equal-weight evidence utility on old-task test slides.}
+
+\begin{table}[!t]
+\centering\footnotesize\renewcommand{\arraystretch}{0.93}
+\setlength{\tabcolsep}{3.5pt}
+\caption{\protect\repP{\textbf{Comparison on the ConSlide four-cohort benchmark} \cite{huang2023conslide} (CONCH features, reverse order, ten-fold CV;}{\textbf{Comparison on the TCGA continual WSI benchmark} (reverse order, ten-fold CV;} ACC and masked ACC mean$\pm$sd, forgetting mean). Rows in the first block are quoted from Table~2 of \cite{gou2025qpmil} and were not rerun by us; rehearsal rows use a 30-WSI buffer. PathSelect uses the identical splits and metrics and stores 512 selector snapshots (3.1\,MB of metadata) while reading the training feature store for replay. BWT is omitted: it equals $-$forgetting within $0.003$ for all rows except ConSlide ($-0.021$) and PathSelect ($-0.056$). $^\ddagger$Released-code rerun with the paper's settings; details in the released repository.}
+\label{tab:sota}
+\begin{tabular}{lccc}
+\toprule
+Method & ACC$\uparrow$ & Forg.$\downarrow$ & Masked$\uparrow$ \\
+\midrule
+Joint training (offline reference) & $.908{\pm}.022$ & --- & $.937{\pm}.022$ \\
+Fine-tuning & $.234{\pm}.008$ & $.927$ & $.803{\pm}.060$ \\
+EWC \cite{kirkpatrick2017ewc} & $.235{\pm}.011$ & $.928$ & $.833{\pm}.069$ \\
+LwF \cite{li2017lwf} & $.236{\pm}.016$ & $.908$ & $.900{\pm}.041$ \\
+A-GEM \cite{chaudhry2019agem} & $.536{\pm}.047$ & $.527$ & $.872{\pm}.026$ \\
+ER-ACE \cite{caccia2022erace} & $.703{\pm}.049$ & $.281$ & $.889{\pm}.041$ \\
+DER++ \cite{buzzega2020derpp} & $.684{\pm}.055$ & $.310$ & $.910{\pm}.043$ \\
+ER \cite{chaudhry2019er} & $.644{\pm}.028$ & $.387$ & $.901{\pm}.035$ \\
+ConSlide \cite{huang2023conslide} & $.499{\pm}.025$ & $.058$ & $.854{\pm}.039$ \\
+AttriCLIP \cite{wang2023attriclip} & $.694{\pm}.058$ & $.207$ & $.861{\pm}.019$ \\
+MI-Zero \cite{lu2023mizero} (zero-shot) & $.839{\pm}.034$ & --- & $.909{\pm}.019$ \\
+QPMIL-VL \cite{gou2025qpmil} & $.859{\pm}.032$ & $.064$ & $.925{\pm}.018$ \\
+\midrule
+QPMIL-VL, reproduced by us$^\ddagger$ & $.868{\pm}.046$ & $.064$ & $.935{\pm}.018$ \\
+\midrule
+PathSelect (ours) & $.854{\pm}.044$ & $.060$ & $.925{\pm}.019$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Does the selector forget, and does preservation help?}
+\label{ssec:ablation}
+
+\begin{table}[!htb]
+\centering\footnotesize\renewcommand{\arraystretch}{0.92}
+\setlength{\tabcolsep}{4pt}
+\caption{\textbf{Leave-out chain in both task orders} \protect\repP{(ConSlide benchmark, ten-fold CV; ACC mean$\pm$sd, forgetting mean)}{(TCGA continual WSI benchmark, ten-fold CV; ACC mean$\pm$sd, forgetting mean)}. Reverse = ESCA$\rightarrow$RCC$\rightarrow$BRCA$\rightarrow$LUNG; forward = the opposite. The zero-shot reference selects the eight patches with the highest class-text cosine, pools them uniformly, and uses the frozen head; \protect\repB{it learns nothing and therefore cannot forget.}{it learns nothing.} Last two rows: the strongest published method, as reported in \cite{gou2025qpmil} and as rerun by us with its released code.}
+\label{tab:chain}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{Reverse} & \multicolumn{2}{c}{Forward} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Configuration & ACC$\uparrow$ & Forg.$\downarrow$ & ACC$\uparrow$ & Forg.$\downarrow$ \\
+\midrule
+Selector fine-tuning (no preservation) & $.452{\pm}.071$ & $.601$ & $.529{\pm}.077$ & $.503$ \\
+\ + replay of snapshots & $.821{\pm}.036$ & $.114$ & $.841{\pm}.019$ & $.064$ \\
+\ + distillation + utility hinge (flat) & $.830{\pm}.029$ & $.090$ & $.841{\pm}.043$ & $.055$ \\
+\ + hierarchical selector (PathSelect) & $.854{\pm}.044$ & $.060$ & $.811{\pm}.029$ & $.061$ \\
+Zero-shot class-text top-8 (no learning) & $.812{\pm}.024$ & --- & $.812{\pm}.024$ & --- \\
+\midrule
+QPMIL-VL (reported) & $.859{\pm}.032$ & $.064$ & $.890{\pm}.021$ & $.027$ \\
+QPMIL-VL (reproduced, released code) & $.868{\pm}.046$ & $.064$ & $.884{\pm}.033$ & $.038$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\repG{\textbf{Unprotected selection collapses on old tasks.} On the flat selector (Table~\ref{tab:chain}), sequential fine-tuning without preservation reaches $0.452$ ACC with $0.601$ forgetting in the reverse order and $0.529$/$0.503$ in the forward order; Table~\ref{tab:ablation} shows what accuracy hides: such selectors retain almost none of their original evidence (Jaccard $0.0023$/$0.0010$) and lose five to six times more old-task utility than the preserved selector ($\Delta U$ $-3.80$/$-4.71$ vs.\ $-0.74$ per slide). LoRA merging alone changes nothing systematically (3/5).}{\textbf{Without continual preservation, the selector forgets both where to look and how useful its evidence is.} Sequential fine-tuning of the flat selector keeps only $0.452$ ACC with $0.601$ forgetting in the reverse order (Table~\ref{tab:chain}); it retains almost none of the evidence it originally chose (Jaccard $0.0023$/$0.0010$), and its old-task evidence is five to six times less useful than under full preservation ($\Delta U$ $-3.80$/$-4.71$ vs.\ $-0.74$ per slide; Table~\ref{tab:ablation}). The failure is therefore already visible at the evidence-selection level, not only as a drop in accuracy, and boundary merging alone does not address it (3/5).}
+
+\repG{\textbf{Preservation recovers most of the loss.} Replay lifts ACC to $0.821$ (reverse) and $0.841$ (forward) in every fold; distillation and the utility hinge then remove $2.4$ forgetting points (8/10 folds) in the reverse order and $0.9$ (8/10) in the forward order, with accuracy increments of $0.8$ points (7/10) and nil (5/10). The hierarchical selector adds $2.5$ ACC points (8/10) and removes $2.9$ forgetting points (7/10) in the reverse order but costs $3.0$ points in the forward order (Sec.~\ref{ssec:order}).}{\textbf{Preservation recovers most of the loss, with replay providing the main recovery.} In the leave-out chain, replay raises ACC from $0.452$ to $0.821$ in the reverse order and from $0.529$ to $0.841$ in the forward order, in every fold. Adding distillation and utility preservation further reduces forgetting in both orders ($2.4$ points, 8/10 folds, and $0.9$ points, 8/10), although the corresponding accuracy gains are modest ($0.8$ points, 7/10, and none). The hierarchical selector provides an additional benefit in the reverse order, reaching $0.854$ ACC with $0.060$ forgetting, but does not improve the forward order; this separates the more consistent contribution of preservation from the order-dependent contribution of the hierarchy (Sec.~\ref{ssec:order}).}
+
+\begin{table}[!htb]
+\centering\footnotesize\renewcommand{\arraystretch}{0.92}
+\setlength{\tabcolsep}{3.5pt}
+\caption{\textbf{Preservation-component ablation with selection-level metrics} (flat, fold 1, 5-seed means). \protect\repG{Replay restores old-task competence, the utility-preservation term targets functional utility, and distillation stabilizes selection behavior; among the evaluated configurations, no single term or pair matches the full set. }{}Jaccard and $\Delta U$ are reported for the sequential arms; $\Delta U$ is the per-slide mean change of $U=\log C-\mathrm{CE}$ \protect\repB{(CONCH logit scale 56.3, no extra temperature)}{(logit scale 56.3)} on old-task test slides, averaged over old tasks.}
+\label{tab:ablation}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccc|ccc|cc}
+\toprule
+Arm & Rep. & Dist. & Util. & Class-IL$\uparrow$ & Task-IL$\uparrow$ & Leak.$\downarrow$ & Jaccard$\uparrow$ & $\Delta U\uparrow$ \\
+\midrule
+Sequential fine-tuning (no LoRA) & & & & .477 & .809 & .441 & .002 & $-3.80$ \\
+LoRA merge only & & & & .447 & .811 & .476 & .001 & $-4.71$ \\
+& & \checkmark & & .600 & .853 & .323 & --- & --- \\
+& & & \checkmark & .809 & .885 & .091 & --- & --- \\
+& \checkmark & & & .778 & .907 & .104 & .086 & $-0.78$ \\
+& \checkmark & \checkmark & & .797 & .897 & .117 & .175 & $-0.95$ \\
+Full preservation (flat) & \checkmark & \checkmark & \checkmark & \textbf{.824} & \textbf{.915} & \textbf{.101} & .161 & $\mathbf{-0.74}$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\repG{\textbf{Identity and utility must be read separately.} The three preservation signals address distinct failure modes (Table~\ref{tab:ablation}). Distillation alone leaves leakage at $0.323$, three times the full method, so it preserves \emph{how} the selector scores but not \emph{which task} the evidence belongs to; replay ($0.104$) and the hinge ($0.091$) each restore task attribution, the hinge reaching the highest single-term class-IL ($0.809$) and replay the highest task-IL ($0.907$). Distillation without the hinge retains slightly more evidence identity ($0.1752$ vs.\ $0.1613$) yet is less accurate and retains less utility: preserving where the policy looks does not secure how useful its evidence remains. On fold 1, re-scoring the old evidence set with the final selector changes the equal-weight loss by $-0.003{\pm}0.012$ per slide, whereas replacing it by the final evidence set changes it by $+0.74{\pm}0.31$: in this fold-1 decomposition the measured drift is dominated by which evidence is selected rather than by how retained evidence is reweighted.}{\textbf{The preservation signals address different failure modes rather than acting as interchangeable regularizers.} Distillation alone stabilizes how the selector scores but not which task its evidence belongs to (leakage $0.323$; Table~\ref{tab:ablation}); replay restores old-task competence (the best single-term task-IL, $0.907$); and utility preservation gives the best single-term class-IL ($0.809$). Among the evaluated configurations no single loss or pair matches the full set.}
+
+\repG{}{\textbf{Keeping the same patches is not the same as keeping useful evidence.} Distillation without the hinge retains slightly more of the original evidence (Jaccard $0.1752$ vs.\ $0.1613$) yet is less accurate and retains less utility, so preserving where the selector looks is not sufficient to preserve what its evidence contributes to diagnosis. The dominant source of the measured drift is evidence replacement rather than reweighting: on fold 1, re-scoring the old evidence set with the final selector changes the equal-weight loss by only $-0.003{\pm}0.012$ per slide, whereas replacing it with the final evidence set changes it by $+0.74{\pm}0.31$.}
+
+\repG{\textbf{The gating mechanism itself provides no measured advantage.} In the reverse-order flat setting the hinge is active in only 1.7--7.4\% of replay steps, and replacing it with an always-on equal-weight cross-entropy on the same replayed slides changes no metric systematically across five seeds (class-IL $+0.3$, task-IL $-1.5$ points). Gating is therefore a design choice that makes the utility floor explicit, not a source of measured gain. Removing the group level of distillation under the hierarchy costs $3.95$ task-IL points (5/5). Among the evaluated configurations no single loss or pair matches the full set.}{\textbf{The gating mechanism itself provides no measured advantage.} In the reverse-order flat setting the hinge is active in only 1.7--7.4\% of replay steps, and replacing it with an always-on equal-weight cross-entropy on the same replayed slides changes no metric systematically across five seeds (class-IL $+0.3$, task-IL $-1.5$ points). Gating is therefore a design choice that makes the utility floor explicit, not the source of the preservation gain.}
+
+\subsection{Where does PathSelect stand among published methods?}
+\label{ssec:sota}
+
+\repG{In the reverse order (Table~\ref{tab:sota}, same splits and metrics as the published rows) PathSelect reaches $0.854{\pm}.044$ ACC, $0.925{\pm}.019$ masked ACC, and $0.060{\pm}.041$ forgetting: within one standard deviation of the strongest published result ($0.859$) and above every other continual row. Rerunning the strongest method with its released code and the paper's settings reproduces its published results in both orders to within $0.01$ (reverse $0.868{\pm}.046$, forward $0.884{\pm}.033$); PathSelect is $0.005$ and $0.014$ below the published and reproduced reverse values, with comparable forgetting ($0.060$ vs.\ $0.064$). In the forward order PathSelect reaches $0.811$ (hierarchical) and $0.841$ (flat) against a reproduced $0.884$. The zero-shot top-8 reference (Table~\ref{tab:chain}) reaches $0.812$ without learning; PathSelect is $0.042$ above it in the reverse order (9/10 folds) and level with it in the forward order, which bounds the accuracy learned selection adds; unlike that reference, PathSelect does not use class prompts to select evidence. PathSelect is therefore competitive with the strongest published method, with a different adaptation profile: 16.4k selector parameters per task (vs.\ $0.365$M reported; context only) and no prototype pool at inference.}{\textbf{PathSelect is competitive with the strongest published method in the reverse order, but this comparison does not hold in the forward order.} In the reverse order it reaches $0.854{\pm}.044$ ACC and $0.060{\pm}.041$ forgetting (Table~\ref{tab:sota}), within one standard deviation of the strongest published result ($0.859$). Rerunning that method with its released code reproduces its published results in both orders to within $0.01$ (reverse $0.868{\pm}.046$, forward $0.884{\pm}.033$); PathSelect is $0.005$ and $0.014$ below the published and reproduced reverse values with comparable forgetting ($0.060$ vs.\ $0.064$), whereas in the forward order it reaches $0.811$ (hierarchical) and $0.841$ (flat) against a reproduced $0.884$. The result therefore supports a competitive reverse-order comparison, not an overall claim of superiority. \textbf{Learned selection adds value beyond a strong class-text retrieval reference, but the gain is also order-dependent.} A zero-shot reference that takes the eight patches with the highest class-text cosine reaches $0.812$ without learning (Table~\ref{tab:chain}); PathSelect is $0.042$ above it in the reverse order (9/10 folds) and level with it in the forward order, and, unlike that reference, it selects evidence without class prompts. It also adapts only 16.4k selector parameters per task (vs.\ $0.365$M reported; context only).}
+
+\subsection{What is order-dependent?}
+\label{ssec:order}
+
+\repG{The hierarchy's advantage reverses with task order: in the forward order it falls behind the flat selector from the first added task (BRCA, $-0.037$ class-IL, 4/10 folds) and does not recover. Composing independently trained per-task residuals post hoc beat the bare sequential selector in every seed (cf.\ task arithmetic \cite{ilharco2023task}) yet trailed the full method by $13.1$ points (5/5); MergeSlide's orthogonal-projection merging \cite{bui2026mergeslide} did not close that gap ($0.709{\pm}.035$).}{\textbf{The hierarchical substrate is not uniformly beneficial across task orders.} It adds $2.5$ ACC points in the reverse order but costs $3.0$ in the forward order, where it falls behind the flat selector from the first added task (BRCA, $-0.037$ class-IL, 4/10 folds) and does not recover; we therefore treat it as an order-dependent substrate choice, not the source of the robust gain. \textbf{Update consolidation alone is also insufficient to reproduce the full preservation benefit.} Composing independently trained per-task residuals post hoc beats the bare sequential selector in every seed (cf.\ task arithmetic \cite{ilharco2023task}) yet trails the full method by $13.1$ points (5/5), and MergeSlide's orthogonal-projection merging \cite{bui2026mergeslide} does not close that gap ($0.709{\pm}.035$); the benefit comes from consolidation together with preservation, not from merging alone.}
+
+\FloatBarrier
+% -----------------------------------------------------------------------------
+\section{Discussion and Limitations}
+\label{sec:discussion}
+
+\repG{The results separate two questions that accuracy alone conflates. Unprotected selectors change where they look and lose the usefulness of what they find; distillation restores the former more than the latter, and the utility term adds the latter without forcing the same patches.}{}
+
+The claims are bounded in three ways. First, four organ-separated, highly separable TCGA tasks, one frozen foundation model, one budget, and known task boundaries \repB{limit generality, and the fold-to-fold spread of our runs and of the reproduced baseline (sd $0.03$--$0.05$) exceeds the gaps between the top methods.}{limit generality; fold-to-fold spread (sd $0.03$--$0.05$) exceeds the gaps between the top methods.} \repB{Second, the hierarchy's advantage and the accuracy increment of distillation plus utility preservation are order-dependent, and the forward-order failure is described only at evaluation time.}{Second, the hierarchy's advantage and part of the preservation gains are order-dependent.} \repB{Third, the head assumes the full class vocabulary as text from the start, replay requires the training feature store, and no privacy guarantee is claimed.}{Third, the head assumes the full class vocabulary as text from the start, and replay requires the training feature store.} \repP{PathSelect is a one-shot evidence-acquisition policy; sequential, stateful acquisition on its task-free selector is left to future work.}{PathSelect is a one-shot acquisition policy; sequential, stateful acquisition is left to future work.}
+
+% -----------------------------------------------------------------------------
+\section{Conclusion}
+
+Forgetting in budgeted WSI diagnosis can occur in the evidence-selection step alone. PathSelect isolates that step behind a frozen diagnostic pathway, \repP{preserves one shared selector by keeping its old scoring preferences and penalizing loss of evidence utility, and measures identity and utility drift separately;}{preserves one shared selector by keeping its old scoring preferences and penalizing utility loss\delB{, and measures identity and utility drift separately};} \repP{on a public benchmark it recovers most of the unprotected loss}{on the TCGA continual WSI benchmark it recovers most of the unprotected loss}\repB{ and, in the reverse task order, lies within one standard deviation of the strongest published result.}{ and matches the strongest published method within one standard deviation (reverse order).}
+
+\bibliographystyle{IEEEbib}
+\bibliography{refs}
+
+\section*{Compliance with Ethical Standards}
+This study uses publicly available, de-identified whole-slide images from The Cancer Genome Atlas (TCGA), released under its data-use policies; no new human-subject data were collected and no additional ethical approval was required. Funding is acknowledged on the first page.
+
+
+\end{document}
