@@ -1,0 +1,42 @@
+[2026-09-14 15:37:07] batch 1：20 run，parallel=10 threads=8 commit=5338775747b03cf2b128ace116beb430fbbef6d0
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f8
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f3
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f4
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f5
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f10
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f9
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f1
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f2
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f7
+[2026-09-14 15:37:09] ▶ start A5_hier_rev_acc_f6
+[2026-09-14 16:14:23] ✅ done A5_hier_rev_acc_f4（per_slide 檔數 1）       eval tcga_lung  class-IL=0.8661 task-IL=0.8661
+[2026-09-14 16:14:25] ▶ start A5_flat_rev_acc_f1
+[2026-09-14 16:14:33] ✅ done A5_hier_rev_acc_f7（per_slide 檔數 3）       eval tcga_lung  class-IL=0.7938 task-IL=0.8247
+[2026-09-14 16:14:33] ✅ done A5_hier_rev_acc_f3（per_slide 檔數 3）       eval tcga_lung  class-IL=0.8131 task-IL=0.8692
+[2026-09-14 16:14:35] ▶ start A5_flat_rev_acc_f2
+[2026-09-14 16:14:35] ▶ start A5_flat_rev_acc_f3
+[2026-09-14 16:14:37] ✅ done A5_hier_rev_acc_f5（per_slide 檔數 4）       eval tcga_lung  class-IL=0.7812 task-IL=0.8438
+[2026-09-14 16:14:39] ▶ start A5_flat_rev_acc_f4
+[2026-09-14 16:14:42] ✅ done A5_hier_rev_acc_f9（per_slide 檔數 5）       eval tcga_lung  class-IL=0.8478 task-IL=0.8587
+[2026-09-14 16:14:44] ▶ start A5_flat_rev_acc_f5
+[2026-09-14 16:14:44] ✅ done A5_hier_rev_acc_f2（per_slide 檔數 6）       eval tcga_lung  class-IL=0.8737 task-IL=0.8947
+[2026-09-14 16:14:46] ▶ start A5_flat_rev_acc_f6
+[2026-09-14 16:14:47] ✅ done A5_hier_rev_acc_f6（per_slide 檔數 7）       eval tcga_lung  class-IL=0.8182 task-IL=0.8977
+[2026-09-14 16:14:49] ▶ start A5_flat_rev_acc_f7
+[2026-09-14 16:14:49] ✅ done A5_hier_rev_acc_f8（per_slide 檔數 8）       eval tcga_lung  class-IL=0.8172 task-IL=0.8817
+[2026-09-14 16:14:50] ▶ start A5_flat_rev_acc_f8
+[2026-09-14 16:14:58] ✅ done A5_hier_rev_acc_f10（per_slide 檔數 9）       eval tcga_lung  class-IL=0.7667 task-IL=0.7667
+[2026-09-14 16:15:00] ▶ start A5_flat_rev_acc_f9
+[2026-09-14 16:15:04] ✅ done A5_hier_rev_acc_f1（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8000 task-IL=0.8526
+[2026-09-14 16:15:06] ▶ start A5_flat_rev_acc_f10
+[2026-09-14 16:49:17] ✅ done A5_flat_rev_acc_f2（per_slide 檔數 11）       eval tcga_lung  class-IL=0.8526 task-IL=0.8947
+[2026-09-14 16:49:33] ✅ done A5_flat_rev_acc_f4（per_slide 檔數 12）       eval tcga_lung  class-IL=0.8125 task-IL=0.8125
+[2026-09-14 16:49:37] ✅ done A5_flat_rev_acc_f3（per_slide 檔數 13）       eval tcga_lung  class-IL=0.8318 task-IL=0.8785
+[2026-09-14 16:49:39] ✅ done A5_flat_rev_acc_f6（per_slide 檔數 14）       eval tcga_lung  class-IL=0.8977 task-IL=0.9318
+[2026-09-14 16:49:45] ✅ done A5_flat_rev_acc_f1（per_slide 檔數 15）       eval tcga_lung  class-IL=0.8105 task-IL=0.8421
+[2026-09-14 16:49:48] ✅ done A5_flat_rev_acc_f5（per_slide 檔數 17）       eval tcga_lung  class-IL=0.8438 task-IL=0.8646
+[2026-09-14 16:49:48] ✅ done A5_flat_rev_acc_f7（per_slide 檔數 17）       eval tcga_lung  class-IL=0.8351 task-IL=0.8660
+[2026-09-14 16:49:56] ✅ done A5_flat_rev_acc_f8（per_slide 檔數 18）       eval tcga_lung  class-IL=0.7634 task-IL=0.8495
+[2026-09-14 16:50:05] ✅ done A5_flat_rev_acc_f9（per_slide 檔數 19）       eval tcga_lung  class-IL=0.8587 task-IL=0.8587
+[2026-09-14 16:51:03] ✅ done A5_flat_rev_acc_f10（per_slide 檔數 20）       eval tcga_lung  class-IL=0.8778 task-IL=0.9000
+[2026-09-14 16:51:03] BATCH_DONE 1 20/20

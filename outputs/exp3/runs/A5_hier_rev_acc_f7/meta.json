@@ -1,0 +1,14 @@
+{
+ "run": "A5_hier_rev_acc_f7",
+ "seed": 7,
+ "args": "--arms A5 --order reverse --arch hier --fold 7 --seeds 7 --tag sota_acc --head accumulating --out-root outputs/exp3",
+ "commit": "5338775747b03cf2b128ace116beb430fbbef6d0",
+ "head": "accumulating",
+ "platform": "pod-cpu-x86",
+ "host": "e04333d3666d",
+ "machine": "x86_64",
+ "torch": "2.8.0+cu128",
+ "omp_threads": "8",
+ "torch_threads": "8",
+ "started": "2026-09-14T15:37:09.166633"
+}

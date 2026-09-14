@@ -672,4 +672,20 @@ tmux `exp3`＋nohup＋`logs/pod/heartbeat.log`；每 run `outputs/exp3/runs/<run
 批次 B1–B6 的數字由 `scripts/report_exp3.py` 產生（`outputs/exp3/EXP3.md` 總表、`B<k>.md` 快照），
 以下各小節於每批完成後追加。
 
-### 11.1 B1 — 累積式頭・反向十折 hier＋flat（待補）
+### 11.1 B1 — 累積式頭・反向十折 hier＋flat（pod；2026-09-15 完成，74 分鐘）
+
+| 臂（累積式頭） | ACC | Masked ACC | Forgetting | BWT | n |
+|---|---|---|---|---|---|
+| A5 flat | 0.803 ± 0.038 | 0.922 ± 0.018 | 0.134 ± 0.045 | −0.123 ± 0.054 | 10 |
+| A5 hier | 0.798 ± 0.018 | 0.918 ± 0.023 | 0.137 ± 0.037 | −0.131 ± 0.043 | 10 |
+
+逐折配對 hier − flat（累積式頭）：ACC −0.0050（hier 較佳 6/10）、Masked ACC −0.0041（4/10）、
+Forgetting +0.0036（hier 較低 5/10）—— 兩架構在累積式頭下沒有可辨識差異。
+
+參考（不配對、不同平台）：Mac 固定頭反向十折 flat 0.830／0.090、hier 0.854／0.060（ACC／Forgetting）。
+累積式頭的 Forgetting 由構造會偏高：早期 stage 的 C_t 只有 2–4 類，峰值準確率較高，
+`max_t A[t][j] − A[T][j]` 的峰值因此抬升；正式的同平台差在 B2（固定頭 pod）完成後於 §11.2 報。
+來源：`outputs/exp3/B1.md`（快照）、`outputs/exp3/EXP3.md`、`outputs/exp3/sota_acc/per_slide/`（20 檔）、
+`outputs/exp3/runs/*_rev_acc_*/meta.json`（commit 5338775、platform pod-cpu-x86）。
+
+### 11.2 B2 — 固定頭・反向十折 pod 對照（待補）
