@@ -75,6 +75,13 @@ A gigapixel whole-slide image (WSI) may contain tens of thousands of patches, ye
 
 Learning new disease cohorts sequentially adds a specific difficulty: it changes the selector's preferences, and the evidence that old cohorts need can be crowded out. Final accuracy shows the resulting drop, but it cannot tell whether the drop originates in evidence selection or in the representation and classifier that conventional continual learning protects.
 
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.72\textwidth]{figures/fig1_architecture_v1_0.pdf}
+    \caption{\note{Fig.~1 to be redrawn.} \textbf{PathSelect overview.} Along the diagnostic path, all model components except the evidence selector (orange) are frozen. Within a task the selector allocates a budget of $B=8$ patches across tissue groups and then within groups; only the selected evidence reaches the frozen cosine head, and inference uses this solid path alone. Training adds three within-task signals (diagnostic, semantic-prior, counterfactual-utility) and, across tasks, a Selection Memory of past selector snapshots (scores, indices, utilities; no images or feature tensors, though replay reads the training feature store) that drives replay, distillation of old scores, and a utility hinge that penalizes regression while allowing the evidence to change; task-local LoRA updates are folded into one shared selector. Selection drift is evaluated separately through evidence identity (Jaccard) and utility change ($\Delta U$).}
+    \label{fig:arch}
+\end{figure*}
+
 \textbf{Evidence selection in WSIs has largely been studied outside continual learning.} Classical multiple-instance learning (MIL) methods such as ABMIL, CLAM, and TransMIL aggregate patch-level information into a slide representation, with attention or token interactions determining which regions influence the diagnosis \cite{ilse2018abmil,lu2021clam,shao2021transmil}. More recent methods make the act of looking explicit: HistoSelect selects evidence through a tissue-aware group-to-patch hierarchy \cite{huang2026histoselect}, and active-perception approaches learn where to inspect next in a slide \cite{chen2026adaptivepath}. These methods improve how evidence is acquired for a given diagnostic setting, but they are not designed to preserve that selection policy as diagnostic tasks arrive sequentially.
 
 \textbf{Continual WSI learning addresses the complementary problem of retaining diagnostic competence across tasks.} ConSlide rehearses stored slides \cite{huang2023conslide}, MICIL studies class-incremental MIL \cite{meseguer2024micil}, QPMIL-VL preserves vision--language prototypes \cite{gou2025qpmil}, Li et al.\ distill MIL attention with a pseudo-bag memory \cite{li2025akd}, and CoMEL and MergeSlide explore model adaptation and model merging for continual WSI learning \cite{lee2025comel,bui2026mergeslide}. These approaches protect or adapt the diagnostic model, its aggregation or attention mechanism, its prototypes, or its task-specific updates, with retention primarily evaluated through downstream diagnostic performance. Even when attention is explicitly preserved, it remains part of the learned diagnostic model rather than a standalone, hard, budgeted evidence-selection policy.
@@ -90,16 +97,6 @@ On the four-task TCGA continual WSI benchmark introduced by ConSlide \cite{huang
     \item \textbf{Bounded-memory consolidation.} A compact Selection Memory of selector snapshots---scores, indices, and utilities, but no images or feature tensors---supplies replay and preservation targets, and task-local low-rank updates are folded into the shared selector rather than accumulated as task-specific models.
 \end{itemize}
 
-\begin{figure*}[!t]
-    \centering
-    \includegraphics[width=0.72\textwidth]{figures/fig1_architecture_v1_0.pdf}
-    \caption{\note{Fig.~1 to be redrawn.} \textbf{PathSelect overview.} Along the diagnostic path, all model components except the evidence selector (orange) are frozen. Within a task the selector allocates a budget of $B=8$ patches across tissue groups and then within groups; only the selected evidence reaches the frozen cosine head, and inference uses this solid path alone. Training adds three within-task signals (diagnostic, semantic-prior, counterfactual-utility) and, across tasks, a Selection Memory of past selector snapshots (scores, indices, utilities; no images or feature tensors, though replay reads the training feature store) that drives replay, distillation of old scores, and a utility hinge that penalizes regression while allowing the evidence to change; task-local LoRA updates are folded into one shared selector. Selection drift is evaluated separately through evidence identity (Jaccard) and utility change ($\Delta U$).}
-    \label{fig:arch}
-\end{figure*}
-
-
-
-
 
 % -----------------------------------------------------------------------------
 \section{Method}
@@ -111,8 +108,6 @@ PathSelect isolates continual forgetting at the evidence selector while keeping 
 \label{ssec:setup}
 
 Tasks $\tau=1,\ldots,T$ arrive sequentially. A slide is a set of frozen patch features $\{x_i\}_{i=1}^{N}$ from the image encoder. A fixed vocabulary of $K=8$ tissue-grouping prompts (tumor, stroma, lymphocyte, necrosis, normal epithelium, vessel, adipose, background), distinct from the diagnostic classes, is encoded once by the text encoder into $\{p_k\}_{k=1}^{K}$; each patch joins the group $G_j$ with $j=\arg\max_k\cos(x_i,p_k)$, and each group is summarized by its mean $g_j$. The group selector $\Fg$ (a two-layer MLP, like $\Fp$) scores the prototypes, $r_j=\Fg(g_j)$, and a largest-remainder allocation converts the softmax over the scores of the non-empty groups with remaining capacity into integer quotas $b_j$ with $\sum_j b_j=B=8$; the patch selector $\Fp$ scores members, $s_i=\Fp(x_i)$, and the top $b_j$ patches of each group form the evidence set $\Psel$. The slide representation is the score-weighted, $\ell_2$-normalized mean $z=\sum_{i\in\Psel}\mathrm{softmax}(s)_i\,x_i\,/\,\bigl\|\sum_{i\in\Psel}\mathrm{softmax}(s)_i\,x_i\bigr\|_2$, and the prediction is the softmax over cosine similarities between $z$ and the frozen class-text embeddings $\{t_c\}$ of the $C=8$ diagnostic subtype classes of the benchmark (Sec.~\ref{sec:exp}), fixed from the first task. Inference is exactly this path. $B$ bounds the evidence reaching the head; all patches are still scored. A straight-through factor $\sigma(r)_j/\mathrm{sg}(\sigma(r)_j)$ on the selected members passes the diagnostic and utility-preservation gradients back to $\Fg$.
-
-
 
 \subsection{Learning to select}
 \label{ssec:within}
@@ -267,8 +262,6 @@ Full preservation (flat) & \checkmark & \checkmark & \checkmark & \textbf{.824} 
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-
-
 The claims are bounded in three ways. First, four organ-separated, highly separable TCGA tasks, one frozen foundation model, one budget, and known task boundaries limit generality; fold-to-fold spread (sd $0.03$--$0.05$) exceeds the gaps between the top methods. Second, the hierarchy's advantage and part of the preservation gains are order-dependent. Third, the head assumes the full class vocabulary as text from the start, and replay requires the training feature store. PathSelect is a one-shot acquisition policy; sequential, stateful acquisition is left to future work.
 
 % -----------------------------------------------------------------------------
@@ -281,6 +274,5 @@ Forgetting in budgeted WSI diagnosis can occur in the evidence-selection step al
 
 \section*{Compliance with Ethical Standards}
 This study uses publicly available, de-identified whole-slide images from The Cancer Genome Atlas (TCGA), released under its data-use policies; no new human-subject data were collected and no additional ethical approval was required. Funding is acknowledged on the first page.
-
 
 \end{document}
