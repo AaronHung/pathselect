@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import random
 import statistics
 import sys
@@ -559,6 +560,11 @@ def main() -> int:
     ap.add_argument("--no-resume", action="store_true")
     ap.add_argument("--report-only", action="store_true")
     args = ap.parse_args()
+
+    # DR-052 pod 執行：多 run 平行時固定每個 run 的 torch 執行緒數，避免超訂。
+    # 未設環境變數時不呼叫（既有行為不變）。
+    if os.environ.get("PATHSELECT_TORCH_THREADS"):
+        torch.set_num_threads(int(os.environ["PATHSELECT_TORCH_THREADS"]))
 
     cfg = load_config()
     cfg["fold"] = args.fold          # selector/evaluate.py 由 cfg["fold"] 取切分檔

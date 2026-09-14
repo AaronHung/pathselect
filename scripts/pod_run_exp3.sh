@@ -11,8 +11,9 @@
 #   （pod 無法主動 rsync 到 Mac —— Mac 在 NAT 後；由 Mac 端看到 BATCH_DONE 後 pull。）
 set -uo pipefail
 cd "$(dirname "$0")/.."
-BATCH="${1:?batch id}"; PAR="${2:-10}"; THREADS="${3:-16}"
-export OMP_NUM_THREADS="$THREADS" MKL_NUM_THREADS="$THREADS"
+BATCH="${1:?batch id}"; PAR="${2:-10}"; THREADS="${3:-8}"
+# PI 裁定：10 路平行 × 每 run 8 threads（OMP/MKL 環境變數 + run_exp2 內 torch.set_num_threads）
+export OMP_NUM_THREADS="$THREADS" MKL_NUM_THREADS="$THREADS" PATHSELECT_TORCH_THREADS="$THREADS"
 mkdir -p logs/pod outputs/exp3/runs
 LIST="logs/pod/batch${BATCH}.runs"
 if [ -n "${EXP3_LIST:-}" ]; then cp "$EXP3_LIST" "$LIST"; else   # EXP3_LIST：煙霧測試用自訂清單
@@ -29,13 +30,16 @@ run_one() {
   mkdir -p "$dir"
   if [ -f "$dir/DONE" ]; then echo "[$(date '+%F %T')] ▷ skip $name（DONE）"; return 0; fi
   local seed; seed=$(echo "$args" | sed -n 's/.*--seeds \([0-9]*\).*/\1/p')
-  python - "$dir/meta.json" "$name" "$seed" "$args" "$COMMIT" <<'PY'
-import json, sys, socket, datetime
-p, name, seed, args, commit = sys.argv[1:]
-json.dump({"run": name, "seed": int(seed), "args": args, "commit": commit,
-           "host": socket.gethostname(), "started": datetime.datetime.now().isoformat(),
-           "head": "accumulating", "device": "cpu",
-           "omp_threads": __import__("os").environ.get("OMP_NUM_THREADS")},
+  local head; head=$(echo "$args" | sed -n 's/.*--head \([a-z]*\).*/\1/p')
+  python - "$dir/meta.json" "$name" "$seed" "$args" "$COMMIT" "${head:-fixed}" <<'PY'
+import json, sys, socket, datetime, os, platform, torch
+p, name, seed, args, commit, head = sys.argv[1:]
+json.dump({"run": name, "seed": int(seed), "args": args, "commit": commit, "head": head,
+           "platform": "pod-cpu-x86", "host": socket.gethostname(),
+           "machine": platform.machine(), "torch": torch.__version__,
+           "omp_threads": os.environ.get("OMP_NUM_THREADS"),
+           "torch_threads": os.environ.get("PATHSELECT_TORCH_THREADS"),
+           "started": datetime.datetime.now().isoformat()},
           open(p, "w"), indent=1)
 PY
   echo "[$(date '+%F %T')] ▶ start $name"
