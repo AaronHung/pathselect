@@ -1,0 +1,14 @@
+{
+ "run": "A5_flat_fwd_fix_f3",
+ "seed": 3,
+ "args": "--arms A5 --order main --arch flat --fold 3 --seeds 3 --tag sota_fixed --head fixed --out-root outputs/exp3",
+ "commit": "5338775747b03cf2b128ace116beb430fbbef6d0",
+ "head": "fixed",
+ "platform": "pod-cpu-x86",
+ "host": "e04333d3666d",
+ "machine": "x86_64",
+ "torch": "2.8.0+cu128",
+ "omp_threads": "8",
+ "torch_threads": "8",
+ "started": "2026-09-14T20:02:54.396256"
+}
