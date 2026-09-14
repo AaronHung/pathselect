@@ -45,11 +45,11 @@
 
 % AUTHORS — please verify (ORCID iDs are entered in the submission system, not printed):
 %   Hsi-Ren Hung   ORCID 0009-0008-1857-3225  (ORCID record name: Hsi-Ren Hung)
-%   Kun-Lun Pan    ORCID 0009-0000-5553-944X  (ORCID record name: KUN LUN PAN; NSYSU)  alin080417@gmail.com (not public on ORCID; confirm with author)
-%   Chia-Feng Liao ORCID 0009-0007-5454-2277  (ORCID record name: Chia Feng Liao)  fengliao0512@gmail.com
+%   Kun Lun Pan    ORCID 0009-0000-5553-944X  (ORCID record name: KUN LUN PAN; NSYSU)  alin080417@gmail.com (not public on ORCID; confirm with author)
+%   Chia Feng Liao ORCID 0009-0007-5454-2277  (ORCID record name: Chia Feng Liao)  fengliao0512@gmail.com
 %   Huei-Fang Yang ORCID: to be added          (corresponding author)
 % FUNDING (restore at camera-ready): This work was supported in part by the National Science and Technology Council, Taiwan under Grant NSTC 112-2221-E-110-047-MY3, 114-2640-E-110-004, and 114-2634-F-006-002.
-\name{Hsi-Ren Hung \qquad Kun-Lun Pan \qquad Chia-Feng Liao \qquad Huei-Fang Yang\sthanks{corresponding author.}}
+\name{Hsi-Ren Hung \qquad Kun Lun Pan \qquad Chia Feng Liao \qquad Huei-Fang Yang\sthanks{corresponding author.}}
 \address{Department of Computer Science and Engineering, National Sun Yat-sen University, Taiwan}
 
 \begin{document}
@@ -121,7 +121,7 @@ u_i
 \L_{\mathrm{diag}}(E\cup\{x_i\})
 \label{eq:ui}
 \end{equation}
-is positive when adding the candidate would reduce the diagnostic loss; it forms a no-gradient teacher, and $\L_{\mathrm{util}}=\mathrm{KL}(\mathrm{softmax}(u)\,\Vert\,\mathrm{softmax}(s))$ trains the patch selector to rank candidates by measured usefulness. The candidate-level $u_i$ is distinct from the value of the whole selected set, $U(\Psel)=\log C-\mathrm{CE}(\Psel,y)$, which is what must be preserved across tasks.
+is positive when adding the candidate would reduce the diagnostic loss; it forms a no-gradient teacher, and $\L_{\mathrm{util}}=\mathrm{KL}(\sigma(u)\,\Vert\,\sigma(s))$, with $\sigma$ the softmax over candidates, trains the patch selector to rank candidates by measured usefulness. The candidate-level $u_i$ is distinct from the value of the whole selected set, $U(\Psel)=\log C-\mathrm{CE}(\Psel,y)$, which is what must be preserved across tasks.
 
 \subsection{Preserving selection across tasks}
 \label{ssec:cl}
