@@ -651,3 +651,25 @@ telescoping 定義由構造成立 —— 即 **Table 3 的 ΔU（逐切片口徑
 兩者在五軸上仍無可辨識差異 —— 這是關於 L_eq 這一項貢獻的直接量化背景，與 audit C1 §5
 的發現一致。來源：`outputs/exp2/dr051/E2_GATED_CONTROL.md`、
 `outputs/exp2/dr051_e2/per_slide/A5ce_reverse_seed{0..4}.json`。
+
+---
+
+## 11. DR-052 累積式類別頭（2026-09-14 起）— 主結果平台：pod CPU x86；Mac 數字為參考
+
+`--head accumulating`：任務 t 只在已見類別 C_t 上訓練與評估（未見類 logit 遮罩 −inf；
+反向 |C_t| = 2/4/6/8），影響 L_diag、L_sem 先驗、反事實 teacher、評估 argmax、hinge 的
+C_old；固定頭路徑零改動（舊碼 vs 新碼 smoke 逐位元相同）。預註冊與判準見
+[`ledger/DR-052.md`](ledger/DR-052.md)：**主結果以累積式頭為準；與固定頭的差只報告、不宣稱勝負。**
+
+**平台聲明**：對數步驟顯示同一份程式在 Mac（Apple Silicon）與 pod（x86 CPU）上，
+前三個 stage 逐筆相同、第四個 stage 因浮點非結合性放大而分岔（A5 flat fold 1 seed 0
+最終 class-IL 0.8258 vs 0.7979）。因此 §11 的**累積式頭與其固定頭對照都在 pod 上跑**
+（同折、同 seed、同平台配對，`meta.json` 記 `platform=pod-cpu-x86`），
+Mac 的 §4／§10／SOTA_TABLE 固定頭數字**只當參考**，不與 pod 數字直接配對。
+
+執行：pod 384 核 CPU，10 路平行、每 run `OMP/MKL=8`＋`torch.set_num_threads(8)`；
+tmux `exp3`＋nohup＋`logs/pod/heartbeat.log`；每 run `outputs/exp3/runs/<run>/{meta.json,DONE}`。
+批次 B1–B6 的數字由 `scripts/report_exp3.py` 產生（`outputs/exp3/EXP3.md` 總表、`B<k>.md` 快照），
+以下各小節於每批完成後追加。
+
+### 11.1 B1 — 累積式頭・反向十折 hier＋flat（待補）
