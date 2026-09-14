@@ -1,0 +1,14 @@
+{
+ "run": "B1_flat_rev_f1_s0_acc",
+ "seed": 0,
+ "args": "--arms B1 --order reverse --arch flat --fold 1 --seeds 0 --tag ablation_acc --head accumulating --out-root outputs/exp3",
+ "commit": "5338775747b03cf2b128ace116beb430fbbef6d0",
+ "head": "accumulating",
+ "platform": "pod-cpu-x86",
+ "host": "e04333d3666d",
+ "machine": "x86_64",
+ "torch": "2.8.0+cu128",
+ "omp_threads": "8",
+ "torch_threads": "8",
+ "started": "2026-09-14T21:30:04.289083"
+}
