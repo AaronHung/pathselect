@@ -36,8 +36,26 @@ def top_candidates(scores: torch.Tensor, available: torch.Tensor,
     return torch.topk(masked, min(k, n_avail)).indices
 
 
-def _ce(logits: torch.Tensor, label: int) -> torch.Tensor:
-    """logits [.., C] → cross-entropy against a single label。"""
+def mask_logits(logits: torch.Tensor, class_mask: Optional[torch.Tensor]) -> torch.Tensor:
+    """DR-052 累積式類別頭：未見類別的 logit 設為 −inf。
+
+    `class_mask=None`（固定頭）**原樣回傳同一個張量**，不做任何運算 ——
+    固定頭路徑因此逐位元不變。mask 為 bool[C]，True = 已見類別。
+    """
+    if class_mask is None:
+        return logits
+    m = class_mask.to(torch.bool).reshape(-1)
+    if m.shape[0] != logits.shape[-1]:
+        raise ValueError(f"class_mask 長度 {m.shape[0]} ≠ 類別數 {logits.shape[-1]}")
+    if int(m.sum()) < 2:
+        raise ValueError("class_mask 至少要保留 2 個類別")
+    return logits.masked_fill(~m.to(logits.device), float("-inf"))
+
+
+def _ce(logits: torch.Tensor, label: int,
+        class_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    """logits [.., C] → cross-entropy against a single label（可選類別遮罩）。"""
+    logits = mask_logits(logits, class_mask)
     flat = logits.reshape(-1, logits.shape[-1])
     target = torch.full((flat.shape[0],), int(label), dtype=torch.long,
                         device=logits.device)
@@ -57,14 +75,18 @@ def current_logits(evidence_sum: torch.Tensor, n_selected: int,
 def counterfactual_gain(evidence_sum: torch.Tensor, n_selected: int,
                         X_cand: torch.Tensor, f_txt: torch.Tensor,
                         logit_scale, label: int,
-                        loss_fn: Optional[Callable] = None) -> torch.Tensor:
+                        loss_fn: Optional[Callable] = None,
+                        class_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
     """[N]：每個候選 patch 的 u_i = loss(current) - loss(with candidate)。
 
     正值代表「加進來會讓 loss 下降」，也就是這個 patch 有用。
+    `class_mask`（DR-052）：CE 只在已見類別上算；空證據的 loss = log|C_t|。
     """
     if X_cand.dim() != 2:
         raise ValueError(f"X_cand must be [N, D], got {tuple(X_cand.shape)}")
-    loss_fn = loss_fn or _ce
+    if loss_fn is None:
+        loss_fn = (_ce if class_mask is None
+                   else (lambda lg, y: _ce(lg, y, class_mask)))
 
     E_cand = (evidence_sum.reshape(1, -1) + X_cand) / (n_selected + 1)   # [N, D]
     E_cand = F.normalize(E_cand, dim=-1)
@@ -91,7 +113,8 @@ def counterfactual_gain_loop(evidence_sum, n_selected, X_cand, f_txt,
 
 @torch.no_grad()
 def sequential_utility_total(Z: torch.Tensor, selected_idx: torch.Tensor,
-                            f_txt: torch.Tensor, logit_scale, label: int) -> float:
+                            f_txt: torch.Tensor, logit_scale, label: int,
+                            class_mask: Optional[torch.Tensor] = None) -> float:
     """U(S)：沿**選取順序**累加 counterfactual gain。
 
     每一步的 evidence 是「到目前為止選到的 patch 的等權和」，加入下一個 patch 的
@@ -105,7 +128,8 @@ def sequential_utility_total(Z: torch.Tensor, selected_idx: torch.Tensor,
     total, n = 0.0, 0
     for i in selected_idx.reshape(-1).tolist():
         x = Z[i].reshape(1, -1)
-        total += float(counterfactual_gain(S, n, x, f_txt, logit_scale, label)[0])
+        total += float(counterfactual_gain(S, n, x, f_txt, logit_scale, label,
+                                           class_mask=class_mask)[0])
         S = S + Z[i]
         n += 1
     return total

@@ -106,7 +106,7 @@ def _trace(arm, monkeypatch):
     calls = []
 
     def fake_train_stage(ctx, a, models, tasks, seed, args, memory, rng, *,
-                         use_lora=None):
+                         use_lora=None, **kw):          # kw：DR-052 的 class_mask 等
         calls.append(("train", tasks[0], use_lora))
         return {}
 

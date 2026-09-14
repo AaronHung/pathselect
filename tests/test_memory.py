@@ -27,7 +27,10 @@ def test_capacity_constant_is_512():
 def test_entry_holds_no_patch_features():
     e = _entry()
     fields = set(SelectionMemoryEntry.__dataclass_fields__)
-    assert fields == {"tau", "sample_key", "r_old", "cand_idx", "s_old", "u_old"}
+    # DR-052 加了可選的 class_mask_old（bool[8]，固定頭為 None）；仍不含任何 patch feature
+    assert fields == {"tau", "sample_key", "r_old", "cand_idx", "s_old", "u_old",
+                      "class_mask_old"}
+    assert _entry().class_mask_old is None            # 固定頭：schema v2 行為不變
     # sample_key + index 就是重載的依據，entry 本身不得帶 [n, 512] 的東西
     for name in fields:
         v = getattr(e, name)

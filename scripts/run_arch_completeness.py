@@ -125,14 +125,14 @@ def wire_task_queries(cfg):
     orig_stage, orig_eval = R.train_stage, R.evaluate
     orig_fill, orig_terms = R.fill_memory, R.continual_terms
 
-    def stage(ctx, arm, models, tasks, seed, args, memory, rng):
+    def stage(ctx, arm, models, tasks, seed, args, memory, rng, **kw):
         # A5 是 sequential，每個 stage 只訓練一個 task；joint 需要逐 sample 的
         # q_tau，單一 ctx.q0 表達不了 —— 直接擋下，不要靜默用錯的 query。
         assert len(tasks) == 1, f"G4 只支援單一 task 的 stage，收到 {tasks}"
         old = ctx.q0
         ctx.q0 = bank.get(tasks[0])
         try:
-            return orig_stage(ctx, arm, models, tasks, seed, args, memory, rng)
+            return orig_stage(ctx, arm, models, tasks, seed, args, memory, rng, **kw)
         finally:
             ctx.q0 = old
 

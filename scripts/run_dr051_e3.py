@@ -63,7 +63,7 @@ def install_ckpt_hook(arch: str) -> None:
     orig = R.evaluate
     saved = set()
 
-    def wrapped(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
+    def wrapped(ctx, models, task, arm, order_name, seed, stage, args, diag=None, **kw):
         key = (arm, order_name, seed, stage)
         if key not in saved:
             CKPT.mkdir(parents=True, exist_ok=True)
@@ -74,7 +74,7 @@ def install_ckpt_hook(arch: str) -> None:
                        p)
             saved.add(key)
             print(f"       💾 ckpt → {p.name}", flush=True)
-        return orig(ctx, models, task, arm, order_name, seed, stage, args, diag)
+        return orig(ctx, models, task, arm, order_name, seed, stage, args, diag, **kw)
 
     wrapped.__wrapped_orig__ = orig
     R.evaluate = wrapped

@@ -62,6 +62,8 @@ class SelectionMemoryEntry:
     cand_idx: torch.Tensor       # [<=256] 候選 patch 在該 slide 的 index
     s_old: torch.Tensor          # [<=256] 候選當時的 patch 分數
     u_old: torch.Tensor          # [<=256] 候選當時的 counterfactual gain
+    #: DR-052 累積式頭：快照時的類別遮罩 C_old（bool[8]）；固定頭為 None，schema 不變
+    class_mask_old: Optional[torch.Tensor] = None
 
     def __post_init__(self):
         if not isinstance(self.sample_key, int) or isinstance(self.sample_key, bool):
@@ -201,7 +203,8 @@ class SampleKeyIndex:
 
 def make_entry(tau: str, slide_id: str, state, r_old: torch.Tensor,
                cand_idx: torch.Tensor, s_all: torch.Tensor,
-               u_cand: Optional[torch.Tensor] = None) -> SelectionMemoryEntry:
+               u_cand: Optional[torch.Tensor] = None,
+               class_mask_old: Optional[torch.Tensor] = None) -> SelectionMemoryEntry:
     """從當前狀態組一筆 entry（全部 detach 到 CPU，避免拖住計算圖）。
 
     ⚠️ `state` 保留在簽名裡但**不再被讀取** —— schema v2 拿掉了 `e_t` /
@@ -216,7 +219,9 @@ def make_entry(tau: str, slide_id: str, state, r_old: torch.Tensor,
         r_old=r_old.detach().cpu(),
         cand_idx=cand_idx.detach().cpu(),
         s_old=s_all.detach().cpu().index_select(0, cand_idx.detach().cpu()),
-        u_old=u.detach().cpu().reshape(-1))
+        u_old=u.detach().cpu().reshape(-1),
+        class_mask_old=(None if class_mask_old is None
+                        else class_mask_old.detach().to(torch.bool).cpu().reshape(-1)))
 
 
 def reload_features(entry: SelectionMemoryEntry, cfg: dict) -> tuple:

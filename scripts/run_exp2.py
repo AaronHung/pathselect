@@ -51,7 +51,7 @@ from selector.priors import MAINLINE_PRIOR                               # noqa:
 from selector.text_encoder import build_f_txt, load_config               # noqa: E402
 from selector.train import (continual_terms, fill_memory, total_loss,    # noqa: E402
                             train_step)
-from selector.utility import sequential_utility_total                    # noqa: E402
+from selector.utility import mask_logits, sequential_utility_total       # noqa: E402
 
 OUT_ROOT = REPO_ROOT / "outputs" / "exp2"
 #: 架構組態。**只有 hierarchy 這一個開關不同** —— q_tau 與 state 一律關閉，
@@ -62,6 +62,26 @@ ARCH = {
 }
 DEFAULT_ARCH = "flat"
 L3B = ARCH["flat"]      # 向後相容的別名
+#: DR-052：類別頭口徑。fixed = 8 類自第一個任務起固定（C-30，既有路徑零改動）；
+#: accumulating = 任務 t 只在已見類別 C_t 上訓練與評估（未見類 logit 遮罩 −inf）。
+HEADS = ("fixed", "accumulating")
+DEFAULT_HEAD = "fixed"
+
+
+def class_mask_for(label_space, tasks_seen) -> torch.Tensor:
+    """bool[2·T]：已見任務的兩列為 True（label space 每任務兩類，依 cfg 順序疊放）。"""
+    m = torch.zeros(2 * len(label_space), dtype=torch.bool)
+    for t in tasks_seen:
+        i = label_space.index(t)
+        m[2 * i:2 * i + 2] = True
+    return m
+
+
+def stage_mask(args, ctx, tasks, stage):
+    """累積式頭：stage 的 C_t；固定頭：None（所有既有呼叫都走 None 路徑）。"""
+    if getattr(args, "head", DEFAULT_HEAD) == "fixed":
+        return None
+    return class_mask_for(ctx.label_space, tasks[:stage + 1])
 ORDERS = {
     "reverse": ["tcga_esca", "tcga_rcc", "tcga_brca", "tcga_lung"],
     "main": ["tcga_lung", "tcga_brca", "tcga_rcc", "tcga_esca"],
@@ -190,7 +210,8 @@ def trainable(f_g, f_p, use_lora):
 
 # ── training ────────────────────────────────────────────────────────────────
 
-def train_stage(ctx, arm, models, tasks, seed, args, memory, rng, *, use_lora=None):
+def train_stage(ctx, arm, models, tasks, seed, args, memory, rng, *, use_lora=None,
+                class_mask=None):
     """在 tasks 這批 slide 上訓練一輪 stage。回傳 l_eq 觸發率等診斷。
 
     `use_lora` 只覆寫**這個 stage 的 optimizer 看到哪些參數**：warm-start 臂
@@ -219,7 +240,7 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng, *, use_lora=No
                 rec.Z, rec.label, ctx.q0, ctx.f_txt, ctx.logit_scale, f_g, f_p,
                 grouping=grp, budget=args.budget, chunk=args.chunk,
                 prior_kind=args.prior, beta_s=args.beta_s, beta_u=args.beta_u,
-                allocation=args.allocation, **ARCH[args.arch])
+                allocation=args.allocation, class_mask=class_mask, **ARCH[args.arch])
 
             kd = eq = replay = None
             if len(memory) and (spec["kd"] or spec["eq"] or spec["replay"]):
@@ -230,7 +251,8 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng, *, use_lora=No
                         spec={**ARCH[args.arch], "allocation": args.allocation},
                         use_kd=spec["kd"], use_eq=spec["eq"],
                         use_replay=spec["replay"],
-                        kd_group_weight=spec.get("kd_group_weight", 1.0))
+                        kd_group_weight=spec.get("kd_group_weight", 1.0),
+                        class_mask=class_mask)
                     kd = k_ if kd is None else kd + k_
                     eq = e_ if eq is None else eq + e_
                     replay = r_ if replay is None else replay + r_
@@ -250,7 +272,8 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng, *, use_lora=No
 
 
 @torch.no_grad()
-def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
+def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None,
+             class_mask=None):
     f_g, f_p = models
     out = []
     lo = 2 * ctx.label_space.index(task)
@@ -264,11 +287,20 @@ def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
         w = softmax_weights(s, idx)
         logits = conch_classify(rec.Z.index_select(0, idx), w,
                                 ctx.f_txt, ctx.logit_scale).reshape(-1)
+        # DR-052：累積式頭的 class-IL 只在 C_t 上取 argmax（固定頭 mask=None → 原張量）
+        logits = mask_logits(logits, class_mask)
         quota = [0] * NUM_GROUPS
         for j in grp.assignment.index_select(0, idx).tolist():
             quota[j] += 1
         u_total = sequential_utility_total(rec.Z, idx, ctx.f_txt,
-                                           ctx.logit_scale, rec.label)
+                                           ctx.logit_scale, rec.label,
+                                           class_mask=class_mask)
+        extra = {}
+        if class_mask is not None:
+            extra = {"head": "accumulating",
+                     "class_mask": [int(v) for v in class_mask.tolist()],
+                     "utility_total_all8": sequential_utility_total(
+                         rec.Z, idx, ctx.f_txt, ctx.logit_scale, rec.label)}
         out.append({
             "arm": arm, "order": order_name, "seed": seed, "stage": stage,
             "task": task, "slide_id": rec.sid, "true": rec.label,
@@ -283,6 +315,7 @@ def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None):
             "arch": args.arch, "prior": args.prior,
             "allocation": args.allocation, "fold": args.fold,
             "utility_total": u_total, "B": args.budget,
+            **extra,
             **(diag or {}),
         })
     return out
@@ -297,6 +330,9 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
     memory = SelectionMemory(capacity=cap, policy=None,       # 預設 reservoir
                              allow_over_contract=cap > MEMORY_CAPACITY)
 
+    if getattr(args, "head", DEFAULT_HEAD) != "fixed" and spec["mode"] != "sequential":
+        raise SystemExit(f"❌ --head accumulating 只支援序列臂；{arm} 的 mode={spec['mode']}"
+                         "（R1/R2/C1/C2 不在 DR-052 範圍）")
     if spec["mode"] == "per_task":
         # R1：每個 task 獨立訓練，彼此不干擾 → 各 stage 的結果相同（天花板）
         per_task_models = {}
@@ -330,8 +366,9 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
     for stage, task in enumerate(tasks):
         print(f"    ── stage {stage}: {task}", flush=True)
         stage_lora = spec["lora"] and not (warmstart and stage == 0)
+        cm = stage_mask(args, ctx, tasks, stage)        # DR-052：C_t；固定頭 None
         diag = train_stage(ctx, arm, models, [task], seed, args, memory, rng,
-                           use_lora=stage_lora)
+                           use_lora=stage_lora, class_mask=cm)
         if stage_lora and (merge_each or stage == last_stage):
             # merge_alpha 預設 1.0 → 與舊行為位元相同（DR-046 Phase B）
             merge_lora(*models, alpha=spec.get("merge_alpha", 1.0))
@@ -341,10 +378,11 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
                                 chunk=args.chunk,
                                 spec={**ARCH[args.arch],
                                       "allocation": args.allocation},
-                                max_slides=args.mem_slides)
+                                max_slides=args.mem_slides, class_mask=cm)
             print(f"       記憶體 +{added} → |M|={len(memory)}", flush=True)
         for t in tasks[:stage + 1]:
-            r = evaluate(ctx, models, t, arm, order_name, seed, stage, args, diag)
+            r = evaluate(ctx, models, t, arm, order_name, seed, stage, args, diag,
+                         class_mask=cm)
             recs_all += r
             print(f"       eval {t:10s} class-IL={acc(r, 'pred_class_il'):.4f} "
                   f"task-IL={acc(r, 'pred_task_il'):.4f}", flush=True)
@@ -513,6 +551,11 @@ def main() -> int:
                          "預設 1 與加入本旗標前位元等價：cfg['fold'] 本來就是 1，"
                          "且產物檔名只有 fold != 1 時才加後綴。")
     ap.add_argument("--tag", default="main")
+    ap.add_argument("--head", choices=list(HEADS), default=DEFAULT_HEAD,
+                    help="DR-052：fixed = 8 類固定頭（預設，既有路徑零改動）；"
+                         "accumulating = 只在已見類別 C_t 上訓練與評估")
+    ap.add_argument("--out-root", default=None,
+                    help="產物根目錄（預設 outputs/exp2；DR-052 的累積式頭用 outputs/exp3）")
     ap.add_argument("--no-resume", action="store_true")
     ap.add_argument("--report-only", action="store_true")
     args = ap.parse_args()
@@ -521,7 +564,7 @@ def main() -> int:
     cfg["fold"] = args.fold          # selector/evaluate.py 由 cfg["fold"] 取切分檔
     arms = [a.strip() for a in args.arms.split(",") if a.strip()]
     seeds = [int(x) for x in args.seeds.split(",")]
-    out_dir = OUT_ROOT / args.tag
+    out_dir = (Path(args.out_root) if args.out_root else OUT_ROOT) / args.tag
     (out_dir / "per_slide").mkdir(parents=True, exist_ok=True)
 
     ctx = Ctx(cfg)
@@ -534,7 +577,7 @@ def main() -> int:
 
     print(f"Exp2  arms={arms}  order={args.order}  seeds={seeds}  "
           f"B={args.budget} c={args.chunk} epochs={args.epochs} "
-          f"arch={args.arch} alloc={args.allocation} prior={args.prior} "
+          f"arch={args.arch} alloc={args.allocation} prior={args.prior} head={args.head} "
           f"beta_u={args.beta_u} replay_k={args.replay_k} "
           f"λ=({args.lambda_kd},{args.lambda_eq},{args.lambda_replay})", flush=True)
 
@@ -548,6 +591,8 @@ def main() -> int:
                 suffix += f"_{args.arch}"
             if args.prior != MAINLINE_PRIOR:
                 suffix += f"_{args.prior}"
+            if args.head != DEFAULT_HEAD:
+                suffix += "_acc"                # DR-052 累積式頭
             tag = f"{arm}_{args.order}_seed{seed}{suffix}"
             path = out_dir / "per_slide" / f"{tag}.json"
             if path.exists() and not args.no_resume:

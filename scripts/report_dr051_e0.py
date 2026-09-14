@@ -272,19 +272,19 @@ def e0b() -> tuple[str, dict]:
 CITES = {
     "logit_scale_doc": ("selector/text_encoder.py", 12, "logit_scale 直接取自 CONCH checkpoint"),
     "logit_scale_load": ("selector/text_encoder.py", 142, 'blob["logit_scale"]'),
-    "ce_def": ("selector/utility.py", 44, "F.cross_entropy(flat, target"),
-    "ce_logits": ("selector/utility.py", 71, "logits_cand = logit_scale * (E_cand @ f_txt.t())"),
-    "ce_now": ("selector/utility.py", 53, "return logit_scale * (e @ f_txt.t())"),
-    "du_def": ("selector/continual.py", 68, "ce = F.cross_entropy(logits_uniform.reshape(1, -1), target)"),
-    "head_logits": ("selector/train.py", 67, "return logit_scale * (pooled @ f_txt.to(pooled.dtype).t())"),
+    "ce_def": ("selector/utility.py", 62, "F.cross_entropy(flat, target"),
+    "ce_logits": ("selector/utility.py", 93, "logits_cand = logit_scale * (E_cand @ f_txt.t())"),
+    "ce_now": ("selector/utility.py", 71, "return logit_scale * (e @ f_txt.t())"),
+    "du_def": ("selector/continual.py", 70, "ce = F.cross_entropy(logits_uniform.reshape(1, -1), target)"),
+    "head_logits": ("selector/train.py", 68, "return logit_scale * (pooled @ f_txt.to(pooled.dtype).t())"),
     "r_flat": ("selector/rounds.py", 131, "r = f_group.score(grouping.prototypes, q_tau, state_feat,"),
-    "r_store": ("selector/train.py", 308, "memory.add(make_entry(task, rec.sid, res.state, last.r, cand,"),
-    "r_kd": ("selector/train.py", 337, "kd = l_kd(entry.r_old.to(last.r.dtype), last.r,"),
-    "kd_w": ("scripts/run_exp2.py", 233, 'kd_group_weight=spec.get("kd_group_weight", 1.0))'),
+    "r_store": ("selector/train.py", 329, "memory.add(make_entry(task, rec.sid, res.state, last.r, cand,"),
+    "r_kd": ("selector/train.py", 362, "kd = l_kd(entry.r_old.to(last.r.dtype), last.r,"),
+    "kd_w": ("scripts/run_exp2.py", 254, 'kd_group_weight=spec.get("kd_group_weight", 1.0)'),
     "du_script": ("scripts/report_dr046.py", 166, 'd = [per[t]["sum_u_at_end"] - per[t]["sum_u_at_learn"]'),
     "du_mean": ("scripts/report_dr046.py", 168, "return statistics.mean(d) if d else"),
-    "sum_u": ("scripts/run_exp2.py", 620, '"sum_u_at_learn": sum(r["utility_total"] for r in at_i)'),
-    "u_total": ("selector/utility.py", 98, "telescope"),
+    "sum_u": ("scripts/run_exp2.py", 665, '"sum_u_at_learn": sum(r["utility_total"] for r in at_i)'),
+    "u_total": ("selector/utility.py", 121, "telescope"),
 }
 
 
@@ -326,8 +326,8 @@ def e0c() -> tuple[str, dict]:
     import torch
     ls = float(torch.load(ROOT / "outputs" / "cache" / f"f_txt_{label_space[0]}.pt",
                           weights_only=False)["logit_scale"])
-    L = ["# E0c — ΔU 口徑", "", f"commit `{sha()}`。以下引文的行號在產生本檔時逐條自檢"
-         "（該行必須含所引片段）。", "",
+    L = ["# E0c — ΔU 口徑", "", f"資料基準 commit `{sha()}`。以下引文的行號對應**產生本檔時的工作樹**"
+         "（DR-052 之後行號有位移，片段不變），產生時逐條自檢（該行必須含所引片段）。", "",
          "## (i) 現行腳本的口徑", "",
          f"Table 3 的 ΔU 由 `scripts/report_dr046.py::delta_utility` 產生（{cite('du_script')}、"
          f"{cite('du_mean')}）：對每個舊任務取 `sum_u_at_end − sum_u_at_learn`，再對舊任務"

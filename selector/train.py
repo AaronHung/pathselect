@@ -34,6 +34,7 @@ from selector.memory import (SelectionMemory, make_entry,               # noqa: 
                              reload_features, selected_from_entry)
 from selector.priors import MAINLINE_PRIOR, semantic_prior              # noqa: E402
 from selector.utility import (CANDIDATE_SIZE, counterfactual_gain,      # noqa: E402
+                              mask_logits,
                               top_candidates)
 from selector.rounds import (DEFAULT_BUDGET, DEFAULT_CHUNK,            # noqa: E402
                              DEFAULT_GROUP_GRAD, GROUP_GRAD_MODES, run_rounds)
@@ -69,8 +70,14 @@ def frozen_head(Z: torch.Tensor, s: torch.Tensor, ste_mask: torch.Tensor,
 
 # ── loss terms ──────────────────────────────────────────────────────────────
 
-def l_diag(logits: torch.Tensor, label: int) -> torch.Tensor:
-    """診斷損失：frozen head 的 cross-entropy。"""
+def l_diag(logits: torch.Tensor, label: int,
+           class_mask: torch.Tensor | None = None) -> torch.Tensor:
+    """診斷損失：frozen head 的 cross-entropy。
+
+    `class_mask`（DR-052 累積式頭）：未見類別的 logit 設為 −inf 後再算 CE；
+    None（固定頭）時 `mask_logits` 原樣回傳，逐位元不變。
+    """
+    logits = mask_logits(logits, class_mask)
     target = torch.tensor([int(label)], dtype=torch.long, device=logits.device)
     return F.cross_entropy(logits.reshape(1, -1), target)
 
@@ -91,7 +98,8 @@ def l_sem(patch_score: torch.Tensor, prior: torch.Tensor,
 def evidence_loss(logits, label, patch_score, prior, *,
                   beta_s: float = 0.1, beta_u: float = 0.1,
                   utility: torch.Tensor | None = None,
-                  cand_idx: torch.Tensor | None = None
+                  cand_idx: torch.Tensor | None = None,
+                  class_mask: torch.Tensor | None = None
                   ) -> tuple[torch.Tensor, dict]:
     """L_evidence = L_diag + beta_s * L_sem + beta_u * L_util。
 
@@ -99,7 +107,7 @@ def evidence_loss(logits, label, patch_score, prior, *,
              None 或 beta_u == 0 時 L_util **完全不計算也不相加**，
              結果與未接上該項時位元相同。
     """
-    d = l_diag(logits, label)
+    d = l_diag(logits, label, class_mask)
     sem = l_sem(patch_score, prior)
     total = d + beta_s * sem
     parts = {"L_diag": float(d.detach()), "L_sem": float(sem.detach()),
@@ -120,8 +128,13 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
                beta_s=0.1, beta_u=0.1, n_candidate_classes=None,
                group_grad=DEFAULT_GROUP_GRAD, use_query=True, use_state=True,
                hierarchy=True, weighting="softmax",
-               candidate_size=CANDIDATE_SIZE, allocation=None):
-    """跑完一張 slide 的 chunked loop 並回傳 (loss, parts, result)。"""
+               candidate_size=CANDIDATE_SIZE, allocation=None,
+               class_mask=None):
+    """跑完一張 slide 的 chunked loop 並回傳 (loss, parts, result)。
+
+    `class_mask`（DR-052）：累積式頭的已見類別遮罩 bool[C]；None = 固定頭（零改動）。
+    影響 L_diag（遮罩 CE）、L_sem 先驗（只看 f_txt[C_t]）、反事實 teacher u_i（遮罩 CE）。
+    """
     if grouping is None:
         if tissue is None:
             raise ValueError("需要 tissue text 特徵或已算好的 grouping")
@@ -142,9 +155,15 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
         ste = ste + rec.ste_mask
     logits = frozen_head(Z, s_last, ste, f_txt, logit_scale, weighting=weighting)
 
-    prior = semantic_prior(Z, f_txt, kind=prior_kind,
-                           n_candidate_classes=n_candidate_classes or f_txt.shape[0],
-                           logit_scale=logit_scale)
+    if class_mask is None:
+        prior = semantic_prior(Z, f_txt, kind=prior_kind,
+                               n_candidate_classes=n_candidate_classes or f_txt.shape[0],
+                               logit_scale=logit_scale)
+    else:
+        f_seen = f_txt[class_mask.to(torch.bool).to(f_txt.device)]
+        prior = semantic_prior(Z, f_seen, kind=prior_kind,
+                               n_candidate_classes=int(f_seen.shape[0]),
+                               logit_scale=logit_scale)
 
     # S4-4：counterfactual gain 當監督訊號。候選集合與 evidence 都取「最後一輪的
     # 狀態」—— s_last 就是在那個狀態下產生的，兩者用同一個狀態才自洽。
@@ -155,13 +174,14 @@ def train_step(Z, label, q_tau, f_txt, logit_scale, f_group, f_patch, *,
         if cand_idx.numel() > 0:
             utility = counterfactual_gain(
                 st.evidence_sum(), st.n_selected, Z.index_select(0, cand_idx),
-                f_txt, logit_scale, label)
+                f_txt, logit_scale, label, class_mask=class_mask)
         else:
             cand_idx = None
 
     loss, parts = evidence_loss(logits, label, s_last, prior,
                                 beta_s=beta_s, beta_u=beta_u,
-                                utility=utility, cand_idx=cand_idx)
+                                utility=utility, cand_idx=cand_idx,
+                                class_mask=class_mask)
     parts["n_selected"] = int(result.selected.numel())
     parts["n_candidates"] = int(cand_idx.numel()) if cand_idx is not None else 0
     return loss, parts, result
@@ -277,7 +297,7 @@ if __name__ == "__main__":
 def fill_memory(memory: SelectionMemory, models, task: str, cfg, f_txt, logit_scale,
                 tissue, *, budget=DEFAULT_BUDGET, chunk=DEFAULT_CHUNK,
                 q_tau=None, spec=None, max_slides: int = 0,
-                candidate_size=CANDIDATE_SIZE) -> int:
+                candidate_size=CANDIDATE_SIZE, class_mask=None) -> int:
     """學完一個 task 後，把該 task 的代表性樣本寫進 Selection Memory。
 
     entry 不含 patch feature，只留 slide_id + cand_idx，之後用 reload_features 重載。
@@ -302,11 +322,12 @@ def fill_memory(memory: SelectionMemory, models, task: str, cfg, f_txt, logit_sc
             cand = last.cand_idx
             if cand.numel() == 0:
                 continue
+            # DR-052：u_old 以快照當時的 C_old 算，並把 C_old 存進 entry（固定頭 None）
             u = counterfactual_gain(res.state.evidence_sum(), res.state.n_selected,
                                     rec.Z.index_select(0, cand), f_txt, logit_scale,
-                                    rec.label)
+                                    rec.label, class_mask=class_mask)
             memory.add(make_entry(task, rec.sid, res.state, last.r, cand,
-                                  last.s.detach(), u))
+                                  last.s.detach(), u, class_mask_old=class_mask))
             added += 1
     return added
 
@@ -314,8 +335,12 @@ def fill_memory(memory: SelectionMemory, models, task: str, cfg, f_txt, logit_sc
 def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
                     budget=DEFAULT_BUDGET, chunk=DEFAULT_CHUNK, q_tau=None,
                     spec=None, use_kd=True, use_eq=True, use_replay=True,
-                    eq_mode="hinge", kd_group_weight=1.0):
+                    eq_mode="hinge", kd_group_weight=1.0, class_mask=None):
     """對一筆記憶體 entry 算出 (L_KD, L_eq, L_replay)；關掉的項回傳 None。
+
+    `class_mask`（DR-052）= **當前** stage 的 C_t，只用於 replay 的 CE；
+    hinge 的 U_new 遮罩到 entry 自己的 `class_mask_old`（快照時的 C_old），
+    與 u_old 同口徑。固定頭兩者皆 None → 逐位元不變。
 
     L_replay 就是 L_diag 跑在從 M 取回的舊樣本上 —— replay 是資料機制，
     這一項沒有任何特殊之處。
@@ -340,11 +365,13 @@ def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
     if use_eq:
         _idx, pos = selected_from_entry(entry, budget)
         u_old = float(entry.u_old.index_select(0, pos).sum())
-        logits_uniform = frozen_head(Z, last.s, ste, f_txt, logit_scale,
-                                     weighting="uniform")
+        logits_uniform = mask_logits(frozen_head(Z, last.s, ste, f_txt, logit_scale,
+                                                 weighting="uniform"),
+                                     entry.class_mask_old)
         eq = l_eq(differentiable_utility(logits_uniform, label), u_old, mode=eq_mode)
     if use_replay:
-        replay = l_diag(frozen_head(Z, last.s, ste, f_txt, logit_scale), label)
+        replay = l_diag(frozen_head(Z, last.s, ste, f_txt, logit_scale), label,
+                        class_mask)
     return kd, eq, replay
 
 

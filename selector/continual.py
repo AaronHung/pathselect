@@ -63,7 +63,9 @@ def differentiable_utility(logits_uniform: torch.Tensor, label: int) -> torch.Te
     與 A3 的 U 同一個定義：evidence 等權平均、frozen head、沿選取順序累加的
     counterfactual gain 會 telescope 成這個封閉形式。U > 0 代表證據推向正確類別。
     """
-    C = logits_uniform.shape[-1]
+    # DR-052：累積式頭把未見類別的 logit 設為 −inf；C 只數有限的那些。
+    # 固定頭的 logits 全有限 → C = logits.shape[-1]，值與舊版逐位元相同。
+    C = int(torch.isfinite(logits_uniform).sum())
     target = torch.tensor([int(label)], dtype=torch.long, device=logits_uniform.device)
     ce = F.cross_entropy(logits_uniform.reshape(1, -1), target)
     return math.log(C) - ce
