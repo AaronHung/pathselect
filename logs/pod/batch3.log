@@ -1,0 +1,42 @@
+[2026-09-14 18:06:58] batch 3：20 run，parallel=10 threads=8 commit=5338775747b03cf2b128ace116beb430fbbef6d0
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f5
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f3
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f4
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f6
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f7
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f9
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f10
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f8
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f2
+[2026-09-14 18:07:00] ▶ start A5_hier_fwd_acc_f1
+[2026-09-14 18:45:37] ✅ done A5_hier_fwd_acc_f2（per_slide 檔數 24）       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+[2026-09-14 18:45:37] ✅ done A5_hier_fwd_acc_f6（per_slide 檔數 24）       eval tcga_esca  class-IL=0.6250 task-IL=0.8125
+[2026-09-14 18:45:37] ✅ done A5_hier_fwd_acc_f9（per_slide 檔數 24）       eval tcga_esca  class-IL=0.9286 task-IL=1.0000
+[2026-09-14 18:45:38] ✅ done A5_hier_fwd_acc_f4（per_slide 檔數 24）       eval tcga_esca  class-IL=1.0000 task-IL=1.0000
+[2026-09-14 18:45:39] ▶ start A5_flat_fwd_acc_f1
+[2026-09-14 18:45:39] ▶ start A5_flat_fwd_acc_f2
+[2026-09-14 18:45:39] ▶ start A5_flat_fwd_acc_f3
+[2026-09-14 18:45:40] ▶ start A5_flat_fwd_acc_f4
+[2026-09-14 18:45:41] ✅ done A5_hier_fwd_acc_f5（per_slide 檔數 25）       eval tcga_esca  class-IL=1.0000 task-IL=1.0000
+[2026-09-14 18:45:42] ▶ start A5_flat_fwd_acc_f5
+[2026-09-14 18:45:45] ✅ done A5_hier_fwd_acc_f10（per_slide 檔數 26）       eval tcga_esca  class-IL=0.8571 task-IL=0.9286
+[2026-09-14 18:45:47] ▶ start A5_flat_fwd_acc_f6
+[2026-09-14 18:45:58] ✅ done A5_hier_fwd_acc_f3（per_slide 檔數 27）       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+[2026-09-14 18:45:59] ▶ start A5_flat_fwd_acc_f7
+[2026-09-14 18:46:00] ✅ done A5_hier_fwd_acc_f7（per_slide 檔數 28）       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+[2026-09-14 18:46:02] ▶ start A5_flat_fwd_acc_f8
+[2026-09-14 18:46:06] ✅ done A5_hier_fwd_acc_f8（per_slide 檔數 29）       eval tcga_esca  class-IL=0.8667 task-IL=0.9333
+[2026-09-14 18:46:08] ▶ start A5_flat_fwd_acc_f9
+[2026-09-14 18:46:14] ✅ done A5_hier_fwd_acc_f1（per_slide 檔數 30）       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+[2026-09-14 18:46:15] ▶ start A5_flat_fwd_acc_f10
+[2026-09-14 19:23:28] ✅ done A5_flat_fwd_acc_f6（per_slide 檔數 32）       eval tcga_esca  class-IL=0.8125 task-IL=0.9375
+[2026-09-14 19:23:29] ✅ done A5_flat_fwd_acc_f2（per_slide 檔數 32）       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+[2026-09-14 19:23:33] ✅ done A5_flat_fwd_acc_f3（per_slide 檔數 33）       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+[2026-09-14 19:23:38] ✅ done A5_flat_fwd_acc_f7（per_slide 檔數 34）       eval tcga_esca  class-IL=0.8667 task-IL=0.8667
+[2026-09-14 19:23:41] ✅ done A5_flat_fwd_acc_f1（per_slide 檔數 35）       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+[2026-09-14 19:23:43] ✅ done A5_flat_fwd_acc_f4（per_slide 檔數 36）       eval tcga_esca  class-IL=0.8750 task-IL=0.9375
+[2026-09-14 19:23:47] ✅ done A5_flat_fwd_acc_f8（per_slide 檔數 39）       eval tcga_esca  class-IL=0.8000 task-IL=0.9333
+[2026-09-14 19:23:48] ✅ done A5_flat_fwd_acc_f5（per_slide 檔數 39）       eval tcga_esca  class-IL=0.9333 task-IL=1.0000
+[2026-09-14 19:23:50] ✅ done A5_flat_fwd_acc_f9（per_slide 檔數 39）       eval tcga_esca  class-IL=0.8571 task-IL=1.0000
+[2026-09-14 19:24:19] ✅ done A5_flat_fwd_acc_f10（per_slide 檔數 40）       eval tcga_esca  class-IL=1.0000 task-IL=1.0000
+[2026-09-14 19:24:19] BATCH_DONE 3 20/20

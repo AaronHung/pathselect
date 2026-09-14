@@ -715,4 +715,16 @@ Forgetting hier +0.0114（6/10）、flat −0.0097（3/10）。⚠️ Mac 上「
 稿件引用 0.854 vs 0.830 時須註明平台，或改以 pod 同平台的 0.848 vs 0.844 並標「within noise」。
 來源：`outputs/exp3/B2.md`、`outputs/exp3/EXP3.md`、`outputs/exp3/sota_fixed/per_slide/`（20 檔）。
 
-### 11.3 B3 — 累積式頭・正向十折（待補）
+### 11.3 B3 — 累積式頭・正向十折 hier＋flat（pod；2026-09-15 完成，77 分鐘）
+
+| 臂（累積式頭，forward） | ACC | Masked ACC | Forgetting | BWT | n |
+|---|---|---|---|---|---|
+| A5 flat | 0.835 ± 0.031 | 0.906 ± 0.024 | 0.077 ± 0.036 | −0.067 ± 0.036 | 10 |
+| A5 hier | 0.830 ± 0.035 | 0.912 ± 0.021 | 0.069 ± 0.030 | −0.063 ± 0.034 | 10 |
+
+hier − flat（累積式頭，forward）：ACC −0.0048（hier 較佳 4/10）、Masked +0.0067（6/10）、Forgetting −0.0072（5/10）。
+正向的累積式頭 ACC（0.83）高於反向（0.80），Forgetting 較低（0.07 vs 0.13）—— 正向從 4 類任務起步，
+早期 C_t 更大、峰值效應較小。參考（Mac 固定頭正向）：flat 0.841／0.055、hier 0.811／0.061；
+同平台差待 B4。來源：`outputs/exp3/B3.md`、`sota_acc/per_slide/`（40 檔）。
+
+### 11.4 B4 — 固定頭・正向十折 pod 對照（待補）
