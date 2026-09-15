@@ -110,6 +110,34 @@ def main(argv=None) -> int:
                 L.append(f"| {lab} | {order} | " + " | ".join(cells) + " |")
     else:
         L.append("未執行（第一階段未達標）" if verdict is False else "尚未有資料。")
+    # ── 第三階段（Prompt 24）：兩層選擇器 hier ＋ 合規效用下限，十折兩順序 ──
+    L += ["", "## 第三階段（Prompt 24）：A5 hier 十折兩順序（`--uold current`）", ""]
+    if d10.is_dir() and any(d10.glob("*_hier_acc_ucur.json")):
+        ucur = load_runs(d10, list(ORDERS)); acc = load_runs(src / "sota_acc" / "per_slide", list(ORDERS))
+        L += ["| 架構 | 順序 | ACC | Masked ACC | Forgetting | BWT | n |", "|---|---|---|---|---|---|---|"]
+        for arch in ("hier", "flat"):
+            for order in ("reverse", "main"):
+                key = ("A5", arch, order)
+                if key not in ucur:
+                    continue
+                per = {}
+                for rk, recs in ucur[key].items():
+                    try: per[rk] = all_metrics(recs, ORDERS[order])
+                    except ValueError: pass
+                L.append(f"| {arch} | {order} | {msd([m['acc'] for m in per.values()], 3)} | {msd([m['masked_acc'] for m in per.values()], 3)} | "
+                         f"{msd([m['forgetting'] for m in per.values()], 3)} | {msd([m['bwt'] for m in per.values()], 3)} | {len(per)} |")
+        L += ["", "| 配對（A − B；同口徑 `--uold current` 除註明） | 順序 | ACC | Masked ACC | Forgetting |", "|---|---|---|---|---|"]
+        merged = dict(acc); merged.update({(k[0] + "_ucur", k[1], k[2]): v for k, v in ucur.items()})
+        for order in ("reverse", "main"):
+            for lab, ka, kb in (("hier − flat（皆 ucur）", ("A5_ucur", "hier", order), ("A5_ucur", "flat", order)),
+                                ("A5_hier_ucur − A3（B7，累積式 flat）", ("A5_ucur", "hier", order), ("A3", "flat", order)),
+                                ("A5_hier_ucur − A5_hier_acc（B1/B3 快照口徑）", ("A5_ucur", "hier", order), ("A5", "hier", order))):
+                rows = {r["label"]: r for r in paired(merged, ka, kb)}
+                cells = [f"{rows[k]['mean']:+.4f}（{rows[k]['better']}/{rows[k]['n']}）" if k in rows else "—"
+                         for k in ("ACC", "Masked ACC", "Forgetting")]
+                L.append(f"| {lab} | {order} | " + " | ".join(cells) + " |")
+    else:
+        L.append("尚未有資料。")
     L.append("")
     out.write_text("\n".join(L) + "\n")
     print(f"→ {out}")

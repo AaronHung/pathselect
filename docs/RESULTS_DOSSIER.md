@@ -872,3 +872,19 @@ A5_ucur − A5_acc（B1／B3）reverse ACC +0.0204（5/10）、forward +0.0107�
 與固定頭 pod 同折相比（B2／B4：reverse 0.844、forward 0.849），累積式＋合規 hinge 的 ACC 仍低 0.3–2 pp。
 來源：`outputs/exp3/DR054_UOLD.md`、`outputs/exp3/sota_ucur/per_slide/`（20 檔）。
 
+### 11.9 DR-054 第三階段 — 兩層選擇器（hier）＋ 合規效用下限，十折兩順序（pod；2026-09-15，81 分鐘，20/20）
+
+| 架構（`--head accumulating --uold current`） | 順序 | ACC | Masked ACC | Forgetting | BWT |
+|---|---|---|---|---|---|
+| hier | reverse | 0.834 ± 0.031 | 0.914 ± 0.022 | 0.101 ± 0.035 | −0.094 ± 0.035 |
+| hier | forward | 0.837 ± 0.027 | 0.916 ± 0.022 | 0.059 ± 0.020 | −0.046 ± 0.026 |
+| flat（§11.8） | reverse | 0.823 ± 0.041 | 0.928 ± 0.025 | 0.108 ± 0.048 | −0.101 ± 0.047 |
+| flat（§11.8） | forward | 0.846 ± 0.047 | 0.911 ± 0.034 | 0.068 ± 0.036 | −0.059 ± 0.038 |
+
+逐折配對（同口徑）：hier − flat reverse ACC +0.0106（6/10）、Masked −0.0136（4/10）、Forgetting −0.0069（6/10）；
+forward ACC −0.0083（5/10）、Masked +0.0047（6/10）、Forgetting −0.0089（6/10）。
+A5_hier_ucur − A3（B7 累積式 flat）：reverse ACC +0.0152（6/10）、Forgetting −0.0202（6/10）；forward +0.0061（7/10）、−0.0185（8/10）。
+A5_hier_ucur − A5_hier 快照口徑（B1／B3）：reverse **+0.0359（9/10）**、Forgetting −0.0362（7/10）；forward +0.0072（6/10）。
+只報告：合規效用下限讓 hier 在反向回升 3.6 pp（9/10），兩架構在同口徑下的差落在雜訊內（6/10、5/10）；
+hier 的 Forgetting 在兩序皆低於 flat（6/10）。來源：`outputs/exp3/B8.md`（= DR054_UOLD.md 快照）、`sota_ucur/per_slide/`（40 檔）。
+

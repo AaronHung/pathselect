@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DR-052 第 3 步的三批 run 清單（給 scripts/pod_run_exp3.sh 吃）。
 
-    python scripts/pod_exp3_batches.py <1..10>
+    python scripts/pod_exp3_batches.py <1..11>
 
   B1 累積式・反向十折 hier+flat（20）   B2 固定頭・反向十折（20，同設定對照）
   B3 累積式・正向十折（20）             B4 固定頭・正向十折（20）
@@ -57,6 +57,10 @@ BATCHES = {
         for arm in ("A5", "B2") for s in range(5)],
     10: [(f"A5_flat_{lab}_ucur_f{k}",
           f"--arms A5 --order {order} --arch flat --fold {k} --seeds {k} --tag sota_ucur {ACC} --uold current")
+         for lab, order in (("rev", "reverse"), ("fwd", "main")) for k in range(1, 11)],
+    # Prompt 24（DR-054 第三階段）：兩層選擇器（hier）＋合規效用下限，十折兩順序。
+    11: [(f"A5_hier_{lab}_ucur_f{k}",
+          f"--arms A5 --order {order} --arch hier --fold {k} --seeds {k} --tag sota_ucur {ACC} --uold current")
          for lab, order in (("rev", "reverse"), ("fwd", "main")) for k in range(1, 11)],
 }
 
