@@ -50,8 +50,8 @@ from selector.rounds import (ALLOCATION_MODES, DEFAULT_ALLOCATION,      # noqa: 
 from selector.model import GroupSelector, PatchSelector                  # noqa: E402
 from selector.priors import MAINLINE_PRIOR                               # noqa: E402
 from selector.text_encoder import build_f_txt, load_config               # noqa: E402
-from selector.train import (continual_terms, fill_memory, total_loss,    # noqa: E402
-                            train_step)
+from selector.train import (U_OLD_MODES, continual_terms, fill_memory,   # noqa: E402
+                            total_loss, train_step)
 from selector.utility import mask_logits, sequential_utility_total       # noqa: E402
 
 OUT_ROOT = REPO_ROOT / "outputs" / "exp2"
@@ -253,7 +253,8 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng, *, use_lora=No
                         use_kd=spec["kd"], use_eq=spec["eq"],
                         use_replay=spec["replay"],
                         kd_group_weight=spec.get("kd_group_weight", 1.0),
-                        class_mask=class_mask)
+                        class_mask=class_mask,
+                        u_old_mode=getattr(args, "uold", "snapshot"))
                     kd = k_ if kd is None else kd + k_
                     eq = e_ if eq is None else eq + e_
                     replay = r_ if replay is None else replay + r_
@@ -302,6 +303,8 @@ def evaluate(ctx, models, task, arm, order_name, seed, stage, args, diag=None,
                      "class_mask": [int(v) for v in class_mask.tolist()],
                      "utility_total_all8": sequential_utility_total(
                          rec.Z, idx, ctx.f_txt, ctx.logit_scale, rec.label)}
+        if getattr(args, "uold", "snapshot") != "snapshot":
+            extra["uold"] = args.uold              # DR-054
         out.append({
             "arm": arm, "order": order_name, "seed": seed, "stage": stage,
             "task": task, "slide_id": rec.sid, "true": rec.label,
@@ -555,6 +558,9 @@ def main() -> int:
     ap.add_argument("--head", choices=list(HEADS), default=DEFAULT_HEAD,
                     help="DR-052：fixed = 8 類固定頭（預設，既有路徑零改動）；"
                          "accumulating = 只在已見類別 C_t 上訓練與評估")
+    ap.add_argument("--uold", choices=list(U_OLD_MODES), default="snapshot",
+                    help="DR-054：hinge 的 U_old 口徑；snapshot = 快照值（預設，零改動），"
+                         "current = replay 時以當前 C_t 由 P_old 重算")
     ap.add_argument("--out-root", default=None,
                     help="產物根目錄（預設 outputs/exp2；DR-052 的累積式頭用 outputs/exp3）")
     ap.add_argument("--no-resume", action="store_true")
@@ -583,7 +589,7 @@ def main() -> int:
 
     print(f"Exp2  arms={arms}  order={args.order}  seeds={seeds}  "
           f"B={args.budget} c={args.chunk} epochs={args.epochs} "
-          f"arch={args.arch} alloc={args.allocation} prior={args.prior} head={args.head} "
+          f"arch={args.arch} alloc={args.allocation} prior={args.prior} head={args.head} uold={args.uold} "
           f"beta_u={args.beta_u} replay_k={args.replay_k} "
           f"λ=({args.lambda_kd},{args.lambda_eq},{args.lambda_replay})", flush=True)
 
@@ -599,6 +605,8 @@ def main() -> int:
                 suffix += f"_{args.prior}"
             if args.head != DEFAULT_HEAD:
                 suffix += "_acc"                # DR-052 累積式頭
+            if args.uold != "snapshot":
+                suffix += "_ucur"               # DR-054 U_old 以當前 C_t 重算
             tag = f"{arm}_{args.order}_seed{seed}{suffix}"
             path = out_dir / "per_slide" / f"{tag}.json"
             if path.exists() and not args.no_resume:

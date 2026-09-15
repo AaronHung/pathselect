@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DR-052 第 3 步的三批 run 清單（給 scripts/pod_run_exp3.sh 吃）。
 
-    python scripts/pod_exp3_batches.py <1..8>
+    python scripts/pod_exp3_batches.py <1..10>
 
   B1 累積式・反向十折 hier+flat（20）   B2 固定頭・反向十折（20，同設定對照）
   B3 累積式・正向十折（20）             B4 固定頭・正向十折（20）
@@ -50,6 +50,14 @@ BATCHES = {
     8: [(f"{arm}_flat_fwd_acc_f{k}",
          f"--arms {arm} --order main --arch flat --fold {k} --seeds {k} --tag sota_acc {ACC}")
         for arm in ("A1", "A3") for k in range(1, 11)],
+    # DR-054：hinge 的 U_old 以當前 C_t 由 P_old 重算（--uold current）。
+    # 9 = 第一階段 fold-1 五 seed A5/B2（10）；10 = 第二階段 A5 flat 十折兩順序（20，過門檻才跑）。
+    9: [(f"{arm}_flat_rev_f1_s{s}_ucur",
+         f"--arms {arm} --order reverse --arch flat --fold 1 --seeds {s} --tag ablation_ucur {ACC} --uold current")
+        for arm in ("A5", "B2") for s in range(5)],
+    10: [(f"A5_flat_{lab}_ucur_f{k}",
+          f"--arms A5 --order {order} --arch flat --fold {k} --seeds {k} --tag sota_ucur {ACC} --uold current")
+         for lab, order in (("rev", "reverse"), ("fwd", "main")) for k in range(1, 11)],
 }
 
 

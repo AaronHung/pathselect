@@ -42,6 +42,9 @@ from selector.task_query import TaskQueryBank                           # noqa: 
 from selector.text_encoder import build_f_txt, load_config              # noqa: E402
 
 MODES = ("per_task", "joint")
+#: DR-054：hinge 的 U_old 口徑。snapshot = 快照的 u_old（現行）；current = replay 時以當前 C_t 重算。
+U_OLD_MODES = ("snapshot", "current")
+
 #: within-task 已接上的 loss 項。CL 層的三項在 selector/continual.py。
 ENABLED_TERMS = ("L_diag", "L_sem", "L_util")
 EPS = 1e-12
@@ -335,12 +338,19 @@ def fill_memory(memory: SelectionMemory, models, task: str, cfg, f_txt, logit_sc
 def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
                     budget=DEFAULT_BUDGET, chunk=DEFAULT_CHUNK, q_tau=None,
                     spec=None, use_kd=True, use_eq=True, use_replay=True,
-                    eq_mode="hinge", kd_group_weight=1.0, class_mask=None):
+                    eq_mode="hinge", kd_group_weight=1.0, class_mask=None,
+                    u_old_mode="snapshot"):
     """對一筆記憶體 entry 算出 (L_KD, L_eq, L_replay)；關掉的項回傳 None。
 
     `class_mask`（DR-052）= **當前** stage 的 C_t，只用於 replay 的 CE；
     hinge 的 U_new 遮罩到 entry 自己的 `class_mask_old`（快照時的 C_old），
     與 u_old 同口徑。固定頭兩者皆 None → 逐位元不變。
+
+    `u_old_mode`（DR-054）：
+      "snapshot"（預設）= 上述現行路徑，逐位元不變；
+      "current"  = replay 時由快照的 P_old（`selected_from_entry`）等權池化、遮罩到
+                   **當前** C_t 重算 U_old，U_new 也遮罩到當前 C_t —— 同口徑、不用未見
+                   類別、不讀快照的 u_old／class_mask_old。
 
     L_replay 就是 L_diag 跑在從 M 取回的舊樣本上 —— replay 是資料機制，
     這一項沒有任何特殊之處。
@@ -363,11 +373,25 @@ def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
                   entry.s_old.to(last.s.dtype), last.s.index_select(0, cand),
                   group_weight=kd_group_weight)
     if use_eq:
-        _idx, pos = selected_from_entry(entry, budget)
-        u_old = float(entry.u_old.index_select(0, pos).sum())
-        logits_uniform = mask_logits(frozen_head(Z, last.s, ste, f_txt, logit_scale,
-                                                 weighting="uniform"),
-                                     entry.class_mask_old)
+        if u_old_mode not in U_OLD_MODES:
+            raise ValueError(f"unknown u_old_mode: {u_old_mode}; expected {U_OLD_MODES}")
+        idx_old, pos = selected_from_entry(entry, budget)
+        if u_old_mode == "snapshot":
+            u_old = float(entry.u_old.index_select(0, pos).sum())
+            logits_uniform = mask_logits(frozen_head(Z, last.s, ste, f_txt, logit_scale,
+                                                     weighting="uniform"),
+                                         entry.class_mask_old)
+        else:                                   # DR-054 "current"
+            ste_old = torch.zeros_like(last.s)
+            ste_old[idx_old.to(torch.long)] = 1.0
+            with torch.no_grad():
+                logits_old = mask_logits(frozen_head(Z, last.s.detach(), ste_old, f_txt,
+                                                     logit_scale, weighting="uniform"),
+                                         class_mask)
+                u_old = float(differentiable_utility(logits_old, label))
+            logits_uniform = mask_logits(frozen_head(Z, last.s, ste, f_txt, logit_scale,
+                                                     weighting="uniform"),
+                                         class_mask)
         eq = l_eq(differentiable_utility(logits_uniform, label), u_old, mode=eq_mode)
     if use_replay:
         replay = l_diag(frozen_head(Z, last.s, ste, f_txt, logit_scale), label,
