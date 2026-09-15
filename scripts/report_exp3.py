@@ -70,7 +70,7 @@ def tenfold_table(title, runs, L):
     L += [f"### {title}", "",
           "| 臂 | 架構 | 順序 | " + " | ".join(l for _k, l in METRICS) + " | n | 溯源 |",
           "|---|---|---|" + "---|" * len(METRICS) + "---|---|"]
-    keys = sorted(k for k in runs if k[0] == "A5")
+    keys = sorted(k for k in runs if k[0] in ("A1", "A3", "A5"))
     if not keys:
         L += ["| 尚未有資料 | | | | | | | | |"]
     for key in keys:
@@ -228,6 +228,12 @@ def main(argv=None) -> int:
         for arch in ("hier", "flat"):
             diff_block(f"固定頭 pod − 固定頭 Mac（平台差參考；A5 `{arch}` {order}）", fix, ref,
                        ("A5", arch, order), L, note_a="pod", note_b="Mac")
+        # B7（Prompt 22）：Table 2 鏈的前兩列（A1 無保存、A3 只 replay）在累積式頭下，flat 十折
+        paired_block(f"A3 − A1（累積式頭，flat，{order}）", acc, ("A3", "flat", order), ("A1", "flat", order), L)
+        paired_block(f"A5 − A3（累積式頭，flat，{order}）", acc, ("A5", "flat", order), ("A3", "flat", order), L)
+        for arm in ("A1", "A3"):
+            diff_block(f"累積式頭 pod − 固定頭 Mac（參考；{arm} `flat` {order}）", acc, ref,
+                       (arm, "flat", order), L, note_a="累積(pod)", note_b="固定(Mac)")
 
     L += ["## 3. fold-1 五 seed 組件消融（flat，reverse）", ""]
     A = load_abl(src / "ablation_acc" / "per_slide", "_acc", tasks, label_space)

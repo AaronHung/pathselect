@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """DR-052 第 3 步的三批 run 清單（給 scripts/pod_run_exp3.sh 吃）。
 
-    python scripts/pod_exp3_batches.py <1..6>
+    python scripts/pod_exp3_batches.py <1..8>
 
   B1 累積式・反向十折 hier+flat（20）   B2 固定頭・反向十折（20，同設定對照）
   B3 累積式・正向十折（20）             B4 固定頭・正向十折（20）
   B5 累積式・fold-1 五 seed 六臂（30）  B6 固定頭・同六臂（30）
+  7 = B7-1 累積式・反向 A1/A3 十折（20）  8 = B7-2 累積式・正向 A1/A3 十折（20）
 
 每行 = `run 名稱|run_exp2 參數`。所有 run 都 `--out-root outputs/exp3`：累積式落
 outputs/exp3/{sota_acc,ablation_acc}/per_slide/（檔名加 `_acc`），固定頭對照落
@@ -41,6 +42,14 @@ BATCHES = {
     4: tenfold("main", FIX, "sota_fixed", "fwd_fix"),         # 固定頭・正向十折
     5: ablation(ACC, "ablation_acc", "acc"),                  # 累積式・fold-1 五 seed 六臂
     6: ablation(FIX, "ablation_fixed", "fix"),                # 固定頭・同六臂
+    # Prompt 22（DR-052 附錄）：Table 2 鏈的前兩列在累積式頭下重跑，flat、十折。
+    # 7 = B7-1 反向（A1、A3 各十折）；8 = B7-2 正向（同）。A5 用 B1/B3 的 flat 十折。
+    7: [(f"{arm}_flat_rev_acc_f{k}",
+         f"--arms {arm} --order reverse --arch flat --fold {k} --seeds {k} --tag sota_acc {ACC}")
+        for arm in ("A1", "A3") for k in range(1, 11)],
+    8: [(f"{arm}_flat_fwd_acc_f{k}",
+         f"--arms {arm} --order main --arch flat --fold {k} --seeds {k} --tag sota_acc {ACC}")
+        for arm in ("A1", "A3") for k in range(1, 11)],
 }
 
 
