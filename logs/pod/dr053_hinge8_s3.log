@@ -1,0 +1,43 @@
+✅ 注入生效：class_mask_old=None、u_old 為 8 類口徑（原版 2 類、值不同）
+Exp2  arms=['B2']  order=reverse  seeds=[3]  B=8 c=1 epochs=5 arch=flat alloc=per_budget prior=discriminative head=accumulating beta_u=0.1 replay_k=1 λ=(1.0,1.0,1.0)
+  ▶ B2 (只 eq (λ_r=λ_kd=0)) seed=3
+    ── stage 0: tcga_esca
+      epoch 1/5 n=120 mean_loss=0.2726
+      epoch 2/5 n=120 mean_loss=0.0528
+      epoch 3/5 n=120 mean_loss=0.0201
+      epoch 4/5 n=120 mean_loss=0.0132
+      epoch 5/5 n=120 mean_loss=0.0154
+       記憶體 +120 → |M|=120
+       eval tcga_esca  class-IL=1.0000 task-IL=1.0000
+    ── stage 1: tcga_rcc
+      epoch 1/5 n=616 mean_loss=0.5170
+      epoch 2/5 n=616 mean_loss=0.3831
+      epoch 3/5 n=616 mean_loss=0.3526
+      epoch 4/5 n=616 mean_loss=0.3316
+      epoch 5/5 n=616 mean_loss=0.3219
+       記憶體 +616 → |M|=512
+       eval tcga_esca  class-IL=0.9333 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9342 task-IL=0.9474
+    ── stage 2: tcga_brca
+      epoch 1/5 n=763 mean_loss=1.1156
+      epoch 2/5 n=763 mean_loss=0.7333
+      epoch 3/5 n=763 mean_loss=0.7580
+      epoch 4/5 n=763 mean_loss=0.6871
+      epoch 5/5 n=763 mean_loss=0.6984
+       記憶體 +763 → |M|=512
+       eval tcga_esca  class-IL=0.9333 task-IL=0.9333
+       eval tcga_rcc   class-IL=0.9079 task-IL=0.9605
+       eval tcga_brca  class-IL=0.8065 task-IL=0.8387
+    ── stage 3: tcga_lung
+      epoch 1/5 n=774 mean_loss=1.2341
+      epoch 2/5 n=774 mean_loss=1.1470
+      epoch 3/5 n=774 mean_loss=1.0129
+      epoch 4/5 n=774 mean_loss=1.1285
+      epoch 5/5 n=774 mean_loss=1.0001
+       記憶體 +774 → |M|=512
+       eval tcga_esca  class-IL=0.8000 task-IL=0.8667
+       eval tcga_rcc   class-IL=0.9474 task-IL=0.9737
+       eval tcga_brca  class-IL=0.8280 task-IL=0.9140
+       eval tcga_lung  class-IL=0.8316 task-IL=0.8632
+
+→ outputs/exp3/dr053_hinge8/EXP2.md

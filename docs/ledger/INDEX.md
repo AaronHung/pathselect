@@ -71,6 +71,7 @@
 | [050](DR-050.md) | Audit C1：F_g 梯度路徑、池化口徑、ΔU 單位 | ACTIVE | 唯讀稽核；三項發現：flat 的 F_g 在 task 1 無 task-relevant 梯度、ΔU 為加總口徑（逐 slide 平均為 −0.743）、hinge 僅 1.7–7.4% 步驟啟動 |
 | [051](DR-051.md) | 預註冊修訂：E0 抽取、E1／E3 評估、E2 門控對照 | ACTIVE | E0：hinge-only 觸發率 0.033/0.045/0.111 為完整臂 1.5–2 倍；正向 hier 首次落後 flat >0.010 在 t=1/brca（−0.037）；ΔU 現行為「逐任務加總再平均」，逐切片 M1/M2 並列。E2 判準凍結：A5ce（常開等權 CE）vs A5 五軸配對，不寫「等價」。E1：ZS-top8 ACC 0.812（離 A5 僅 1.8–4.2 pp）；E3：舊任務 CE 上升全來自選片改變（+0.743），重加權 ≈ 0；E2：A5ce（常開 CE）vs A5 五軸全部 within noise（≤3/5），fire-rate 預期 1.0 寫錯（float32 飽和），判準未動 |
 | [052](DR-052.md) | 累積式類別頭 --head accumulating：預註冊、實作、pod 執行 | ACTIVE | 主結果改以累積式頭（C_t 隨任務累積、未見類 logit 遮罩 −inf）為準；固定頭路徑零改動；五處影響（L_diag、L_sem、u_i、評估、hinge 的 C_old）；與固定頭的差只報告不宣稱勝負；E1/E2/E3 不重跑 |
+| [053](DR-053.md) | 累積式頭下 hinge 的行為核查 | ACTIVE | 真實效應非實作問題：C_old 遮罩逐筆一致（10,765/10,765）；hinge 只保舊類別內鑑別力、不約束對新類別的洩漏 → B2 class-IL −13.8 pp；hinge 改全 8 類即回到 80.97（+16.55，5/5）但不合規；建議 DR-054 以當前 C_t 重算 U_old |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。
