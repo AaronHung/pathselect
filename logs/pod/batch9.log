@@ -1,0 +1,22 @@
+[2026-09-15 03:18:23] batch 9：10 run，parallel=10 threads=8 commit=8d51962bddaa21b40e7da59d758b4ae3a89e6f54
+[2026-09-15 03:18:25] ▶ start B2_flat_rev_f1_s1_ucur
+[2026-09-15 03:18:25] ▶ start A5_flat_rev_f1_s4_ucur
+[2026-09-15 03:18:25] ▶ start A5_flat_rev_f1_s2_ucur
+[2026-09-15 03:18:25] ▶ start A5_flat_rev_f1_s0_ucur
+[2026-09-15 03:18:25] ▶ start B2_flat_rev_f1_s2_ucur
+[2026-09-15 03:18:25] ▶ start B2_flat_rev_f1_s4_ucur
+[2026-09-15 03:18:25] ▶ start A5_flat_rev_f1_s1_ucur
+[2026-09-15 03:18:25] ▶ start A5_flat_rev_f1_s3_ucur
+[2026-09-15 03:18:25] ▶ start B2_flat_rev_f1_s3_ucur
+[2026-09-15 03:18:25] ▶ start B2_flat_rev_f1_s0_ucur
+[2026-09-15 03:55:42] ✅ done B2_flat_rev_f1_s0_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8316 task-IL=0.8526
+[2026-09-15 03:55:42] ✅ done B2_flat_rev_f1_s1_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8000 task-IL=0.8316
+[2026-09-15 03:55:42] ✅ done B2_flat_rev_f1_s3_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8526 task-IL=0.8947
+[2026-09-15 03:55:42] ✅ done A5_flat_rev_f1_s3_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8000 task-IL=0.8632
+[2026-09-15 03:55:42] ✅ done A5_flat_rev_f1_s2_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8211 task-IL=0.8526
+[2026-09-15 03:55:42] ✅ done B2_flat_rev_f1_s2_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8316 task-IL=0.8842
+[2026-09-15 03:55:42] ✅ done A5_flat_rev_f1_s1_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8421 task-IL=0.8737
+[2026-09-15 03:55:42] ✅ done B2_flat_rev_f1_s4_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8526 task-IL=0.8526
+[2026-09-15 03:55:42] ✅ done A5_flat_rev_f1_s0_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8000 task-IL=0.8211
+[2026-09-15 03:55:43] ✅ done A5_flat_rev_f1_s4_ucur（per_slide 檔數 10）       eval tcga_lung  class-IL=0.8316 task-IL=0.8632
+[2026-09-15 03:55:43] BATCH_DONE 9 10/10

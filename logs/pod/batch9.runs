@@ -1,0 +1,10 @@
+A5_flat_rev_f1_s0_ucur|--arms A5 --order reverse --arch flat --fold 1 --seeds 0 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
+A5_flat_rev_f1_s1_ucur|--arms A5 --order reverse --arch flat --fold 1 --seeds 1 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
+A5_flat_rev_f1_s2_ucur|--arms A5 --order reverse --arch flat --fold 1 --seeds 2 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
+A5_flat_rev_f1_s3_ucur|--arms A5 --order reverse --arch flat --fold 1 --seeds 3 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
+A5_flat_rev_f1_s4_ucur|--arms A5 --order reverse --arch flat --fold 1 --seeds 4 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
+B2_flat_rev_f1_s0_ucur|--arms B2 --order reverse --arch flat --fold 1 --seeds 0 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
+B2_flat_rev_f1_s1_ucur|--arms B2 --order reverse --arch flat --fold 1 --seeds 1 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
+B2_flat_rev_f1_s2_ucur|--arms B2 --order reverse --arch flat --fold 1 --seeds 2 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
+B2_flat_rev_f1_s3_ucur|--arms B2 --order reverse --arch flat --fold 1 --seeds 3 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
+B2_flat_rev_f1_s4_ucur|--arms B2 --order reverse --arch flat --fold 1 --seeds 4 --tag ablation_ucur --head accumulating --out-root outputs/exp3 --uold current
