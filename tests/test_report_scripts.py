@@ -50,6 +50,12 @@ REPORTS = {
                            ["## (i) 現行腳本的口徑", "## (ii) 兩種逐切片平均",
                             "## (iii) CE 的 temperature／logit scale",
                             "## (iv) flat 是否存並蒸餾 r_old"]),
+    # DR-052／Prompt 23：累積式頭的批次報表與論文數字對照表（只讀 outputs/exp3）
+    "report_exp3.py": ("outputs/exp3/sota_acc/per_slide", "outputs/exp3/EXP3.md",
+                       ["## 1. 十折主表", "## 2. 逐折配對", "## 3. fold-1 五 seed 組件消融"]),
+    "report_paper_numbers.py": ("outputs/exp3/sota_acc/per_slide", "outputs/exp3/PAPER_NUMBERS.md",
+                                ["## 1. Table 1", "## 2. Table 2", "## 3. Table 3",
+                                 "## 4. 稿內數字句", "## 5. 固定 8 類頭的既有結果"]),
     "report_b1_landing.py": ("outputs/exp2/ablation/per_slide",
                              "outputs/exp2/ablation/B1_LANDING.md",
                              ["## KD 與 replay 保存的是不同的東西",

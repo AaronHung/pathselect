@@ -306,7 +306,7 @@ PAPER_ARTIFACTS = ["docs/DR046_TABLE.md", "docs/RESULTS_DOSSIER.md",
                    "outputs/exp3/EXP3.md", "outputs/exp3/B1.md", "outputs/exp3/B2.md",
                    "outputs/exp3/B3.md", "outputs/exp3/B4.md", "outputs/exp3/B5.md",
                    "outputs/exp3/B6.md", "outputs/exp3/B7.md",
-                   "outputs/exp3/DR053_HINGE.md"]
+                   "outputs/exp3/DR053_HINGE.md", "outputs/exp3/PAPER_NUMBERS.md"]
 PAPER_TOL = 5e-3
 
 #: 稿內合法但**不是實驗結果**的數字，逐個列出理由。不得用來塞不會溯源的結果值。
