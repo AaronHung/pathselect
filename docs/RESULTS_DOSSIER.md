@@ -857,3 +857,18 @@ B2_ucur − B2 固定頭 pod +0.66（2/5）。只報告：以當前 C_t 重算 U
 固定頭量級的作用，且不用任何未見類別。第二階段（A5 flat 十折兩順序）於 §11.8 續補。
 來源：`outputs/exp3/DR054_UOLD.md`、`outputs/exp3/ablation_ucur/per_slide/`（10 檔）。
 
+第二階段（A5 flat 十折兩順序，`--uold current`；pod，20/20，74 分鐘）：
+
+| 順序 | ACC | Masked ACC | Forgetting | BWT |
+|---|---|---|---|---|
+| reverse | 0.823 ± 0.041 | 0.928 ± 0.025 | 0.108 ± 0.048 | −0.101 ± 0.047 |
+| forward | 0.846 ± 0.047 | 0.911 ± 0.034 | 0.068 ± 0.036 | −0.059 ± 0.038 |
+
+逐折配對：A5_ucur − A3（B7）reverse ACC +0.0046（5/10）、Masked +0.0127（7/10）、Forgetting −0.0134（7/10）；
+forward ACC **+0.0144（8/10）**、Masked +0.0019（5/10）、Forgetting −0.0096（5/10）。
+A5_ucur − A5_acc（B1／B3）reverse ACC +0.0204（5/10）、forward +0.0107（6/10）。
+只報告：十折下合規 hinge 相對只 replay 的 ACC 增益在反向為雜訊（5/10）、正向 +1.4 pp（8/10）；
+相對 DR-052 的快照口徑，ACC 高 1–2 pp、Forgetting 低 1–3 pp，方向與 fold-1 一致但量級縮小。
+與固定頭 pod 同折相比（B2／B4：reverse 0.844、forward 0.849），累積式＋合規 hinge 的 ACC 仍低 0.3–2 pp。
+來源：`outputs/exp3/DR054_UOLD.md`、`outputs/exp3/sota_ucur/per_slide/`（20 檔）。
+

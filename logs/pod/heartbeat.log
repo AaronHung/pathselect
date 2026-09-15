@@ -81,3 +81,28 @@
 [2026-09-15 03:37:54] done=180/190 running=[B2-flat-reverse-f1s1,A5-flat-reverse-f1s4,A5-flat-reverse-f1s2,A5-flat-reverse-f1s0,B2-flat-reverse-f1s2,B2-flat-reverse-f1s4,A5-flat-reverse-f1s1,A5-flat-reverse-f1s3,B2-flat-reverse-f1s3,B2-flat-reverse-f1s0] last='eval tcga_rcc   class-IL=0.9605 task-IL=0.9605' gpu=0% load=35.45 free=589T
 [2026-09-15 03:47:55] done=180/190 running=[B2-flat-reverse-f1s1,A5-flat-reverse-f1s4,A5-flat-reverse-f1s2,A5-flat-reverse-f1s0,B2-flat-reverse-f1s2,B2-flat-reverse-f1s4,A5-flat-reverse-f1s1,A5-flat-reverse-f1s3,B2-flat-reverse-f1s3,B2-flat-reverse-f1s0] last='eval tcga_brca  class-IL=0.7527 task-IL=0.8387' gpu=0% load=36.08 free=589T
 [2026-09-15 03:55:43] BATCH_DONE 9 10/10
+[2026-09-15 03:57:57] done=190/210 running=[A5-flat-reverse-f5s5,A5-flat-reverse-f2s2,A5-flat-reverse-f3s3,A5-flat-reverse-f1s1,A5-flat-reverse-f8s8,A5-flat-reverse-f4s4,A5-flat-reverse-f6s6,A5-flat-reverse-f10s10,A5-flat-reverse-f9s9,A5-flat-reverse-f7s7] last='' gpu=0% load=14.08 free=588T
+[2026-09-15 04:07:59] done=190/210 running=[A5-flat-reverse-f5s5,A5-flat-reverse-f2s2,A5-flat-reverse-f3s3,A5-flat-reverse-f1s1,A5-flat-reverse-f8s8,A5-flat-reverse-f4s4,A5-flat-reverse-f6s6,A5-flat-reverse-f10s10,A5-flat-reverse-f9s9,A5-flat-reverse-f7s7] last='eval tcga_rcc   class-IL=0.9103 task-IL=0.9103' gpu=0% load=43.46 free=588T
+[2026-09-15 04:18:00] done=190/210 running=[A5-flat-reverse-f5s5,A5-flat-reverse-f2s2,A5-flat-reverse-f3s3,A5-flat-reverse-f1s1,A5-flat-reverse-f8s8,A5-flat-reverse-f4s4,A5-flat-reverse-f6s6,A5-flat-reverse-f10s10,A5-flat-reverse-f9s9,A5-flat-reverse-f7s7] last='eval tcga_rcc   class-IL=0.9630 task-IL=0.9753' gpu=0% load=42.11 free=589T
+[2026-09-15 04:28:02] done=190/210 running=[A5-flat-reverse-f5s5,A5-flat-reverse-f2s2,A5-flat-reverse-f3s3,A5-flat-reverse-f1s1,A5-flat-reverse-f8s8,A5-flat-reverse-f4s4,A5-flat-reverse-f6s6,A5-flat-reverse-f10s10,A5-flat-reverse-f9s9,A5-flat-reverse-f7s7] last='eval tcga_brca  class-IL=0.8723 task-IL=0.9149' gpu=0% load=33.99 free=589T
+[2026-09-15 04:38:03] done=200/210 running=[A5-flat-main-f1s1,A5-flat-main-f2s2,A5-flat-main-f3s3,A5-flat-main-f4s4,A5-flat-main-f5s5,A5-flat-main-f6s6,A5-flat-main-f7s7,A5-flat-main-f8s8,A5-flat-main-f9s9,A5-flat-main-f10s10] last='' gpu=0% load=20.92 free=589T
+[2026-09-15 04:48:04] done=200/210 running=[A5-flat-main-f1s1,A5-flat-main-f2s2,A5-flat-main-f3s3,A5-flat-main-f4s4,A5-flat-main-f5s5,A5-flat-main-f6s6,A5-flat-main-f7s7,A5-flat-main-f8s8,A5-flat-main-f9s9,A5-flat-main-f10s10] last='eval tcga_lung  class-IL=0.9278 task-IL=0.9278' gpu=0% load=34.36 free=589T
+[2026-09-15 04:58:05] done=200/210 running=[A5-flat-main-f1s1,A5-flat-main-f2s2,A5-flat-main-f3s3,A5-flat-main-f4s4,A5-flat-main-f5s5,A5-flat-main-f6s6,A5-flat-main-f7s7,A5-flat-main-f8s8,A5-flat-main-f9s9,A5-flat-main-f10s10] last='eval tcga_brca  class-IL=0.8681 task-IL=0.9011' gpu=0% load=34.10 free=588T
+[2026-09-15 05:08:06] done=200/210 running=[A5-flat-main-f1s1,A5-flat-main-f2s2,A5-flat-main-f3s3,A5-flat-main-f4s4,A5-flat-main-f5s5,A5-flat-main-f6s6,A5-flat-main-f7s7,A5-flat-main-f8s8,A5-flat-main-f9s9,A5-flat-main-f10s10] last='eval tcga_rcc   class-IL=0.9221 task-IL=0.9610' gpu=0% load=41.29 free=588T
+[2026-09-15 05:11:33] BATCH_DONE 10 20/20
+[2026-09-15 05:18:07] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=4.35 free=588T
+[2026-09-15 05:28:09] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=3.42 free=587T
+[2026-09-15 05:38:10] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=3.64 free=586T
+[2026-09-15 05:48:11] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=7.12 free=586T
+[2026-09-15 05:58:13] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=7.02 free=586T
+[2026-09-15 06:08:14] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=4.27 free=586T
+[2026-09-15 06:18:16] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=3.94 free=585T
+[2026-09-15 06:28:17] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=13.91 free=585T
+[2026-09-15 06:38:18] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=4.28 free=585T
+[2026-09-15 06:48:20] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=2.49 free=585T
+[2026-09-15 06:58:22] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=5.63 free=585T
+[2026-09-15 07:08:23] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=7.02 free=585T
+[2026-09-15 07:18:24] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=5.20 free=585T
+[2026-09-15 07:28:26] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=2.59 free=584T
+[2026-09-15 07:38:27] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=6.30 free=583T
+[2026-09-15 07:48:29] done=210/210 running=[none] last='eval tcga_esca  class-IL=0.7333 task-IL=0.9333' gpu=0% load=4.57 free=583T
