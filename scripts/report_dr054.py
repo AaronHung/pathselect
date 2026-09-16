@@ -138,6 +138,46 @@ def main(argv=None) -> int:
                 L.append(f"| {lab} | {order} | " + " | ".join(cells) + " |")
     else:
         L.append("尚未有資料。")
+    # ── DR-055：evidence budget sweep（B ∈ {4,16} vs B = 8）──
+    L += ["", "## DR-055 — evidence budget sweep（A5 hier、`--uold current`、十折）", ""]
+    b8 = load_runs(d10, list(ORDERS)) if d10.is_dir() else {}
+    sw = {}
+    for b in (4, 16):
+        dd = src / f"sota_ucur_b{b}" / "per_slide"
+        if dd.is_dir() and any(dd.glob("*.json")):
+            sw[b] = load_runs(dd, list(ORDERS))
+    if sw:
+        L += ["| B | 順序 | ACC | Masked ACC | Forgetting | BWT | n |", "|---|---|---|---|---|---|---|"]
+        for b, runs in [(4, sw.get(4)), (8, b8), (16, sw.get(16))]:
+            if not runs:
+                continue
+            for order in ("reverse", "main"):
+                key = ("A5", "hier", order)
+                if key not in runs:
+                    continue
+                per = {}
+                for rk, recs in runs[key].items():
+                    try: per[rk] = all_metrics(recs, ORDERS[order])
+                    except ValueError: pass
+                # 自檢：per_slide 的 B 欄位必須等於本列的 B
+                bs = {r.get("B") for recs in runs[key].values() for r in recs if "B" in r}
+                tag = "" if bs == {b} else f" ⚠️ per_slide 的 B 欄位 = {sorted(bs)}"
+                L.append(f"| {b} | {order} | {msd([m['acc'] for m in per.values()], 3)} | {msd([m['masked_acc'] for m in per.values()], 3)} | "
+                         f"{msd([m['forgetting'] for m in per.values()], 3)} | {msd([m['bwt'] for m in per.values()], 3)} | {len(per)}{tag} |")
+        L += ["", "| 配對（同折相減） | 順序 | ACC | Masked ACC | Forgetting |", "|---|---|---|---|---|"]
+        merged = dict(b8)
+        for b, runs in sw.items():
+            merged.update({(f"A5b{b}", k[1], k[2]): v for k, v in runs.items()})
+        for b in (4, 16):
+            if b not in sw:
+                continue
+            for order in ("reverse", "main"):
+                rows = {r["label"]: r for r in paired(merged, (f"A5b{b}", "hier", order), ("A5", "hier", order))}
+                cells = [f"{rows[k]['mean']:+.4f}（{rows[k]['better']}/{rows[k]['n']}）" if k in rows else "—"
+                         for k in ("ACC", "Masked ACC", "Forgetting")]
+                L.append(f"| B={b} − B=8 | {order} | " + " | ".join(cells) + " |")
+    else:
+        L.append("尚未有資料。")
     L.append("")
     out.write_text("\n".join(L) + "\n")
     print(f"→ {out}")

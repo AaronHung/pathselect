@@ -73,6 +73,7 @@
 | [052](DR-052.md) | 累積式類別頭 --head accumulating：預註冊、實作、pod 執行 | ACTIVE | 主結果改以累積式頭（C_t 隨任務累積、未見類 logit 遮罩 −inf）為準；固定頭路徑零改動；五處影響（L_diag、L_sem、u_i、評估、hinge 的 C_old）；與固定頭的差只報告不宣稱勝負；E1/E2/E3 不重跑 |
 | [053](DR-053.md) | 累積式頭下 hinge 的行為核查 | ACTIVE | 真實效應非實作問題：C_old 遮罩逐筆一致（10,765/10,765）；hinge 只保舊類別內鑑別力、不約束對新類別的洩漏 → B2 class-IL −13.8 pp；hinge 改全 8 類即回到 80.97（+16.55，5/5）但不合規；建議 DR-054 以當前 C_t 重算 U_old |
 | [054](DR-054.md) | 累積式頭下的合規 hinge：replay 時以當前 C_t 由 P_old 重算 U_old | ACTIVE | `--uold current`（預設 snapshot 逐位元不變）；預註冊：fold-1 五 seed A5/B2，A5−A3 class-IL ≥ +1.5 pp 且 ≥ 4/5 才進十折；只報告 |
+| [055](DR-055.md) | Evidence budget sweep：B ∈ {4,16} 對 B = 8 的十折對照 | ACTIVE | 主口徑（accumulating + uold current + hier）下只變 --budget；先做 B=8 對數（≤1e-3 才啟動）；產物目錄分開（檔名不含 budget）；只報告，不改主表操作點 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。

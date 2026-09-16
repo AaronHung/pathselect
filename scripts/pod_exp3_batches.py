@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DR-052 第 3 步的三批 run 清單（給 scripts/pod_run_exp3.sh 吃）。
 
-    python scripts/pod_exp3_batches.py <1..11>
+    python scripts/pod_exp3_batches.py <1..12>
 
   B1 累積式・反向十折 hier+flat（20）   B2 固定頭・反向十折（20，同設定對照）
   B3 累積式・正向十折（20）             B4 固定頭・正向十折（20）
@@ -62,6 +62,13 @@ BATCHES = {
     11: [(f"A5_hier_{lab}_ucur_f{k}",
           f"--arms A5 --order {order} --arch hier --fold {k} --seeds {k} --tag sota_ucur {ACC} --uold current")
          for lab, order in (("rev", "reverse"), ("fwd", "main")) for k in range(1, 11)],
+    # DR-055（Prompt 25）：evidence budget sweep。唯一變動是 --budget；因為檔名規約不含
+    # budget，B=4 與 B=16 各自用獨立 tag，B=8 沿用 batch 11 的 sota_ucur。
+    12: [(f"A5_hier_{lab}_ucur_b{b}_f{k}",
+          f"--arms A5 --order {order} --arch hier --fold {k} --seeds {k} --budget {b} "
+          f"--tag sota_ucur_b{b} {ACC} --uold current")
+         for b in (4, 16) for lab, order in (("rev", "reverse"), ("fwd", "main"))
+         for k in range(1, 11)],
 }
 
 
