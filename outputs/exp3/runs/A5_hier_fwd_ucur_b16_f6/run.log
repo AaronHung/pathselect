@@ -1,0 +1,42 @@
+Exp2  arms=['A5']  order=main  seeds=[6]  B=16 c=1 epochs=5 arch=hier alloc=per_budget prior=discriminative head=accumulating uold=current beta_u=0.1 replay_k=1 λ=(1.0,1.0,1.0)
+  ▶ A5 (Ours (Replay+KD+eq)) seed=6
+    ── stage 0: tcga_lung
+      epoch 1/5 n=759 mean_loss=0.5687
+      epoch 2/5 n=759 mean_loss=0.4295
+      epoch 3/5 n=759 mean_loss=0.3449
+      epoch 4/5 n=759 mean_loss=0.3563
+      epoch 5/5 n=759 mean_loss=0.3156
+       記憶體 +759 → |M|=512
+       eval tcga_lung  class-IL=1.0000 task-IL=1.0000
+    ── stage 1: tcga_brca
+      epoch 1/5 n=758 mean_loss=1.5479
+      epoch 2/5 n=758 mean_loss=1.4255
+      epoch 3/5 n=758 mean_loss=1.2260
+      epoch 4/5 n=758 mean_loss=1.2992
+      epoch 5/5 n=758 mean_loss=1.1439
+       記憶體 +758 → |M|=512
+       eval tcga_lung  class-IL=0.9545 task-IL=0.9773
+       eval tcga_brca  class-IL=0.8571 task-IL=0.8878
+    ── stage 2: tcga_rcc
+      epoch 1/5 n=616 mean_loss=1.3640
+      epoch 2/5 n=616 mean_loss=1.1419
+      epoch 3/5 n=616 mean_loss=1.0870
+      epoch 4/5 n=616 mean_loss=0.8143
+      epoch 5/5 n=616 mean_loss=0.9518
+       記憶體 +616 → |M|=512
+       eval tcga_lung  class-IL=0.9091 task-IL=0.9659
+       eval tcga_brca  class-IL=0.8061 task-IL=0.8367
+       eval tcga_rcc   class-IL=0.9870 task-IL=0.9870
+    ── stage 3: tcga_esca
+      epoch 1/5 n=119 mean_loss=2.3029
+      epoch 2/5 n=119 mean_loss=1.4190
+      epoch 3/5 n=119 mean_loss=1.3083
+      epoch 4/5 n=119 mean_loss=1.7555
+      epoch 5/5 n=119 mean_loss=1.5642
+       記憶體 +119 → |M|=512
+       eval tcga_lung  class-IL=0.7955 task-IL=0.9659
+       eval tcga_brca  class-IL=0.8265 task-IL=0.8776
+       eval tcga_rcc   class-IL=0.9740 task-IL=0.9740
+       eval tcga_esca  class-IL=0.7500 task-IL=0.8125
+
+→ outputs/exp3/sota_ucur_b16/EXP2.md
