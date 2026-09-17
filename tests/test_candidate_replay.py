@@ -178,3 +178,30 @@ def test_uold_current_matches_the_full_slide_value(tmp_path):
         mask_logits(frozen_head(Zc, torch.zeros(Zc.shape[0]), ste_sub, f_txt, SCALE,
                                 weighting="uniform"), cur), label)
     assert float(u_sub) == pytest.approx(float(u_full), abs=1e-6)
+
+
+def test_reservoir_replay_matches_a_real_memory():
+    """DR-056 資料量實測用的無模型重放，必須與真正的 SelectionMemory 逐筆相同。
+
+    這是「真正需要保留的是哪 |M| 筆」那個數字的依據：ReservoirSampling 只吃
+    random.Random(0) 與 (len, capacity, n_seen)，entry 的身分只由加入順序決定。
+    """
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    from measure_dr056_store import replay_reservoir
+    from selector.memory import SelectionMemory
+
+    order = ["tcga_esca", "tcga_rcc", "tcga_brca", "tcga_lung"]
+    sids = {t: [f"{t}-{i:04d}" for i in range(n)]
+            for t, n in zip(order, (120, 616, 763, 95))}
+    cap = 128
+    mem = SelectionMemory(capacity=cap)
+    protos = torch.zeros(NUM_GROUPS, 512)
+    for task in order:
+        for sid in sids[task]:
+            mem.add(make_entry(task, sid, None, torch.zeros(NUM_GROUPS),
+                               torch.zeros(4, dtype=torch.long), torch.zeros(8),
+                               group_prototypes=protos))
+    real = [(e.tau, e.sample_key) for e in mem]
+    replayed = [(t, sample_key(t, s)) for t, s in replay_reservoir(order, sids, cap)]
+    assert len(real) == cap
+    assert replayed == real                      # 順序與內容都要一致
