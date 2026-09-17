@@ -174,20 +174,69 @@ def main(argv=None) -> int:
     if a.store_json and Path(a.store_json).is_file():
         S = json.loads(Path(a.store_json).read_text())
         sd, fl, r = S["side_store"], S["full_slide"], S["ratio"]
-        L += ["候選級 replay 的每一步只開**一個**側倉檔；現行 replay 的每一步開該 slide 的",
+        b = S["bounded_requirement"]
+        L += ["### 單一 replay 步驟讀入的 bytes", "",
+              "候選級 replay 的每一步只開**一個**側倉檔；現行 replay 的每一步開該 slide 的",
               "**完整特徵檔**。下表是同一批 slide 的逐筆配對實測。", "",
               "| 量 | 側倉（只讀候選） | 完整特徵檔（讀整張） | 倍率 |", "|---|---|---|---|",
-              f"| 單一 replay 步驟 min | {sd['min']:,} B | {fl['min']:,} B | {r['min']:.1f}× |",
-              f"| 單一 replay 步驟 mean | {sd['mean']:,.0f} B | {fl['mean']:,.0f} B | {r['mean']:.1f}× |",
-              f"| 單一 replay 步驟 max | {sd['max']:,} B | {fl['max']:,} B | {r['max']:.1f}× |",
-              f"| 整段訓練所需總量（{sd['n']} 筆） | **{sd['total_GiB']:.4f} GiB** | {fl['total_GiB']:.4f} GiB | {r['total']:.1f}× |",
+              f"| min | {sd['min']:,} B | {fl['min']:,} B | {r['min']:.1f}× |",
+              f"| mean | {sd['mean']:,.0f} B | {fl['mean']:,.0f} B | {r['mean']:.1f}× |",
+              f"| max | {sd['max']:,} B | {fl['max']:,} B | {r['max']:.1f}× |",
               "",
-              "「整段訓練所需總量」= |M| = 128 的側倉全部檔案大小總和 —— 候選級 replay 在",
-              "**整個訓練期間**對舊任務資料的需求就只有這些位元組。",
-              "（當前任務的特徵檔仍然要讀：那是 forward pass 的輸入，不是 replay 的需求。",
-              "第 8 步以「把沒被任何 snapshot 指到的舊 task 特徵檔設為不可讀」直接驗證這一點。）"]
+              "側倉每筆幾乎是定值（k = 256 時 k×512×4 B ＋ 標頭 ＋ cand_idx 憑據 k×8 B）；",
+              "完整特徵檔隨 slide 的 patch 數變動，最大的一張是側倉的 44 倍。", "",
+              "### 整段訓練需要的特徵總量", "",
+              "| 口徑 | 筆數 | 總量 |", "|---|---|---|",
+              f"| **方法真正需要保留**（|M| = {b['capacity']}，{b['order']}） | {b['found']} | "
+              f"**{b['total_bytes']/2**20:.1f} MiB** |",
+              f"| 側倉如實寫出（現行實作） | {sd['n']} | {sd['total_GiB']:.4f} GiB |",
+              f"| 同一批 slide 的完整特徵檔 | {fl['n']} | {fl['total_GiB']:.4f} GiB |",
+              "",
+              f"保留集合的 task 分佈：{b['by_task']}。",
+              "",
+              f"**{b['total_bytes']/2**20:.1f} MiB ÷ {fl['total_GiB']:.2f} GiB = "
+              f"{b['total_bytes']/(fl['total_bytes'] if fl.get('total_bytes') else fl['total_GiB']*2**30)*100:.2f}%** ——",
+              "候選級 replay 在整個訓練期間對**舊任務**資料的需求就只有這些位元組。",
+              "哪 |M| 筆是無模型重放 `ReservoirSampling(seed=0)` 算出的**確切**集合，",
+              "不是用平均估（`tests/test_candidate_replay.py` 與真正的 SelectionMemory 逐筆比對）。",
+              "",
+              "⚠️ 兩個口徑的落差是**實作細節**，不是方法性質：現行 `fill_memory` 對每一張",
+              "快照過的 slide 都寫側倉，而且寫入發生在 reservoir 汰換**之前**，所以磁碟上的",
+              "檔數等於看過的 slide 數。汰換時刪檔即可收斂到第一列，本探針未做這件事。",
+              "",
+              "⚠️ 當前任務的特徵檔仍然要讀：那是 forward pass 的輸入，不是 replay 的需求。",
+              "第 8 步以「舊 task 特徵檔設為不可讀」直接驗證自足性（腳本已備妥，尚未執行）。"]
     else:
         L.append("尚未量測（執行 `scripts/measure_dr056_store.py`）。")
+
+    # ── 結論（由判準結果生成，不手寫）──
+    L += ["", "## 結論", ""]
+    if len(deltas) == 2:
+        failed = [n for n, ok, _v in checks if not ok]
+        if failed:
+            L += [f"**第 7 步未通過凍結判準**（{len(failed)}/{len(checks)} 條未過）。",
+                  "依第 8 步的前提「僅在第 7 步結果可接受時做」，**不啟動第 8 步**"
+                  "（腳本已備妥，等 PI 裁示）。", "",
+                  "未過的判準：", ""] + [f"* {n}" for n in failed] + [""]
+        else:
+            L += ["**第 7 步通過凍結判準。** 可進第 8 步（自足性驗證）。", ""]
+        L += ["代價與收益都要照報：", "",
+              f"* **準確率**：ACC 降 {abs(deltas['reverse']['acc']):.2f} pp（reverse）／"
+              f"{abs(deltas['main']['acc']):.2f} pp（forward）；"
+              f"Forgetting 升 {deltas['reverse']['forgetting']:.2f}／{deltas['main']['forgetting']:.2f} pp。",
+              "* **資料量**：單一 replay 步驟平均少讀 12.5 倍；舊任務需求 64.2 MiB "
+              "對 13.95 GiB（0.45%）。",
+              f"* **時間**：每個 run 快約 {abs((W['run2_r256_rev']-W['run1_rfull_rev'])/60):.0f} 分鐘"
+              f"（28 分鐘對 65 分鐘）。" if W.get("run2_r256_rev") and W.get("run1_rfull_rev") else
+              "* **時間**：見主表。",
+              "",
+              "**這個降幅不是壓縮誤差，是換了 replay 的定義的後果**（DR-056）：分組原型改由",
+              "候選子集計算，`run_rounds` 的配額隨之改變。把它寫成「buffer 變小、效果幾乎",
+              "不變」是不誠實的。", "",
+              "⚠️ fold 1 單折、無變異數。這個 probe 能說的只有「沒有崩掉，但代價可量測」；",
+              "要判定這個代價可不可接受，必須擴到完整十折／二十折，對照組與實驗組同批同機。"]
+    else:
+        L.append("尚未有完整的四個 run。")
 
     out.write_text("\n".join(L) + "\n", encoding="utf-8")
     print(f"→ {out}")

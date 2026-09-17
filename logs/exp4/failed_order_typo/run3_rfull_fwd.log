@@ -1,0 +1,13 @@
+Exp2  arms=['A5']  order=forward  seeds=[1]  B=8 c=1 epochs=5 arch=hier alloc=per_budget prior=discriminative head=accumulating uold=current beta_u=0.1 replay_k=1 λ=(1.0,1.0,1.0)
+  ▶ A5 (Ours (Replay+KD+eq)) seed=1
+Traceback (most recent call last):
+  File "/workspace/pathselect/scripts/run_exp2.py", line 913, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/workspace/pathselect/scripts/run_exp2.py", line 630, in main
+    recs = run_arm(ctx, arm, args.order, seed, args, out_dir)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/pathselect/scripts/run_exp2.py", line 332, in run_arm
+    tasks = ORDERS[order_name]
+            ~~~~~~^^^^^^^^^^^^
+KeyError: 'forward'
