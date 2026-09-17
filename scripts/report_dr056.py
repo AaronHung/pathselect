@@ -61,14 +61,17 @@ def fmt(v, nd=4):
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--src", default=str(ROOT / "outputs" / "exp4"))
-    ap.add_argument("--logs", default=str(ROOT / "logs" / "exp4"))
+    ap.add_argument("--logs", default=str(ROOT / "logs" / "exp4" / "b2"))
+    ap.add_argument("--suffix", default="_b2",
+                    help="tag 後綴；第二批是 _b2（第一批的 run 2／run 4 因側倉互相"
+                         "覆寫而作廢，見 docs/ledger/DR-056.md）")
     ap.add_argument("--store-json", default=None, help="measure_dr056_store.py 的輸出")
     ap.add_argument("--out", default=None)
     a = ap.parse_args(argv)
     src, logs = Path(a.src), Path(a.logs)
     out = Path(a.out) if a.out else src / "DR056_PROBE.md"
 
-    M = {(cfg, order): metrics_of(src / f"cand_m128_{cfg}" / "per_slide", order)
+    M = {(cfg, order): metrics_of(src / f"cand_m128_{cfg}{a.suffix}" / "per_slide", order)
          for cfg in ("rfull", "r256") for order in ("reverse", "main")}
     W = {n: wall_clock(logs, n) for n in
          ("run1_rfull_rev", "run2_r256_rev", "run3_rfull_fwd", "run4_r256_fwd")}
@@ -76,6 +79,8 @@ def main(argv=None) -> int:
     L = ["# DR-056 第 7 步 — 候選級 replay 的 probe（|M| = 128、fold 1、seed 1）", "",
          "A5、hier、`--head accumulating`、`--uold current`、B = 8、c = 1、epochs 5。",
          "四個 run **同批同機**（見 [MACHINE.md](MACHINE.md)），四路平行、每 run 8 執行緒。", "",
+         "⚠️ 這是**第二批**。第一批的兩個候選級 run 因共用側倉目錄互相覆寫候選特徵而",
+         "作廢（證據與修法見 [DR-056](../../docs/ledger/DR-056.md) 的 2026-09-18 補記）。", "",
          "⚠️ **這不是「同方法換 buffer」，而是換了 replay 的定義**（DR-056）：分組原型改由",
          "候選子集計算，配額隨之改變。差值不得寫成無損壓縮的誤差。", "",
          "⚠️ **exp3 的數字只能當參考，不得與本批相減** —— 不同機器，baseline 未逐位元對齊。", "",
