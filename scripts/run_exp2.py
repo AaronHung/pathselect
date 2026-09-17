@@ -254,7 +254,8 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng, *, use_lora=No
                         use_replay=spec["replay"],
                         kd_group_weight=spec.get("kd_group_weight", 1.0),
                         class_mask=class_mask,
-                        u_old_mode=getattr(args, "uold", "snapshot"))
+                        u_old_mode=getattr(args, "uold", "snapshot"),
+                        candidate_only=getattr(args, "replay_candidate_only", False))
                     kd = k_ if kd is None else kd + k_
                     eq = e_ if eq is None else eq + e_
                     replay = r_ if replay is None else replay + r_
@@ -558,6 +559,9 @@ def main() -> int:
     ap.add_argument("--head", choices=list(HEADS), default=DEFAULT_HEAD,
                     help="DR-052：fixed = 8 類固定頭（預設，既有路徑零改動）；"
                          "accumulating = 只在已見類別 C_t 上訓練與評估")
+    ap.add_argument("--replay-candidate-only", action="store_true", default=None,
+                    help="exp/candidate-replay：replay 只載入 snapshot 的候選特徵；"
+                         "未指定時取 configs 的 replay.candidate_only（預設 false）")
     ap.add_argument("--uold", choices=list(U_OLD_MODES), default="snapshot",
                     help="DR-054：hinge 的 U_old 口徑；snapshot = 快照值（預設，零改動），"
                          "current = replay 時以當前 C_t 由 P_old 重算")
@@ -574,6 +578,8 @@ def main() -> int:
 
     cfg = load_config()
     cfg["fold"] = args.fold          # selector/evaluate.py 由 cfg["fold"] 取切分檔
+    if args.replay_candidate_only is None:      # CLI 未指定 → 取 config 的預設
+        args.replay_candidate_only = bool(cfg.get("replay", {}).get("candidate_only", False))
     arms = [a.strip() for a in args.arms.split(",") if a.strip()]
     seeds = [int(x) for x in args.seeds.split(",")]
     out_dir = (Path(args.out_root) if args.out_root else OUT_ROOT) / args.tag

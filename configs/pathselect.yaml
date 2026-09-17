@@ -30,6 +30,12 @@ tasks:
   - tcga_brca
   - tcga_lung
 
+# ── replay（exp/candidate-replay 分支的探針開關）─────────────────────────────
+replay:
+  # True = replay 時只載入 snapshot 的 cand_idx 對應特徵（候選級 replay，實驗中）；
+  # False = 現行行為：重載整張 slide 的完整特徵檔。CLI 的 --replay-candidate-only 可覆寫。
+  candidate_only: false
+
 # ── 資料（TCGA patch features，CONCH l1-s256）────────────────────────────────
 dataset_root_dir: /Users/aaron/research/can_dataset
 path_split: /{}/datasplit/fold_{}.npz

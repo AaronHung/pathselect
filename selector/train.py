@@ -339,7 +339,7 @@ def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
                     budget=DEFAULT_BUDGET, chunk=DEFAULT_CHUNK, q_tau=None,
                     spec=None, use_kd=True, use_eq=True, use_replay=True,
                     eq_mode="hinge", kd_group_weight=1.0, class_mask=None,
-                    u_old_mode="snapshot"):
+                    u_old_mode="snapshot", candidate_only=False):
     """對一筆記憶體 entry 算出 (L_KD, L_eq, L_replay)；關掉的項回傳 None。
 
     `class_mask`（DR-052）= **當前** stage 的 C_t，只用於 replay 的 CE；
@@ -361,6 +361,8 @@ def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
     spec = spec or {}
     q = q_tau if q_tau is not None else torch.zeros(512)
     Z, _Z_cand, label = reload_features(entry, cfg)
+    if candidate_only:                     # exp/candidate-replay：候選級 replay（第 2 步實作）
+        raise NotImplementedError("candidate_only=True 的路徑在第 2 步實作；第 0/1 步只走 False")
     grp = assign_groups(Z, tissue)
     res = run_rounds(Z, grp, q, f_g, f_p, budget=budget, chunk=chunk, **spec)
     last = res.records[-1]
