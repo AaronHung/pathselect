@@ -255,7 +255,8 @@ def train_stage(ctx, arm, models, tasks, seed, args, memory, rng, *, use_lora=No
                         kd_group_weight=spec.get("kd_group_weight", 1.0),
                         class_mask=class_mask,
                         u_old_mode=getattr(args, "uold", "snapshot"),
-                        candidate_only=getattr(args, "replay_candidate_only", False))
+                        candidate_only=getattr(args, "replay_candidate_only", False),
+                        cand_store=getattr(args, "cand_store", None))
                     kd = k_ if kd is None else kd + k_
                     eq = e_ if eq is None else eq + e_
                     replay = r_ if replay is None else replay + r_
@@ -383,7 +384,9 @@ def run_arm(ctx, arm, order_name, seed, args, out_dir):
                                 chunk=args.chunk,
                                 spec={**ARCH[args.arch],
                                       "allocation": args.allocation},
-                                max_slides=args.mem_slides, class_mask=cm)
+                                max_slides=args.mem_slides, class_mask=cm,
+                                candidate_only=getattr(args, "replay_candidate_only", False),
+                                cand_store=getattr(args, "cand_store", None))
             print(f"       記憶體 +{added} → |M|={len(memory)}", flush=True)
         for t in tasks[:stage + 1]:
             r = evaluate(ctx, models, t, arm, order_name, seed, stage, args, diag,
@@ -580,10 +583,14 @@ def main() -> int:
     cfg["fold"] = args.fold          # selector/evaluate.py 由 cfg["fold"] 取切分檔
     if args.replay_candidate_only is None:      # CLI 未指定 → 取 config 的預設
         args.replay_candidate_only = bool(cfg.get("replay", {}).get("candidate_only", False))
+    args.cand_store = None                      # DR-056：候選側倉（只有 candidate_only 會用）
     arms = [a.strip() for a in args.arms.split(",") if a.strip()]
     seeds = [int(x) for x in args.seeds.split(",")]
     out_dir = (Path(args.out_root) if args.out_root else OUT_ROOT) / args.tag
     (out_dir / "per_slide").mkdir(parents=True, exist_ok=True)
+    if args.replay_candidate_only:
+        args.cand_store = out_dir / "cand_store"
+        args.cand_store.mkdir(parents=True, exist_ok=True)
 
     ctx = Ctx(cfg)
     if args.report_only:

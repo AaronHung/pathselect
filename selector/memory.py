@@ -64,6 +64,11 @@ class SelectionMemoryEntry:
     u_old: torch.Tensor          # [<=256] 候選當時的 counterfactual gain
     #: DR-052 累積式頭：快照時的類別遮罩 C_old（bool[8]）；固定頭為 None，schema 不變
     class_mask_old: Optional[torch.Tensor] = None
+    #: DR-056 候選級 replay：快照時的 8 個 group 原型 [J, D]（**特徵空間向量**，
+    #: CONTRACT-3 的例外，見 docs/ledger/DR-056.md）。只有 candidate_only 模式會寫入，
+    #: 用途是讓 L_KD 的 group 項 r_new = F_g(g_stored) 與 r_old 吃同一個輸入。
+    #: 預設 None → 現行路徑的 entry 內容與 schema v2 完全相同。
+    group_prototypes: Optional[torch.Tensor] = None
 
     def __post_init__(self):
         if not isinstance(self.sample_key, int) or isinstance(self.sample_key, bool):
@@ -204,7 +209,8 @@ class SampleKeyIndex:
 def make_entry(tau: str, slide_id: str, state, r_old: torch.Tensor,
                cand_idx: torch.Tensor, s_all: torch.Tensor,
                u_cand: Optional[torch.Tensor] = None,
-               class_mask_old: Optional[torch.Tensor] = None) -> SelectionMemoryEntry:
+               class_mask_old: Optional[torch.Tensor] = None,
+               group_prototypes: Optional[torch.Tensor] = None) -> SelectionMemoryEntry:
     """從當前狀態組一筆 entry（全部 detach 到 CPU，避免拖住計算圖）。
 
     ⚠️ `state` 保留在簽名裡但**不再被讀取** —— schema v2 拿掉了 `e_t` /
@@ -221,7 +227,9 @@ def make_entry(tau: str, slide_id: str, state, r_old: torch.Tensor,
         s_old=s_all.detach().cpu().index_select(0, cand_idx.detach().cpu()),
         u_old=u.detach().cpu().reshape(-1),
         class_mask_old=(None if class_mask_old is None
-                        else class_mask_old.detach().to(torch.bool).cpu().reshape(-1)))
+                        else class_mask_old.detach().to(torch.bool).cpu().reshape(-1)),
+        group_prototypes=(None if group_prototypes is None
+                          else group_prototypes.detach().cpu().clone()))
 
 
 def reload_features(entry: SelectionMemoryEntry, cfg: dict) -> tuple:
@@ -246,6 +254,34 @@ def reload_features(entry: SelectionMemoryEntry, cfg: dict) -> tuple:
     by_sid = {str(s): i for i, s in enumerate(ds.sids)}
     rec = read_slide(ds, shift, by_sid[slide_id])
     return rec.Z, rec.Z.index_select(0, entry.cand_idx.to(torch.long)), rec.label
+
+
+#: DR-056 候選級 replay 的磁碟側倉：一筆快照一個檔，內容只有候選特徵與 label。
+#: 檔名用 (tau, sample_key)，與 entry 一一對應；路徑刻意不含特徵庫的目錄標記。
+def cand_store_path(store_dir, entry_or_tau, sample_key: Optional[int] = None):
+    from pathlib import Path
+    tau = entry_or_tau if isinstance(entry_or_tau, str) else entry_or_tau.tau
+    key = sample_key if sample_key is not None else entry_or_tau.sample_key
+    return Path(store_dir) / f"{tau}_{key}.pt"
+
+
+def save_cand_features(store_dir, tau: str, key: int, Z_cand: torch.Tensor,
+                       label: int) -> int:
+    """寫一筆側倉，回傳實際 bytes（供量測 buffer 大小）。"""
+    from pathlib import Path
+    p = cand_store_path(store_dir, tau, key)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    torch.save({"Z_cand": Z_cand.detach().cpu().contiguous(), "label": int(label)}, p)
+    return p.stat().st_size
+
+
+def load_cand_features(store_dir, entry: SelectionMemoryEntry) -> tuple:
+    """讀一筆側倉 → (Z_cand [k, D], label)。**不碰原始特徵檔。**"""
+    p = cand_store_path(store_dir, entry)
+    if not p.exists():
+        raise FileNotFoundError(f"候選側倉缺檔：{p}（fill_memory 沒寫或 store_dir 不對）")
+    blob = torch.load(p, map_location="cpu", weights_only=False)
+    return blob["Z_cand"], int(blob["label"])
 
 
 def selected_from_entry(entry: SelectionMemoryEntry, k: int) -> tuple:

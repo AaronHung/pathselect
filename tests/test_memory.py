@@ -28,10 +28,14 @@ def test_entry_holds_no_patch_features():
     e = _entry()
     fields = set(SelectionMemoryEntry.__dataclass_fields__)
     # DR-052 加了可選的 class_mask_old（bool[8]，固定頭為 None）；仍不含任何 patch feature
+    # DR-056（exp/candidate-replay 分支）另加了 group_prototypes，預設 None
     assert fields == {"tau", "sample_key", "r_old", "cand_idx", "s_old", "u_old",
-                      "class_mask_old"}
+                      "class_mask_old", "group_prototypes"}
     assert _entry().class_mask_old is None            # 固定頭：schema v2 行為不變
-    # sample_key + index 就是重載的依據，entry 本身不得帶 [n, 512] 的東西
+    assert _entry().group_prototypes is None          # 非候選級 replay：不存任何特徵向量
+    # sample_key + index 就是重載的依據，entry 本身不得帶 [n, 512] 的東西。
+    # 唯一例外是 DR-056 的 group_prototypes [J, D]（J=8 個原型，不是 n 個 patch），
+    # 只有 candidate_only 模式會寫入；預設路徑仍然一個特徵向量都不存。
     for name in fields:
         v = getattr(e, name)
         if isinstance(v, torch.Tensor):

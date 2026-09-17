@@ -27,10 +27,11 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from selector.grouping import assign_groups, tissue_text_features       # noqa: E402
-from selector.model import GroupSelector, PatchSelector                 # noqa: E402
+from selector.model import STATE_DIM, GroupSelector, PatchSelector      # noqa: E402
 from selector.continual import (continual_loss, differentiable_utility,  # noqa: E402
                                 l_eq, l_kd, l_util)
-from selector.memory import (SelectionMemory, make_entry,               # noqa: E402
+from selector.memory import (SelectionMemory, load_cand_features,       # noqa: E402
+                             make_entry, sample_key, save_cand_features,
                              reload_features, selected_from_entry)
 from selector.priors import MAINLINE_PRIOR, semantic_prior              # noqa: E402
 from selector.utility import (CANDIDATE_SIZE, counterfactual_gain,      # noqa: E402
@@ -44,6 +45,42 @@ from selector.text_encoder import build_f_txt, load_config              # noqa: 
 MODES = ("per_task", "joint")
 #: DR-054：hinge 的 U_old 口徑。snapshot = 快照的 u_old（現行）；current = replay 時以當前 C_t 重算。
 U_OLD_MODES = ("snapshot", "current")
+
+#: DR-056 候選級 replay 的檔案存取守門。守的是**系統層的 open 事件**，不是 code review：
+#: candidate_only 的 replay 區間內，只要有人開啟路徑含 `feats-l1-s256` 的檔案就拋錯。
+FEATURE_DIR_MARK = "feats-l1-s256"
+_guard_depth = 0
+_guard_installed = False
+
+
+def _install_feature_open_guard() -> None:
+    global _guard_installed
+    if _guard_installed:
+        return
+
+    def _hook(event, args):
+        if _guard_depth and event in ("open", "io.open") and args:
+            path = str(args[0])
+            if FEATURE_DIR_MARK in path:
+                raise RuntimeError(
+                    f"candidate_only replay 期間開啟了完整特徵檔：{path}")
+    sys.addaudithook(_hook)
+    _guard_installed = True
+
+
+class no_feature_files:
+    """with 區塊內禁止開啟原始特徵檔（DR-056 2.3 的斷言）。"""
+
+    def __enter__(self):
+        global _guard_depth
+        _install_feature_open_guard()
+        _guard_depth += 1
+        return self
+
+    def __exit__(self, *exc):
+        global _guard_depth
+        _guard_depth -= 1
+        return False
 
 #: within-task 已接上的 loss 項。CL 層的三項在 selector/continual.py。
 ENABLED_TERMS = ("L_diag", "L_sem", "L_util")
@@ -300,7 +337,8 @@ if __name__ == "__main__":
 def fill_memory(memory: SelectionMemory, models, task: str, cfg, f_txt, logit_scale,
                 tissue, *, budget=DEFAULT_BUDGET, chunk=DEFAULT_CHUNK,
                 q_tau=None, spec=None, max_slides: int = 0,
-                candidate_size=CANDIDATE_SIZE, class_mask=None) -> int:
+                candidate_size=CANDIDATE_SIZE, class_mask=None,
+                candidate_only=False, cand_store=None) -> int:
     """學完一個 task 後，把該 task 的代表性樣本寫進 Selection Memory。
 
     entry 不含 patch feature，只留 slide_id + cand_idx，之後用 reload_features 重載。
@@ -329,17 +367,89 @@ def fill_memory(memory: SelectionMemory, models, task: str, cfg, f_txt, logit_sc
             u = counterfactual_gain(res.state.evidence_sum(), res.state.n_selected,
                                     rec.Z.index_select(0, cand), f_txt, logit_scale,
                                     rec.label, class_mask=class_mask)
+            protos = None
+            if candidate_only:             # DR-056：側倉存候選特徵、entry 存 group 原型
+                if cand_store is None:
+                    raise ValueError("candidate_only=True 需要 cand_store 路徑")
+                save_cand_features(cand_store, task, sample_key(task, rec.sid),
+                                   rec.Z.index_select(0, cand), rec.label)
+                protos = grp.prototypes
             memory.add(make_entry(task, rec.sid, res.state, last.r, cand,
-                                  last.s.detach(), u, class_mask_old=class_mask))
+                                  last.s.detach(), u, class_mask_old=class_mask,
+                                  group_prototypes=protos))
             added += 1
     return added
+
+
+def _candidate_terms(entry, models, f_txt, logit_scale, tissue, *, budget, chunk,
+                     q_tau, spec, use_kd, use_eq, use_replay, eq_mode,
+                     kd_group_weight, class_mask, u_old_mode, cand_store):
+    """DR-056 候選級 replay：只吃側倉的 ≤256 個候選特徵，不開原始特徵檔。
+
+    與全 slide replay 的定義差異（DR-056 ruling 記錄在案，不是無損壓縮）：
+    * 分組原型改由**候選子集**算（`assign_groups(Z_cand, tissue)`），空 group 由
+      `allocate` 的 active mask 排除；配額契約 Σ b_j = min(B, 候選數) 不變。
+    * patch 評分逐列獨立，故子集上的 s 與全 slide 的 s[cand_idx] 數學上相同；
+      L_KD 的 patch 項改用**位置對齊**（s_old 的順序就是 cand_idx 的順序）。
+    * L_KD 的 group 項用快照存下的原型：r_new = F_g(g_stored)，與 r_old 同輸入，
+      因此 KL 量的仍是「評分行為漂移」而不是「輸入漂移」。
+    * hinge 的 P_old 由 `selected_from_entry` 的**位置**定位，池化向量與全 slide 相同。
+    """
+    from selector.grouping import assign_groups
+
+    f_g, f_p = models
+    spec = spec or {}
+    if spec.get("use_state", False) or spec.get("use_query", False):
+        raise NotImplementedError("候選級 replay 目前只支援 use_state=use_query=False 的主線組態")
+    if entry.group_prototypes is None:
+        raise ValueError("entry 沒有 group_prototypes —— 這筆快照不是 candidate_only 模式寫的")
+    with no_feature_files():                     # 系統層斷言：這段不得開啟完整特徵檔
+        Zc, label = load_cand_features(cand_store, entry)
+        grp = assign_groups(Zc, tissue)
+        res = run_rounds(Zc, grp, q_tau, f_g, f_p, budget=budget, chunk=chunk, **spec)
+        last = res.records[-1]
+        ste = sum(r.ste_mask for r in res.records)
+
+        kd = eq = replay = None
+        if use_kd:
+            # group 項：與 r_old 同輸入（快照存的全 slide 原型）
+            state0 = torch.zeros(STATE_DIM, dtype=Zc.dtype)
+            r_new = f_g.score(entry.group_prototypes.to(Zc.dtype), q_tau, state0,
+                              use_query=False, use_state=False)
+            kd = l_kd(entry.r_old.to(r_new.dtype), r_new,
+                      entry.s_old.to(last.s.dtype), last.s,     # patch 項：位置對齊
+                      group_weight=kd_group_weight)
+        if use_eq:
+            if u_old_mode not in U_OLD_MODES:
+                raise ValueError(f"unknown u_old_mode: {u_old_mode}; expected {U_OLD_MODES}")
+            _idx, pos = selected_from_entry(entry, budget)
+            if u_old_mode == "snapshot":
+                u_old = float(entry.u_old.index_select(0, pos).sum())
+                logits_uniform = mask_logits(frozen_head(Zc, last.s, ste, f_txt, logit_scale,
+                                                         weighting="uniform"),
+                                             entry.class_mask_old)
+            else:
+                ste_old = torch.zeros_like(last.s)
+                ste_old[pos.to(torch.long)] = 1.0      # P_old 在子集內的位置
+                with torch.no_grad():
+                    logits_old = mask_logits(frozen_head(Zc, last.s.detach(), ste_old, f_txt,
+                                                         logit_scale, weighting="uniform"),
+                                             class_mask)
+                    u_old = float(differentiable_utility(logits_old, label))
+                logits_uniform = mask_logits(frozen_head(Zc, last.s, ste, f_txt, logit_scale,
+                                                         weighting="uniform"),
+                                             class_mask)
+            eq = l_eq(differentiable_utility(logits_uniform, label), u_old, mode=eq_mode)
+        if use_replay:
+            replay = l_diag(frozen_head(Zc, last.s, ste, f_txt, logit_scale), label, class_mask)
+    return kd, eq, replay
 
 
 def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
                     budget=DEFAULT_BUDGET, chunk=DEFAULT_CHUNK, q_tau=None,
                     spec=None, use_kd=True, use_eq=True, use_replay=True,
                     eq_mode="hinge", kd_group_weight=1.0, class_mask=None,
-                    u_old_mode="snapshot", candidate_only=False):
+                    u_old_mode="snapshot", candidate_only=False, cand_store=None):
     """對一筆記憶體 entry 算出 (L_KD, L_eq, L_replay)；關掉的項回傳 None。
 
     `class_mask`（DR-052）= **當前** stage 的 C_t，只用於 replay 的 CE；
@@ -360,9 +470,13 @@ def continual_terms(entry, cfg, models, f_txt, logit_scale, tissue, *,
     f_g, f_p = models
     spec = spec or {}
     q = q_tau if q_tau is not None else torch.zeros(512)
+    if candidate_only:                     # DR-056：只讀側倉，不碰原始特徵檔
+        return _candidate_terms(entry, models, f_txt, logit_scale, tissue, budget=budget,
+                                chunk=chunk, q_tau=q, spec=spec, use_kd=use_kd,
+                                use_eq=use_eq, use_replay=use_replay, eq_mode=eq_mode,
+                                kd_group_weight=kd_group_weight, class_mask=class_mask,
+                                u_old_mode=u_old_mode, cand_store=cand_store)
     Z, _Z_cand, label = reload_features(entry, cfg)
-    if candidate_only:                     # exp/candidate-replay：候選級 replay（第 2 步實作）
-        raise NotImplementedError("candidate_only=True 的路徑在第 2 步實作；第 0/1 步只走 False")
     grp = assign_groups(Z, tissue)
     res = run_rounds(Z, grp, q, f_g, f_p, budget=budget, chunk=chunk, **spec)
     last = res.records[-1]
