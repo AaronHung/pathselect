@@ -372,7 +372,8 @@ def fill_memory(memory: SelectionMemory, models, task: str, cfg, f_txt, logit_sc
                 if cand_store is None:
                     raise ValueError("candidate_only=True 需要 cand_store 路徑")
                 save_cand_features(cand_store, task, sample_key(task, rec.sid),
-                                   rec.Z.index_select(0, cand), rec.label)
+                                   rec.Z.index_select(0, cand), rec.label,
+                                   cand_idx=cand)
                 protos = grp.prototypes
             memory.add(make_entry(task, rec.sid, res.state, last.r, cand,
                                   last.s.detach(), u, class_mask_old=class_mask,

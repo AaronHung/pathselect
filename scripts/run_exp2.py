@@ -588,9 +588,7 @@ def main() -> int:
     seeds = [int(x) for x in args.seeds.split(",")]
     out_dir = (Path(args.out_root) if args.out_root else OUT_ROOT) / args.tag
     (out_dir / "per_slide").mkdir(parents=True, exist_ok=True)
-    if args.replay_candidate_only:
-        args.cand_store = out_dir / "cand_store"
-        args.cand_store.mkdir(parents=True, exist_ok=True)
+    cand_store_root = out_dir / "cand_store" if args.replay_candidate_only else None
 
     ctx = Ctx(cfg)
     if args.report_only:
@@ -621,6 +619,15 @@ def main() -> int:
             if args.uold != "snapshot":
                 suffix += "_ucur"               # DR-054 U_old 以當前 C_t 重算
             tag = f"{arm}_{args.order}_seed{seed}{suffix}"
+            # DR-056：側倉**一個 run 一個目錄**，目錄名就是 run 的識別字串（與
+            # per_slide 檔名同一個 tag）。側倉的檔名是 (tau, sample_key) 的純函數，
+            # 但候選集合取決於快照當下的模型狀態 —— 兩個 run 共用一個目錄就會互相
+            # 覆寫，而且**不會報錯**：load 回來的是別人的候選，`_candidate_terms`
+            # 的位置對齊（s_old 對 cand_idx 的順序）靜默失效。
+            # 2026-09-18 的 probe 就是這樣廢掉兩個 run —— reverse 與 forward 同 tag。
+            if cand_store_root is not None:
+                args.cand_store = cand_store_root / tag
+                args.cand_store.mkdir(parents=True, exist_ok=True)
             path = out_dir / "per_slide" / f"{tag}.json"
             if path.exists() and not args.no_resume:
                 all_recs += json.loads(path.read_text())

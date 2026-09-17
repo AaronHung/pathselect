@@ -266,22 +266,47 @@ def cand_store_path(store_dir, entry_or_tau, sample_key: Optional[int] = None):
 
 
 def save_cand_features(store_dir, tau: str, key: int, Z_cand: torch.Tensor,
-                       label: int) -> int:
-    """寫一筆側倉，回傳實際 bytes（供量測 buffer 大小）。"""
+                       label: int, cand_idx: Optional[torch.Tensor] = None) -> int:
+    """寫一筆側倉，回傳實際 bytes（供量測 buffer 大小）。
+
+    `cand_idx` 一併存下來當**身分憑據**：檔名只由 (tau, sample_key) 決定，但候選
+    集合取決於快照當下的模型狀態。兩個 run 共用一個側倉目錄時會互相覆寫，載回來
+    的特徵就對不上 entry —— 存了 cand_idx，`load_cand_features` 才擋得住這件事。
+    代價是每筆多 k×8 B（k=256 時 2 KB，約 0.4%）。
+    """
     from pathlib import Path
     p = cand_store_path(store_dir, tau, key)
     p.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"Z_cand": Z_cand.detach().cpu().contiguous(), "label": int(label)}, p)
+    blob = {"Z_cand": Z_cand.detach().cpu().contiguous(), "label": int(label)}
+    if cand_idx is not None:
+        blob["cand_idx"] = cand_idx.detach().cpu().reshape(-1).to(torch.long)
+    torch.save(blob, p)
     return p.stat().st_size
 
 
 def load_cand_features(store_dir, entry: SelectionMemoryEntry) -> tuple:
-    """讀一筆側倉 → (Z_cand [k, D], label)。**不碰原始特徵檔。**"""
+    """讀一筆側倉 → (Z_cand [k, D], label)。**不碰原始特徵檔。**
+
+    載回的候選必須與 entry 是同一組：先比對存下來的 `cand_idx`，對不上就硬失敗。
+    沒有這道檢查，側倉被別的 run 覆寫時只會靜默壞掉 —— `_candidate_terms` 的位置
+    對齊（s_old 的順序即 cand_idx 的順序）會沉默地對到別人的 patch。
+    """
     p = cand_store_path(store_dir, entry)
     if not p.exists():
         raise FileNotFoundError(f"候選側倉缺檔：{p}（fill_memory 沒寫或 store_dir 不對）")
     blob = torch.load(p, map_location="cpu", weights_only=False)
-    return blob["Z_cand"], int(blob["label"])
+    Z = blob["Z_cand"]
+    stored = blob.get("cand_idx")
+    want = entry.cand_idx.reshape(-1).to(torch.long)
+    if stored is not None and not torch.equal(stored.reshape(-1).to(torch.long), want):
+        raise RuntimeError(
+            f"側倉的 cand_idx 與 entry 不符：{p}\n"
+            f"  entry {want.numel()} 筆、側倉 {stored.numel()} 筆；"
+            "多半是兩個 run 共用同一個側倉目錄互相覆寫（見 docs/ledger/DR-056.md）。")
+    if Z.shape[0] != want.numel():
+        raise RuntimeError(
+            f"側倉的候選數 {Z.shape[0]} 與 entry 的 cand_idx {want.numel()} 不符：{p}")
+    return Z, int(blob["label"])
 
 
 def selected_from_entry(entry: SelectionMemoryEntry, k: int) -> tuple:

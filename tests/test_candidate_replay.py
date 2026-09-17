@@ -205,3 +205,44 @@ def test_reservoir_replay_matches_a_real_memory():
     replayed = [(t, sample_key(t, s)) for t, s in replay_reservoir(order, sids, cap)]
     assert len(real) == cap
     assert replayed == real                      # 順序與內容都要一致
+
+
+def test_side_store_rejects_another_runs_candidates(tmp_path):
+    """兩個 run 共用側倉目錄 → 覆寫 → 載回別人的候選。必須硬失敗，不得靜默。
+
+    2026-09-18 的 probe 就是這樣廢掉兩個 run（reverse 與 forward 同 tag，
+    側倉互相覆寫）。當時沒有這道檢查，位置對齊沉默地對到別人的 patch。
+    """
+    Z, f_txt, tissue, f_g, f_p = _world(17)
+    entry, _b, _g = _snapshot(Z, tissue, f_g, f_p, store=tmp_path)
+    # 另一個 run 為同一張 slide 寫入**不同**的候選集合（同檔名，直接覆寫）
+    other = torch.roll(entry.cand_idx, 3)
+    save_cand_features(tmp_path, entry.tau, entry.sample_key,
+                       Z.index_select(0, other), 2, cand_idx=other)
+    with pytest.raises(RuntimeError, match="cand_idx 與 entry 不符"):
+        load_cand_features(tmp_path, entry)
+    with pytest.raises(RuntimeError, match="cand_idx 與 entry 不符"):
+        _terms(entry, f_g, f_p, f_txt, tissue, tmp_path)
+
+
+def test_side_store_rejects_a_wrong_length_candidate_set(tmp_path):
+    Z, f_txt, tissue, f_g, f_p = _world(19)
+    entry, _b, _g = _snapshot(Z, tissue, f_g, f_p, store=tmp_path)
+    short = entry.cand_idx[:10]
+    save_cand_features(tmp_path, entry.tau, entry.sample_key,
+                       Z.index_select(0, short), 2, cand_idx=short)
+    with pytest.raises(RuntimeError, match="cand_idx 與 entry 不符"):
+        load_cand_features(tmp_path, entry)
+
+
+def test_legacy_blob_without_cand_idx_still_loads_but_checks_length(tmp_path):
+    """舊格式（沒存 cand_idx）仍可讀 —— 但長度對不上一樣硬失敗。"""
+    Z, f_txt, tissue, f_g, f_p = _world(23)
+    entry, _b, _g = _snapshot(Z, tissue, f_g, f_p, store=tmp_path)
+    p = cand_store_path(tmp_path, entry)
+    torch.save({"Z_cand": Z.index_select(0, entry.cand_idx), "label": 4}, p)
+    Zc, label = load_cand_features(tmp_path, entry)
+    assert label == 4 and Zc.shape[0] == entry.cand_idx.numel()
+    torch.save({"Z_cand": Z[:5], "label": 4}, p)
+    with pytest.raises(RuntimeError, match="候選數"):
+        load_cand_features(tmp_path, entry)
