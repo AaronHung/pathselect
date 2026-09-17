@@ -143,6 +143,33 @@ def main(argv=None) -> int:
     else:
         L.append("尚未有完整的四個 run。")
 
+    # ── 同機決定性核對：兩批的 rfull 應逐位元相同（rfull 從不碰側倉）──
+    L += ["", "## 同機決定性核對（第一批 vs 第二批的「讀整張」）", "",
+          "「讀整張」的路徑從不碰側倉，兩批之間唯一的差別是執行時間。同一台機器、",
+          "同一份程式、同一個 seed，per_slide 應**逐位元相同**；若不同，代表這台機器",
+          "上的結果不可重現，整個配對比較都要重新檢討。", "",
+          "| 順序 | 第一批檔案 | 第二批檔案 | 逐位元相同？ |", "|---|---|---|---|"]
+    import hashlib
+    for order in ("reverse", "main"):
+        name = f"A5_{order}_seed1_M128_hier_acc_ucur.json"
+        f1 = src / "cand_m128_rfull" / "per_slide" / name
+        f2 = src / f"cand_m128_rfull{a.suffix}" / "per_slide" / name
+        if not (f1.is_file() and f2.is_file()):
+            L.append(f"| {ORDER_LABEL[order]} | {'有' if f1.is_file() else '無'} | "
+                     f"{'有' if f2.is_file() else '無'} | 尚未 |")
+            continue
+        h1 = hashlib.sha256(f1.read_bytes()).hexdigest()
+        h2 = hashlib.sha256(f2.read_bytes()).hexdigest()
+        same = h1 == h2
+        if same:
+            note = f"✅ 相同（sha256 {h1[:12]}…）"
+        else:
+            r1 = json.loads(f1.read_text()); r2 = json.loads(f2.read_text())
+            diff = sum(1 for x, y in zip(r1, r2)
+                       if x.get("selected_idx") != y.get("selected_idx"))
+            note = f"❌ 不同（{diff}/{min(len(r1), len(r2))} 筆 selected_idx 有差）"
+        L.append(f"| {ORDER_LABEL[order]} | {f1.name} | {f2.name} | {note} |")
+
     L += ["", "## 資料量實測", ""]
     if a.store_json and Path(a.store_json).is_file():
         S = json.loads(Path(a.store_json).read_text())
