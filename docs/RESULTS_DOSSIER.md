@@ -918,3 +918,67 @@ hier 的 Forgetting 在兩序皆低於 flat（6/10）。來源：`outputs/exp3/B
 不改主表操作點。** 自檢：三個目錄的 per_slide `B` 欄位分別恆為 4／8／16。
 來源：`outputs/exp3/B9.md`、`sota_ucur_b4/per_slide`（20 檔）、`sota_ucur_b16/per_slide`（20 檔）。
 
+
+### 11.11 DR-056 — 候選級 replay 探針：**不採用**（隔離分支 `exp/candidate-replay`，2026-09-18）
+
+⚠️ **本節的數字在 `exp/candidate-replay` 分支產生，不 merge 回 main。** 機器為
+RTX 4090 ＋ AMD EPYC 7702（torch 2.8.0），**與 outputs/exp3 不同機**；baseline 對數
+未逐位元對齊（0.7354 vs exp3 的 0.8051），歸因為平台浮點差異經 top-k 離散決策放大
+（機制同 DR-052 的 Mac/pod 分歧：stage 0 無 replay 時選片 0/15 不同、權重僅 1e-6 差，
+分歧自 stage 1 起出現）。**exp3 的數字只能當參考，不得與本批相減**；下表所有配對都在
+本批四個 run 之間完成。
+
+**動機**：老師 9/17 問 buffer 大小。稽核發現 entry 雖不存 feature（CONTRACT-3 成立），
+但 replay 執行期會讀整個 slide 的特徵檔，被記憶庫收過的 slide 聯集 = 訓練集 100%。
+探針問：只保留每筆快照的 ≤256 個候選特徵能不能跑完 replay。
+
+**設定**：A5、hier、`--head accumulating`、`--uold current`、B = 8、fold 1、seed 1、
+|M| = 128，四個 run 同批同機四路平行（每 run 8 執行緒），全部 rc = 0。
+
+| 順序 | 設定 | ACC | Masked ACC | Forgetting ↓ | BWT | wall-clock |
+|---|---|---|---|---|---|---|
+| reverse | 讀整張（對照） | 0.7651 | 0.9124 | 0.1902 | −0.1902 | 65.0 min |
+| reverse | 只讀候選 | 0.7299 | 0.8678 | 0.2264 | −0.2264 | 28.5 min |
+| forward | 讀整張（對照） | 0.8075 | 0.9071 | 0.0728 | −0.0728 | 65.2 min |
+| forward | 只讀候選 | 0.7949 | 0.8945 | 0.1307 | −0.1307 | 28.3 min |
+
+配對差值（只讀候選 − 讀整張，同批同機、逐折相減）：
+
+| 順序 | ΔACC (pp) | ΔMasked (pp) | ΔForgetting (pp) | Δwall-clock |
+|---|---|---|---|---|
+| reverse | **−3.52** | **−4.46** | **+3.62** | −36.5 min |
+| forward | −1.27 | −1.26 | **+5.78** | −36.9 min |
+
+**判準（PI 於 2026-09-17 凍結，先於看到數字）4/7 未過**：reverse 的 ACC／Masked／
+Forgetting 三條，forward 的 Forgetting 一條；方向一致性通過（兩序 ΔACC 同號）。
+
+**同機決定性核對通過**：第一批與第二批的「讀整張」per_slide **逐位元相同**
+（reverse sha256 `aa27dddab141…`、forward `e7eb25d5669e…`）。這台機器上的結果可重現，
+因此上表的降幅是真實效應，不是雜訊。
+
+**資料量實測**（逐筆配對，2,273 張訓練 slide）：
+
+| 口徑 | 只讀候選 | 讀整張 | 倍率 |
+|---|---|---|---|
+| 單一 replay 步驟（平均） | **526,212 B** | **6,590,862 B** | **12.5×**（最大一張 44×） |
+| 方法真正需要保留（\|M\| = 128） | **64.2 MiB** | — | — |
+| 同一批 slide 的完整特徵檔 | — | 13.95 GiB | — |
+
+即 buffer 需求為完整特徵庫的 **0.45%**。保留的是哪 128 筆，由無模型重放
+`ReservoirSampling(seed=0)` 算出**確切**集合（測試與真正的 `SelectionMemory` 逐筆比對），
+不是用平均估。側倉如實寫出為 1.1139 GiB／2,273 檔 —— 與 64.2 MiB 的落差純屬實作細節
+（寫入早於 reservoir 汰換、汰換時未刪檔），不是方法性質。
+
+**PI 裁定（2026-09-18）：放棄候選級 replay，不做第 8 步（自足性驗證）。**
+理由：reverse 三條判準同時未過，Masked 掉 4.46 pp 代表**當前任務的證據品質也下降**；
+兩序 Forgetting 都明顯升高，正好落在審稿最關注的指標上。自足性只有在成績站得住時
+才有價值。分支與所有輸出保留、不刪除、不 merge。
+
+**口徑（引用時必須一併寫）**：這個降幅**不是壓縮誤差**，而是換了 replay 定義的後果 ——
+分組原型改由候選子集計算（候選子集原型與全 slide 原型最大絕對差 0.735），`run_rounds`
+的配額隨之改變。**不得寫成「buffer 變小、效果幾乎不變」。** 又，fold 1 單折、無變異數，
+本探針能支持的敘述只有「候選級 replay 可行，但代價可量測，本版不採用」。
+
+來源：`docs/ledger/DR-056.md`、`outputs/exp4/DR056_PROBE.md`、
+`outputs/exp4/BATCH1_INVALID.md`（第一批因側倉互相覆寫而作廢的存證）、
+`outputs/exp4/MACHINE.md`、`logs/exp4/`。分支 `exp/candidate-replay` HEAD `478ce2b`。

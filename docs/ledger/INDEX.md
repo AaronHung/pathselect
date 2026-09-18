@@ -74,7 +74,7 @@
 | [053](DR-053.md) | 累積式頭下 hinge 的行為核查 | ACTIVE | 真實效應非實作問題：C_old 遮罩逐筆一致（10,765/10,765）；hinge 只保舊類別內鑑別力、不約束對新類別的洩漏 → B2 class-IL −13.8 pp；hinge 改全 8 類即回到 80.97（+16.55，5/5）但不合規；建議 DR-054 以當前 C_t 重算 U_old |
 | [054](DR-054.md) | 累積式頭下的合規 hinge：replay 時以當前 C_t 由 P_old 重算 U_old | ACTIVE | `--uold current`（預設 snapshot 逐位元不變）；預註冊：fold-1 五 seed A5/B2，A5−A3 class-IL ≥ +1.5 pp 且 ≥ 4/5 才進十折；只報告 |
 | [055](DR-055.md) | Evidence budget sweep：B ∈ {4,16} 對 B = 8 的十折對照 | ACTIVE | 主口徑（accumulating + uold current + hier）下只變 --budget；先做 B=8 對數（≤1e-3 才啟動）；產物目錄分開（檔名不含 budget）；只報告，不改主表操作點 |
-| [056](DR-056.md) | 候選級 replay：CONTRACT-3 加 group_prototypes ＋ 候選特徵磁碟側倉 | ACTIVE | 隔離分支探針，不 merge 回 main；replay 改吃側倉的 ≤256 候選特徵（實測 525,957 B/筆，|M|=512 為 256.81 MiB ≈ 特徵庫 19.55 GiB 的 1.28%）；group 蒸餾改用快照原型 r_new=F_g(g_stored)；**不是無損壓縮而是換了 replay 的定義**（候選子集原型與全 slide 最大差 0.735）；hinge 的 U_old 是唯一逐值不變處；probe 判準先凍結，單折只能排除崩掉 |
+| [056](DR-056.md) | 候選級 replay 探針：CONTRACT-3 加 group_prototypes ＋ 候選特徵磁碟側倉 | ACTIVE | 隔離分支 `exp/candidate-replay`，**PI 2026-09-18 裁定放棄、不做第 8 步、不 merge 回 main**；probe 判準 4/7 未過（reverse ΔACC −3.52／ΔMasked −4.46／ΔForgetting +3.62；forward ΔForgetting +5.78），同機決定性核對通過（兩批「讀整張」per_slide 逐位元相同）；資料量實測單步 526,212 B vs 6,590,862 B（12.5×）、|M|=128 僅 64.2 MiB（完整特徵庫的 0.45%）、每 run 快 36 分鐘；**不是無損壓縮而是換了 replay 的定義**（候選子集原型與全 slide 最大差 0.735）；main 不受影響（group_prototypes 預設 None、候選路徑需 replay.candidate_only=true）；dossier §11.11 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。
