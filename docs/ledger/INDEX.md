@@ -74,6 +74,8 @@
 | [053](DR-053.md) | 累積式頭下 hinge 的行為核查 | ACTIVE | 真實效應非實作問題：C_old 遮罩逐筆一致（10,765/10,765）；hinge 只保舊類別內鑑別力、不約束對新類別的洩漏 → B2 class-IL −13.8 pp；hinge 改全 8 類即回到 80.97（+16.55，5/5）但不合規；建議 DR-054 以當前 C_t 重算 U_old |
 | [054](DR-054.md) | 累積式頭下的合規 hinge：replay 時以當前 C_t 由 P_old 重算 U_old | ACTIVE | `--uold current`（預設 snapshot 逐位元不變）；預註冊：fold-1 五 seed A5/B2，A5−A3 class-IL ≥ +1.5 pp 且 ≥ 4/5 才進十折；只報告 |
 | [055](DR-055.md) | Evidence budget sweep：B ∈ {4,16} 對 B = 8 的十折對照 | ACTIVE | 主口徑（accumulating + uold current + hier）下只變 --budget；先做 B=8 對數（≤1e-3 才啟動）；產物目錄分開（檔名不含 budget）；只報告，不改主表操作點 |
+| [056](DR-056.md) | 候選級 replay 探針（決策記錄在 exp/candidate-replay 分支） | ACTIVE | 指向性佔位卡（DR-047 判例）；完整的卡在分支 exp/candidate-replay HEAD 9cc3406，未 merge 回 main；PI 2026-09-18 裁定放棄：資料量少讀 12.5 倍、buffer 僅佔特徵庫 0.45%，但 ACC −1.27～−3.52 pp、Forgetting +3.62～+5.78 pp |
+| [057](DR-057.md) | M = 64 備份實驗（5090 pod，exp5） | ACTIVE | ICASSP 改用 |M|=64；本批為 H200 的備份，9/23 16:00 前 H200 未完成就整套改用本批，**兩套絕不混用、不得跨機器相減**；盤點查出 B1／B2 也依賴 |M|（記憶體在 kd∨eq∨replay 時即取樣），故重跑範圍比「含 replay」更大；P2 依 Table 3 自己的 fold-1 五 seed 協定重跑而非十折兩序；M=0 程式不支援（capacity<=0 直接 raise）故跳過 |
 
 **append-only 的範圍**：已寫的卡不改內文；**補記早先的決策是允許的**。
 DR 編號不得有缺口，由 `tests/test_ledger.py` 強制。
