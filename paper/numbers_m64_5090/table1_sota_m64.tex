@@ -1,0 +1,33 @@
+% 由 scripts/make_exp5_tables.py 從 outputs/exp5 產生，數字未經手抄。
+% 來源：outputs/exp5/m64_full_rev（10 折）、m64_full_fwd（10 折）
+% 機器：RTX 5090 pod，見 outputs/exp5/MACHINE.md。不得與 exp3／exp4／H200 相減。
+\begin{table}[!t]
+\centering\footnotesize\renewcommand{\arraystretch}{0.93}
+\setlength{\tabcolsep}{2.0pt}
+\caption{\textbf{Comparison on the four-task TCGA continual WSI benchmark} (ten-fold CV; ACC mean$_{\pm\text{sd}}$, forgetting F.\ and masked ACC Mask.\ as means). Buffer is the number of WSIs each method keeps; $0$ denotes no rehearsal buffer. Buffer contents are not comparable across methods: the rehearsal baselines store WSI bags, whereas PathSelect stores selector snapshots and reloads the corresponding training features. Rows above the rule are quoted from QPMIL-VL \cite{gou2025qpmil}; $^\ddagger$our rerun of its released code.}
+\label{tab:sota}
+\begin{tabular}{l@{\hspace{4pt}}c@{\hspace{5pt}}ccc@{\hspace{7pt}}ccc}
+\toprule
+& & \multicolumn{3}{c}{Reverse order} & \multicolumn{3}{c}{Forward order} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+Method & Buffer & ACC$\uparrow$ & F.$\downarrow$ & Mask.$\uparrow$ & ACC$\uparrow$ & F.$\downarrow$ & Mask.$\uparrow$ \\
+\midrule
+Upper bound (joint) & 0 & $.908_{\pm.022}$ & --- & $.937$ & $.908_{\pm.022}$ & --- & $.937$ \\
+Fine-tuning & 0 & $.234_{\pm.008}$ & $.927$ & $.803$ & $.308_{\pm.045}$ & $.841$ & $.844$ \\
+EWC \cite{kirkpatrick2017ewc} & 0 & $.235_{\pm.011}$ & $.928$ & $.833$ & $.309_{\pm.051}$ & $.836$ & $.840$ \\
+LwF \cite{li2017lwf} & 0 & $.236_{\pm.016}$ & $.908$ & $.900$ & $.378_{\pm.081}$ & $.731$ & $.916$ \\
+A-GEM \cite{chaudhry2019agem} & 30 & $.536_{\pm.047}$ & $.527$ & $.872$ & $.436_{\pm.058}$ & $.670$ & $.879$ \\
+ER-ACE \cite{caccia2022erace} & 30 & $.703_{\pm.049}$ & $.281$ & $.889$ & $.666_{\pm.049}$ & $.075$ & $.917$ \\
+DER++ \cite{buzzega2020derpp} & 30 & $.684_{\pm.055}$ & $.310$ & $.910$ & $.749_{\pm.055}$ & $.219$ & $.904$ \\
+ER \cite{chaudhry2019er} & 30 & $.644_{\pm.028}$ & $.387$ & $.901$ & $.790_{\pm.040}$ & $.186$ & $.894$ \\
+ConSlide \cite{huang2023conslide} & 30 & $.499_{\pm.025}$ & $.058$ & $.854$ & $.659_{\pm.022}$ & $.076$ & $.861$ \\
+AttriCLIP \cite{wang2023attriclip} & 0 & $.694_{\pm.058}$ & $.207$ & $.861$ & $.616_{\pm.056}$ & $.285$ & $.844$ \\
+MI-Zero \cite{lu2023mizero} & 0 & $.839_{\pm.034}$ & --- & $.909$ & $.839_{\pm.034}$ & --- & $.909$ \\
+QPMIL-VL \cite{gou2025qpmil} & 0 & $.859_{\pm.032}$ & $.064$ & $.925$ & $.890_{\pm.021}$ & $.027$ & $.930$ \\
+\midrule
+QPMIL-VL, rerun$^\ddagger$ & 0 & $.868_{\pm.046}$ & $.064$ & $.935$ & $.884_{\pm.033}$ & $.038$ & $.926$ \\
+\midrule
+PathSelect (ours) & 64 & $.755_{\pm.021}$ & $.206$ & $.906$ & $.820_{\pm.033}$ & $.091$ & $.914$ \\
+\bottomrule
+\end{tabular}
+\end{table}
