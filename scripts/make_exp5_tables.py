@@ -20,8 +20,13 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from report_exp5 import load_tag                               # noqa: E402
+from sota.external_baselines import MAIN_METHOD                # noqa: E402
 
-#: Table 1 橫線以上：外部引用值，原樣保留。buffer 取自 QPMIL-VL 的發表表格
+#: DR-004 的詞彙禁令：外部方法的名稱一律從 sota.external_baselines 取，
+#: 不在本檔寫字面（沿用 scripts/report_paper_numbers.py 的作法）。
+CITE_KEY = "gou2025" + MAIN_METHOD.split("-")[0].lower()
+
+#: Table 1 橫線以上：外部引用值，原樣保留。buffer 取自外部主方法的發表表格
 #: （outputs/exp3/PAPER_NUMBERS.md），沒有 buffer 的填 0。
 EXTERNAL = [
     ("Upper bound (joint)", "", 0, (".908", ".022", "---", ".937"), (".908", ".022", "---", ".937")),
@@ -35,9 +40,9 @@ EXTERNAL = [
     ("ConSlide", "huang2023conslide", 30, (".499", ".025", ".058", ".854"), (".659", ".022", ".076", ".861")),
     ("AttriCLIP", "wang2023attriclip", 0, (".694", ".058", ".207", ".861"), (".616", ".056", ".285", ".844")),
     ("MI-Zero", "lu2023mizero", 0, (".839", ".034", "---", ".909"), (".839", ".034", "---", ".909")),
-    ("QPMIL-VL", "gou2025qpmil", 0, (".859", ".032", ".064", ".925"), (".890", ".021", ".027", ".930")),
+    (MAIN_METHOD, CITE_KEY, 0, (".859", ".032", ".064", ".925"), (".890", ".021", ".027", ".930")),
 ]
-RERUN = ("QPMIL-VL, rerun$^\\ddagger$", 0,
+RERUN = (f"{MAIN_METHOD}, rerun$^\\ddagger$", 0,
          (".868", ".046", ".064", ".935"), (".884", ".033", ".038", ".926"))
 
 
@@ -96,7 +101,7 @@ def main(argv=None) -> int:
          "Buffer is the number of WSIs each method keeps; $0$ denotes no rehearsal buffer. "
          "Buffer contents are not comparable across methods: the rehearsal baselines store WSI bags, "
          "whereas PathSelect stores selector snapshots and reloads the corresponding training features. "
-         "Rows above the rule are quoted from QPMIL-VL \\cite{gou2025qpmil}; "
+         f"Rows above the rule are quoted from {MAIN_METHOD} \\cite{{{CITE_KEY}}}; "
          "$^\\ddagger$our rerun of its released code.}",
          "\\label{tab:sota}",
          "\\begin{tabular}{l@{\\hspace{4pt}}c@{\\hspace{5pt}}ccc@{\\hspace{7pt}}ccc}",

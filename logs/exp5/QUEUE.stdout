@@ -1,0 +1,124 @@
+[queue] 136 個 run，10 路平行，venv=/workspace/venvs/ps5
+[w2] ▶ chk_m512_f1
+[w1] ▶ m64_full_rev_f1
+[w4] ▶ m64_full_rev_f2
+[w3] ▶ m64_full_rev_f3
+[w5] ▶ m64_full_rev_f4
+[w7] ▶ m64_full_rev_f5
+[w8] ▶ m64_full_rev_f6
+[w10] ▶ m64_full_rev_f7
+[w6] ▶ m64_full_rev_f8
+[w9] ▶ m64_full_rev_f9
+[w8] ✅ m64_full_rev_f6  2097s
+[w8] ▶ m64_full_rev_f10
+[w9] ✅ m64_full_rev_f9  2113s
+[w9] ▶ m64_full_fwd_f1
+[w10] ✅ m64_full_rev_f7  2114s
+[w10] ▶ m64_full_fwd_f2
+[w5] ✅ m64_full_rev_f4  2115s
+[w5] ▶ m64_full_fwd_f3
+[w4] ✅ m64_full_rev_f2  2128s
+[w4] ▶ m64_full_fwd_f4
+[w7] ✅ m64_full_rev_f5  2129s
+[w7] ▶ m64_full_fwd_f5
+[w3] ✅ m64_full_rev_f3  2130s
+[w3] ▶ m64_full_fwd_f6
+[w6] ✅ m64_full_rev_f8  2140s
+[w6] ▶ m64_full_fwd_f7
+[w1] ✅ m64_full_rev_f1  2146s
+[w1] ▶ m64_full_fwd_f8
+[w2] ✅ chk_m512_f1  2281s
+[w2] ▶ m64_full_fwd_f9
+[w10] ✅ m64_full_fwd_f2  2099s
+[w10] ▶ m64_full_fwd_f10
+[w6] ✅ m64_full_fwd_f7  2078s
+[w4] ✅ m64_full_fwd_f4  2090s
+[w6] ▶ m64_replay_rev_f1
+[w4] ▶ m64_replay_rev_f2
+[w5] ✅ m64_full_fwd_f3  2105s
+[w5] ▶ m64_replay_rev_f3
+[w9] ✅ m64_full_fwd_f1  2107s
+[w9] ▶ m64_replay_rev_f4
+[w3] ✅ m64_full_fwd_f6  2093s
+[w3] ▶ m64_replay_rev_f5
+[w7] ✅ m64_full_fwd_f5  2096s
+[w7] ▶ m64_replay_rev_f6
+[w1] ✅ m64_full_fwd_f8  2101s
+[w1] ▶ m64_replay_rev_f7
+[w2] ✅ m64_full_fwd_f9  2118s
+[w2] ▶ m64_replay_rev_f8
+[w8] ✅ m64_full_rev_f10  2541s
+[w8] ▶ m64_replay_rev_f9
+[w9] ✅ m64_replay_rev_f4  1965s
+[w9] ▶ m64_replay_rev_f10
+[w7] ✅ m64_replay_rev_f6  1971s
+[w7] ▶ m64_distutil_rev_f1
+[w5] ✅ m64_replay_rev_f3  1979s
+[w5] ▶ m64_distutil_rev_f2
+[w4] ✅ m64_replay_rev_f2  1986s
+[w4] ▶ m64_distutil_rev_f3
+[w3] ✅ m64_replay_rev_f5  1997s
+[w3] ▶ m64_distutil_rev_f4
+[w6] ✅ m64_replay_rev_f1  2009s
+[w6] ▶ m64_distutil_rev_f5
+[w1] ✅ m64_replay_rev_f7  1981s
+[w1] ▶ m64_distutil_rev_f6
+[w2] ✅ m64_replay_rev_f8  2033s
+[w2] ▶ m64_distutil_rev_f7
+[w10] ✅ m64_full_fwd_f10  2293s
+[w10] ▶ m64_distutil_rev_f8
+[w8] ✅ m64_replay_rev_f9  2204s
+[w8] ▶ m64_distutil_rev_f9
+[w9] ✅ m64_replay_rev_f10  1991s
+[w3] ✅ m64_distutil_rev_f4  1956s
+[w9] ▶ m64_distutil_rev_f10
+[w3] ▶ m64_replay_fwd_f1
+[w1] ✅ m64_distutil_rev_f6  1949s
+[w1] ▶ m64_replay_fwd_f2
+[w5] ✅ m64_distutil_rev_f2  1987s
+[w5] ▶ m64_replay_fwd_f3
+[w6] ✅ m64_distutil_rev_f5  1962s
+[w6] ▶ m64_replay_fwd_f4
+[w7] ✅ m64_distutil_rev_f1  1997s
+[w7] ▶ m64_replay_fwd_f5
+[w4] ✅ m64_distutil_rev_f3  2011s
+[w4] ▶ m64_replay_fwd_f6
+[w2] ✅ m64_distutil_rev_f7  2056s
+[w2] ▶ m64_replay_fwd_f7
+[w10] ✅ m64_distutil_rev_f8  2024s
+[w10] ▶ m64_replay_fwd_f8
+[w8] ✅ m64_distutil_rev_f9  2168s
+[w8] ▶ m64_replay_fwd_f9
+[w1] ✅ m64_replay_fwd_f2  2011s
+[w7] ✅ m64_replay_fwd_f5  1995s
+[w1] ▶ m64_replay_fwd_f10
+[w7] ▶ m64_distutil_fwd_f1
+[w6] ✅ m64_replay_fwd_f4  2006s
+[w6] ▶ m64_distutil_fwd_f2
+[w4] ✅ m64_replay_fwd_f6  1982s
+[w4] ▶ m64_distutil_fwd_f3
+[w3] ✅ m64_replay_fwd_f1  2024s
+[w3] ▶ m64_distutil_fwd_f4
+[w5] ✅ m64_replay_fwd_f3  2019s
+[w5] ▶ m64_distutil_fwd_f5
+[w2] ✅ m64_replay_fwd_f7  1999s
+[w2] ▶ m64_distutil_fwd_f6
+[w10] ✅ m64_replay_fwd_f8  2011s
+[w10] ▶ m64_distutil_fwd_f7
+[w9] ✅ m64_distutil_rev_f10  2373s
+[w9] ▶ m64_distutil_fwd_f8
+[w8] ✅ m64_replay_fwd_f9  2276s
+[w8] ▶ m64_distutil_fwd_f9
+[w3] ✅ m64_distutil_fwd_f4  1963s
+[w6] ✅ m64_distutil_fwd_f2  1967s
+[w3] ▶ m64_distutil_fwd_f10
+[w1] ✅ m64_replay_fwd_f10  1988s
+[w5] ✅ m64_distutil_fwd_f5  1970s
+[w7] ✅ m64_distutil_fwd_f1  2031s
+[w4] ✅ m64_distutil_fwd_f3  2029s
+[w2] ✅ m64_distutil_fwd_f6  1941s
+[w9] ✅ m64_distutil_fwd_f8  1988s
+[w10] ✅ m64_distutil_fwd_f7  1995s
+[w8] ✅ m64_distutil_fwd_f9  2315s
+[w3] ✅ m64_distutil_fwd_f10  2399s
+[queue] 完成：成功 61、失敗 0

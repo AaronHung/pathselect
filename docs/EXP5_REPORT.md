@@ -1,0 +1,201 @@
+# exp5 晨間報告 —— |M| = 64 備份實驗（5090 pod）
+
+## 結論
+
+**P0 全部完成，零失敗，協定核對通過。**
+
+本批**足以支撐 Table 1 的 PathSelect 列與 Table 2 的三個可變列**，也就是論文主結果所需的全部 |M| = 64 數字。
+
+**未跑的部分**（依 PI 2026-09-23 的更新指示，P0 完成後停止佇列）：
+P1 buffer sweep（M ∈ {16,32,128,256,512}，50 run）、P2 Table 3 重跑（25 run）、
+P3 B sweep（40 run）。佇列檔已保留：`logs/exp5/queue_full_p0p2.tsv`、`logs/exp5/queue_p3.tsv`，
+直接重跑 `scripts/exp5_queue.sh` 即可續跑（已完成的 run 會自動跳過）。
+
+⚠️ **兩套數字絕不混用。** H200 那套若在 9/23 16:00（台灣時間）前完整完成，論文全部用 H200；否則整套改用本批。兩套都完成時不比較數字高低，依此規則選（DR-057）。
+
+⚠️ **本批與 exp3／exp4／H200 的數字不得相減或補位。** 本批內部的所有配對都在同一台、同一批完成。
+
+## 各設定完成狀態
+
+| 設定 | 對應 | reverse | forward | 產物目錄 |
+|---|---|---|---|---|
+| ＋replay（A3, flat） | Table 2 第 2 列 | 10/10 | 10/10 | `outputs/exp5/m64_replay_rev`、`m64_replay_fwd` |
+| ＋蒸餾＋效用下限（A5 flat, uold=current） | Table 2 第 3 列 | 10/10 | 10/10 | `outputs/exp5/m64_distutil_rev`、`m64_distutil_fwd` |
+| ＋group 層預算＝**本方法**（A5 hier, uold=current） | **Table 1 的 PathSelect 列 ＋ Table 2 第 4 列** | 10/10 | 10/10 | `outputs/exp5/m64_full_rev`、`m64_full_fwd` |
+| 協定核對（M=512, fold 1） | — | ✅ 通過 | — | `outputs/exp5/chk_m512_f1` |
+
+實測單 run wall-clock：平均 **34.6 分鐘**（最短 32.4、最長 42.4），10 路平行。
+成功 61、失敗 0。
+
+## Table 1 的 PathSelect 列與 Table 2（|M| = 64，十折，seed = fold）
+
+| 設定 | 順序 | n | ACC | Masked ACC | Forgetting ↓ | BWT |
+|---|---|---|---|---|---|---|
+| ＋replay（A3, flat） | reverse | 10 | 0.757 ± 0.031 | 0.917 ± 0.020 | 0.222 ± 0.041 | -0.209 ± 0.051 |
+| ＋replay（A3, flat） | forward | 10 | 0.823 ± 0.027 | 0.911 ± 0.009 | 0.103 ± 0.032 | -0.096 ± 0.037 |
+| ＋蒸餾＋效用下限（A5 flat, uold=current） | reverse | 10 | 0.762 ± 0.046 | 0.916 ± 0.020 | 0.205 ± 0.063 | -0.198 ± 0.059 |
+| ＋蒸餾＋效用下限（A5 flat, uold=current） | forward | 10 | 0.821 ± 0.038 | 0.910 ± 0.028 | 0.099 ± 0.033 | -0.093 ± 0.034 |
+| ＋group 層預算＝**本方法**（A5 hier, uold=current） | reverse | 10 | 0.755 ± 0.021 | 0.906 ± 0.030 | 0.206 ± 0.058 | -0.202 ± 0.065 |
+| ＋group 層預算＝**本方法**（A5 hier, uold=current） | forward | 10 | 0.820 ± 0.033 | 0.914 ± 0.023 | 0.091 ± 0.024 | -0.084 ± 0.031 |
+
+第 1 列（無保存，A1）與第 5 列（class-text top-8）對 |M| 完全免疫 —— A1 從不填也不取記憶體，top-8 零參數 —— 所以**未重跑，沿用既有數字**（.481/.584、.549/.478、.812）。
+
+## 逐折配對（同折相減，同批同機）
+
+| 配對 | 順序 | ΔACC | ΔMasked | ΔForgetting ↓ | n |
+|---|---|---|---|---|---|
+| 本方法 − 只有 replay | reverse | -0.0020（6/10） | -0.0118（3/10） | -0.0161（6/10） | 10 |
+| 本方法 − ＋蒸餾＋效用下限 | reverse | -0.0068（5/10） | -0.0099（4/10） | +0.0007（5/10） | 10 |
+| ＋蒸餾＋效用下限 − 只有 replay | reverse | +0.0049（6/10） | -0.0019（7/10） | -0.0167（5/10） | 10 |
+| 本方法 − 只有 replay | forward | -0.0027（4/10） | +0.0027（6/10） | -0.0120（6/10） | 10 |
+| 本方法 − ＋蒸餾＋效用下限 | forward | -0.0003（5/10） | +0.0035（6/10） | -0.0078（5/10） | 10 |
+| ＋蒸餾＋效用下限 − 只有 replay | forward | -0.0024（5/10） | -0.0007（7/10） | -0.0042（5/10） | 10 |
+
+括號內對 ACC／Masked 是差值為正的折數，對 Forgetting 是差值為負的折數。
+⚠️ **不做三級 win-count 判讀** —— 那個規則是為 model seed 校準的，未對 fold 層級的變異來源重新校準（PI 裁示，docs/SOTA_TABLE.md）。這裡只列勝負折數。
+
+## 科學判讀（由本批數字算出）
+
+* **reverse：本方法 ACC 0.7551 ± 0.0214，零樣本 class-text top-8 是 0.812 → 相差 -0.0569**。本方法**低於**那個完全不用學的參照。
+* **reverse：本方法 − 只有 replay 的 ΔACC = -0.0020（6/10 折較佳）**，差值的絕對值小於折間 sd 的一半 → **元件鏈在這個記憶體大小下攤平**，「每加一個保存元件就多一點」的敘事沒有階梯。
+    * 同一組配對的 ΔForgetting = -0.0161（6/10 折較佳）—— 遺忘是唯一還有方向的指標。
+* **forward：本方法 ACC 0.8204 ± 0.0334，零樣本 class-text top-8 是 0.812 → 相差 +0.0084**。本方法高於該參照。
+* **forward：本方法 − 只有 replay 的 ΔACC = -0.0027（4/10 折較佳）**，差值的絕對值小於折間 sd 的一半 → **元件鏈在這個記憶體大小下攤平**，「每加一個保存元件就多一點」的敘事沒有階梯。
+    * 同一組配對的 ΔForgetting = -0.0120（6/10 折較佳）—— 遺忘是唯一還有方向的指標。
+
+以上都是**本批內部**的同機同批配對，可以相減。與稿件現用的 |M| = 512 數字的任何比較
+都不是配對統計（不同批次），本報告不做相減；但兩組並列時，落差的量級遠大於折間 sd，
+而協定核對已證明本機與產生 exp3 的機器逐位元等價 —— 判讀時請把這一點納入考慮。
+
+**這些是觀察，不是出版建議。** 要不要用、怎麼改敘事，由 PI 決定。
+
+## replay 實際需要的特徵量（實測，fold 1 的切分）
+
+replay 不是讀記憶庫本身 —— entry 不存 feature，它拿 `sample_key` 去**重新載入那張切片的
+完整特徵檔**。所以「buffer 多大」的誠實答案是：留在記憶庫裡那 |M| 筆對應的完整特徵檔總和。
+留下的是哪幾筆用無模型重放 `ReservoirSampling(seed=0)` 精確算出，不是用平均估。
+
+| \|M\| | reverse | forward | 占訓練特徵庫 |
+|---|---|---|---|
+| 16 | 91.2 MiB | 93.8 MiB | 0.64% / 0.66% |
+| 32 | 184.7 MiB | 197.2 MiB | 1.29% / 1.38% |
+| **64** | **410.1 MiB** | 387.5 MiB | 2.87% / 2.71% |
+| 128 | 821.3 MiB | 848.2 MiB | 5.75% / 5.94% |
+| 256 | 1599.9 MiB | 1700.7 MiB | 11.20% / 11.90% |
+| 512 | 3160.5 MiB | 3238.6 MiB | 22.12% / 22.67% |
+
+訓練特徵庫 **13.95 GiB**、2273 檔。
+**512 → 64 讓 replay 期間需要的特徵量降 7.7 倍**（3.09 GiB → 410 MiB）。
+
+⚠️ 這是 fold 1 的切分；不同折的訓練集不同，數字會有小幅差異。
+⚠️ |M| ≠ 64 的列只是這個量的**算術**，不代表本批跑過那些設定（P1 已依指示取消）。
+
+## 協定核對
+
+
+* 本批：`outputs/exp5/chk_m512_f1/per_slide/A5_reverse_seed1_M512_hier_acc_ucur.json`（569 筆）
+* 基準：`/workspace/pathselect-exp5/outputs/exp3/sota_ucur/per_slide/A5_reverse_seed1_hier_acc_ucur.json`（569 筆）
+* 共同的 (stage, task, slide)：569
+
+每個 stage 的 n 是**該時點評估的所有任務**加總（學完 t 個任務就評估 t 個），
+class-IL 也是同一個口徑。
+
+| stage | 評估的任務 | n | 本批 class-IL | 基準 class-IL | selected_idx 不同 | pred 不同 |
+|---|---|---|---|---|---|---|
+| 0 | esca | 15 | 1.00000000 | 1.00000000 | 0 | 0 |
+| 1 | esca, rcc | 91 | 0.96703297 | 0.96703297 | 0 | 0 |
+| 2 | brca, esca, rcc | 184 | 0.86413043 | 0.86413043 | 0 | 0 |
+| 3 | brca, esca, lung, rcc | 279 | 0.83512545 | 0.83512545 | 0 | 0 |
+
+## 判讀
+
+✅ **全部逐位元相同** → 本批與 exp3 同平台，數字可直接對讀。
+
+
+
+## 正文中依賴 |M| = 512 的分析，本批**未**重跑
+
+以下都在 fold 1、5 個 seed 的消融協定下（Table 3 那一組），P2 已依指示取消。
+**由 PI 決定保留、刪除或改口徑。**
+
+| main.tex 位置 | 主張 | 需要的 run |
+|---|---|---|
+| §4.2（`:225`） | 「完整目標比只有 replay 高 **2.5** 個 class-IL 點，**五個 seed 全數成立**」 | A5 ucur ×5、A3 ×5 |
+| §4.2（`:247`） | 只有蒸餾時洩漏 **34.8** | B1 ×5 |
+| §4.2（`:247`） | **78.9** 與 **77.0** class-IL | B2 ucur ×5、A3 ×5 |
+| §4.2（`:247`） | 完整目標達到最高的 **79.5** | A5 ucur ×5 |
+| §4.2（`:247`） | Jaccard **0.165** 對 **0.125** 的反轉（摘要也引用了這個論點） | A4 ×5、A5 ucur ×5 |
+| §4.2（`:223`） | ΔU「**−0.64** 或更好」 | A3 ×5 |
+| Table 3 全表（`:227-245`） | 六列中五列依賴 \|M\| | 共 25 run |
+
+⚠️ Table 3 的第 1 列（A2）對 \|M\| 免疫，可沿用。
+⚠️ 最高風險的是 **Jaccard 0.165 對 0.125 的反轉** —— 摘要的收尾句（「保住證據身分不等於保住有用性」）建立在它上面。記憶庫縮小 8 倍後這個反轉是否還在，本批沒有答案。
+
+### M = 0 沒有跑的原因
+
+`SelectionMemory.__init__` 對 `capacity <= 0` 直接 raise（`selector/memory.py`），
+必須改程式才能跑，依規則跳過。**不能用 Table 2 的無保護列代表 M = 0**：
+A1 連 LoRA 都沒有，A2 有 LoRA 但完全沒有保存機制，兩者都不是「有完整保存機制但記憶庫為空」。
+
+## 出處與可重現資訊
+
+* 分支 `exp/m64-5090-backup`，報告產生於 commit `75ec632`
+* 實驗基準 commit `081bdcd`（與 `main`／`origin/main` 相同）
+* 機器與環境：`outputs/exp5/MACHINE.md`
+* 預註冊：`docs/ledger/DR-057.md`（在看到本批任何結果之前提交）
+* 影響盤點：`docs/M64_NUMBER_INVENTORY.md`
+* LaTeX 表格：`paper/numbers_m64_5090/`
+* 逐 run 紀錄：`logs/exp5/runs/`，心跳：`logs/exp5/HEARTBEAT.md`
+
+**估算與實測的區分**：本報告中標「實測」的數字都從輸出檔讀取；
+任何估算值都會明確寫成「估」。單 run wall-clock 為實測。
+
+
+---
+
+## 附錄：git 配置與交接資訊
+
+### 兩個 worktree 的絕對路徑
+
+| 路徑 | 分支 | 起始 commit | 用途 |
+|---|---|---|---|
+| `/Users/aaron/research/pathselect-exp5` | `exp/m64-5090-backup` | `081bdcd` | 本批實驗（已 push origin） |
+| `/Users/aaron/research/pathselect-paper` | `paper/v1.0-m64` | `081bdcd` | PI 改論文用，**今晚未做任何改動** |
+| `/Users/aaron/research/02_pathselect` | `cockpit` | — | 原資料夾，**完全未動** |
+
+### 第 0.1 步的檢查結果
+
+* 原資料夾當時在 **`cockpit`** 分支，已追蹤檔案**沒有任何未提交變更**。
+* 未追蹤檔案四項：`logs/pod/chain.stdout`、`logs/pod/chain_B7.stdout`、
+  `logs/pod/heartbeat.stdout`（皆為零位元組）、`paper/figures/archive/`（三個 Fig.1 舊版圖檔）。
+  這些在本批開始前就存在，**未被納入任何 commit**。
+* `paper/` 下**沒有已追蹤檔案的未提交修改**。
+* **`paper/main.tex` 在 `main`、`cockpit`、工作目錄三處是同一個 blob**
+  （`f9fc05f37bbfca61e24ed1abfcdf0da1e6ce915f`），diffstat 為空。
+
+### 要不要把 main.tex 搬進 pathselect-paper？
+
+**不需要。** 三處完全相同，而 `pathselect-paper` 是從同一個 commit 開出來的，
+裡面的 `paper/main.tex` 已經是同一份。
+
+若日後原資料夾的 `paper/main.tex` 被改動而需要搬過去，指令是（**我不會自己執行**）：
+
+```bash
+cd /Users/aaron/research/pathselect-paper
+cp /Users/aaron/research/02_pathselect/paper/main.tex paper/main.tex
+git -C /Users/aaron/research/pathselect-paper diff --stat -- paper/main.tex   # 先看差異
+```
+
+### 基準的選定（第 0.2 步）
+
+`main` 與 `origin/main` 指向同一個 commit `081bdcd`，無分岔，兩者相差 0 個 commit。
+基準取 `081bdcd`。**`main` 本身未被修改。**
+
+### 交接
+
+* 本批分支已 push：`origin/exp/m64-5090-backup`。
+* `paper/v1.0-m64` **尚未 push**（今晚沒有內容變更）。PI 把 Fable 寫好的 `main.tex`
+  放進 `pathselect-paper/paper/` 之後，由我 commit 並 push 該分支（等 PI 通知）。
+* pod **保持運轉**，未關機。tmux session `exp5` 已結束（佇列跑完）。
+* 要續跑 P1／P2：`bash scripts/exp5_queue.sh logs/exp5/queue_full_p0p2.tsv 10`
+  （已完成的 61 個 run 會自動跳過）。P3：`... logs/exp5/queue_p3.tsv 10`。

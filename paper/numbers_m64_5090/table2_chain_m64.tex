@@ -1,0 +1,21 @@
+% 由 scripts/make_exp5_tables.py 從 outputs/exp5 產生。
+% 第 1 列（無保存）與第 5 列（零樣本）對 |M| 免疫，沿用既有數字未重跑 —— 見 docs/EXP5_REPORT.md。
+\begin{table}[!t]
+\centering\footnotesize\renewcommand{\arraystretch}{0.93}
+\caption{\textbf{Component chain under a 64-WSI replay memory} (ten-fold CV). The first and last rows use no replay memory and are unchanged.}
+\label{tab:chain}
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{Reverse order} & \multicolumn{2}{c}{Forward order} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Configuration & ACC$\uparrow$ & Forg.$\downarrow$ & ACC$\uparrow$ & Forg.$\downarrow$ \\
+\midrule
+No preservation & $.481_{\pm.057}$ & $.584$ & $.549_{\pm.099}$ & $.478$ \\
++ replay & $.757_{\pm.031}$ & $.222$ & $.823_{\pm.027}$ & $.103$ \\
++ distillation + utility floor & $.762_{\pm.046}$ & $.205$ & $.821_{\pm.038}$ & $.099$ \\
++ group-level budget (ours) & $.755_{\pm.021}$ & $.206$ & $.820_{\pm.033}$ & $.091$ \\
+\midrule
+Class-text top-8, no learning & $.812_{\pm.024}$ & --- & $.812_{\pm.024}$ & --- \\
+\bottomrule
+\end{tabular}
+\end{table}

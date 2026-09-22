@@ -167,4 +167,34 @@ A2 可直接沿用。
 
 ## 8. 「5090 新數字」欄位
 
-本批跑完後於 `docs/EXP5_REPORT.md` 補齊，格式：位置 ｜ 舊數字 ｜ 新數字 ｜ 來源目錄。
+見下一節。
+
+---
+
+## 9. 5090 新數字（|M| = 64，本批實測）
+
+格式與稿件相同：ACC ± sd / Forgetting / Masked。**所有數字從 `outputs/exp5/` 的輸出檔讀取。**
+
+| 位置 | 舊數字（\|M\|=512） | 新數字（\|M\|=64） | 來源目錄 |
+|---|---|---|---|
+| Table 1 `:195` PathSelect reverse | .834±.031 / .101 / .914 | 0.755 ± 0.021 / 0.206 / 0.906 | `outputs/exp5/m64_full_rev` |
+| Table 1 `:195` PathSelect forward | .837±.027 / .059 / .916 | 0.820 ± 0.033 / 0.091 / 0.914 | `outputs/exp5/m64_full_fwd` |
+| Table 2 `:215` ＋replay reverse | .819±.042 / .121 | 0.757 ± 0.031 / 0.222 | `outputs/exp5/m64_replay_rev` |
+| Table 2 `:215` ＋replay forward | .831±.044 / .078 | 0.823 ± 0.027 / 0.103 | `outputs/exp5/m64_replay_fwd` |
+| Table 2 `:216` ＋蒸餾＋效用下限 reverse | .823±.041 / .108 | 0.762 ± 0.046 / 0.205 | `outputs/exp5/m64_distutil_rev` |
+| Table 2 `:216` ＋蒸餾＋效用下限 forward | .846±.047 / .068 | 0.821 ± 0.038 / 0.099 | `outputs/exp5/m64_distutil_fwd` |
+| Table 2 `:217` ＋group 層預算 reverse | .834±.031 / .101 | 0.755 ± 0.021 / 0.206 | `outputs/exp5/m64_full_rev` |
+| Table 2 `:217` ＋group 層預算 forward | .837±.027 / .059 | 0.820 ± 0.033 / 0.091 | `outputs/exp5/m64_full_fwd` |
+| 摘要 `:62`、§1 `:90` reverse 終點 | 0.834 | 0.755 | `outputs/exp5/m64_full_rev` |
+| 摘要 `:62`、§1 `:90` forward 終點 | 0.837 | 0.820 | `outputs/exp5/m64_full_fwd` |
+| §1 `:96`、§4.1 `:167` 記憶體容量 | 512 snapshots | **64 snapshots** | `設定值` |
+| §4.2 `:225` replay 恢復 reverse | 0.819 | 0.757 | `outputs/exp5/m64_replay_rev` |
+| §4.2 `:225` replay 恢復 forward | 0.831 | 0.823 | `outputs/exp5/m64_replay_fwd` |
+| §4.2 `:225` 本方法 − replay 的增益 | +0.015（6/10）、+0.006（7/10） | **−0.0020（6/10）、−0.0027（4/10）** | `本批逐折配對` |
+| §4.3 `:252` 與 QPMIL-VL 的差距 | 0.025 / 0.053 | **0.104 / 0.070**（.859−.755、.890−.820） | `由本批數字導出` |
+| §4.4 `:257` 移除 group 層 | −0.011 / +0.008 | **+0.0068（5/10）／+0.0003（5/10）** | `本批逐折配對` |
+| §5 `:266` 折間 sd | 0.03–0.05 | 0.021–0.046 | `本批六組` |
+
+⚠️ 舊數字來自 `outputs/exp3`（**不同批次**）。本表只是並列，**不是配對比較**，兩欄不得相減。
+⚠️ Table 3 與其相關的正文分析（fold 1 五 seed）**本批未重跑**，見 `docs/EXP5_REPORT.md`。
+
