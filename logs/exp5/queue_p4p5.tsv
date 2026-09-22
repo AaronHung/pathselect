@@ -1,0 +1,120 @@
+m128_full_rev_f1	--arms A5 --order reverse --arch hier --fold 1 --seeds 1 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_rev_f2	--arms A5 --order reverse --arch hier --fold 2 --seeds 2 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_rev_f3	--arms A5 --order reverse --arch hier --fold 3 --seeds 3 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_rev_f4	--arms A5 --order reverse --arch hier --fold 4 --seeds 4 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_rev_f5	--arms A5 --order reverse --arch hier --fold 5 --seeds 5 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_rev_f6	--arms A5 --order reverse --arch hier --fold 6 --seeds 6 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_rev_f7	--arms A5 --order reverse --arch hier --fold 7 --seeds 7 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_rev_f8	--arms A5 --order reverse --arch hier --fold 8 --seeds 8 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_rev_f9	--arms A5 --order reverse --arch hier --fold 9 --seeds 9 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_rev_f10	--arms A5 --order reverse --arch hier --fold 10 --seeds 10 --mem-capacity 128 --uold current --tag m128_full_rev --head accumulating --out-root outputs/exp5
+m128_full_fwd_f1	--arms A5 --order main --arch hier --fold 1 --seeds 1 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_full_fwd_f2	--arms A5 --order main --arch hier --fold 2 --seeds 2 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_full_fwd_f3	--arms A5 --order main --arch hier --fold 3 --seeds 3 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_full_fwd_f4	--arms A5 --order main --arch hier --fold 4 --seeds 4 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_full_fwd_f5	--arms A5 --order main --arch hier --fold 5 --seeds 5 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_full_fwd_f6	--arms A5 --order main --arch hier --fold 6 --seeds 6 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_full_fwd_f7	--arms A5 --order main --arch hier --fold 7 --seeds 7 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_full_fwd_f8	--arms A5 --order main --arch hier --fold 8 --seeds 8 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_full_fwd_f9	--arms A5 --order main --arch hier --fold 9 --seeds 9 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_full_fwd_f10	--arms A5 --order main --arch hier --fold 10 --seeds 10 --mem-capacity 128 --uold current --tag m128_full_fwd --head accumulating --out-root outputs/exp5
+m128_replay_rev_f1	--arms A3 --order reverse --arch flat --fold 1 --seeds 1 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_replay_rev_f2	--arms A3 --order reverse --arch flat --fold 2 --seeds 2 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_replay_rev_f3	--arms A3 --order reverse --arch flat --fold 3 --seeds 3 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_replay_rev_f4	--arms A3 --order reverse --arch flat --fold 4 --seeds 4 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_replay_rev_f5	--arms A3 --order reverse --arch flat --fold 5 --seeds 5 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_replay_rev_f6	--arms A3 --order reverse --arch flat --fold 6 --seeds 6 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_replay_rev_f7	--arms A3 --order reverse --arch flat --fold 7 --seeds 7 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_replay_rev_f8	--arms A3 --order reverse --arch flat --fold 8 --seeds 8 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_replay_rev_f9	--arms A3 --order reverse --arch flat --fold 9 --seeds 9 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_replay_rev_f10	--arms A3 --order reverse --arch flat --fold 10 --seeds 10 --mem-capacity 128 --tag m128_replay_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f1	--arms A5 --order reverse --arch flat --fold 1 --seeds 1 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f2	--arms A5 --order reverse --arch flat --fold 2 --seeds 2 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f3	--arms A5 --order reverse --arch flat --fold 3 --seeds 3 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f4	--arms A5 --order reverse --arch flat --fold 4 --seeds 4 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f5	--arms A5 --order reverse --arch flat --fold 5 --seeds 5 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f6	--arms A5 --order reverse --arch flat --fold 6 --seeds 6 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f7	--arms A5 --order reverse --arch flat --fold 7 --seeds 7 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f8	--arms A5 --order reverse --arch flat --fold 8 --seeds 8 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f9	--arms A5 --order reverse --arch flat --fold 9 --seeds 9 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_distutil_rev_f10	--arms A5 --order reverse --arch flat --fold 10 --seeds 10 --mem-capacity 128 --uold current --tag m128_distutil_rev --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f1	--arms A3 --order main --arch flat --fold 1 --seeds 1 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f2	--arms A3 --order main --arch flat --fold 2 --seeds 2 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f3	--arms A3 --order main --arch flat --fold 3 --seeds 3 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f4	--arms A3 --order main --arch flat --fold 4 --seeds 4 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f5	--arms A3 --order main --arch flat --fold 5 --seeds 5 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f6	--arms A3 --order main --arch flat --fold 6 --seeds 6 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f7	--arms A3 --order main --arch flat --fold 7 --seeds 7 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f8	--arms A3 --order main --arch flat --fold 8 --seeds 8 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f9	--arms A3 --order main --arch flat --fold 9 --seeds 9 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_replay_fwd_f10	--arms A3 --order main --arch flat --fold 10 --seeds 10 --mem-capacity 128 --tag m128_replay_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f1	--arms A5 --order main --arch flat --fold 1 --seeds 1 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f2	--arms A5 --order main --arch flat --fold 2 --seeds 2 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f3	--arms A5 --order main --arch flat --fold 3 --seeds 3 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f4	--arms A5 --order main --arch flat --fold 4 --seeds 4 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f5	--arms A5 --order main --arch flat --fold 5 --seeds 5 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f6	--arms A5 --order main --arch flat --fold 6 --seeds 6 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f7	--arms A5 --order main --arch flat --fold 7 --seeds 7 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f8	--arms A5 --order main --arch flat --fold 8 --seeds 8 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f9	--arms A5 --order main --arch flat --fold 9 --seeds 9 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m128_distutil_fwd_f10	--arms A5 --order main --arch flat --fold 10 --seeds 10 --mem-capacity 128 --uold current --tag m128_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_full_rev_f1	--arms A5 --order reverse --arch hier --fold 1 --seeds 1 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_rev_f2	--arms A5 --order reverse --arch hier --fold 2 --seeds 2 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_rev_f3	--arms A5 --order reverse --arch hier --fold 3 --seeds 3 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_rev_f4	--arms A5 --order reverse --arch hier --fold 4 --seeds 4 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_rev_f5	--arms A5 --order reverse --arch hier --fold 5 --seeds 5 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_rev_f6	--arms A5 --order reverse --arch hier --fold 6 --seeds 6 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_rev_f7	--arms A5 --order reverse --arch hier --fold 7 --seeds 7 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_rev_f8	--arms A5 --order reverse --arch hier --fold 8 --seeds 8 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_rev_f9	--arms A5 --order reverse --arch hier --fold 9 --seeds 9 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_rev_f10	--arms A5 --order reverse --arch hier --fold 10 --seeds 10 --mem-capacity 256 --uold current --tag m256_full_rev --head accumulating --out-root outputs/exp5
+m256_full_fwd_f1	--arms A5 --order main --arch hier --fold 1 --seeds 1 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_full_fwd_f2	--arms A5 --order main --arch hier --fold 2 --seeds 2 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_full_fwd_f3	--arms A5 --order main --arch hier --fold 3 --seeds 3 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_full_fwd_f4	--arms A5 --order main --arch hier --fold 4 --seeds 4 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_full_fwd_f5	--arms A5 --order main --arch hier --fold 5 --seeds 5 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_full_fwd_f6	--arms A5 --order main --arch hier --fold 6 --seeds 6 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_full_fwd_f7	--arms A5 --order main --arch hier --fold 7 --seeds 7 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_full_fwd_f8	--arms A5 --order main --arch hier --fold 8 --seeds 8 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_full_fwd_f9	--arms A5 --order main --arch hier --fold 9 --seeds 9 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_full_fwd_f10	--arms A5 --order main --arch hier --fold 10 --seeds 10 --mem-capacity 256 --uold current --tag m256_full_fwd --head accumulating --out-root outputs/exp5
+m256_replay_rev_f1	--arms A3 --order reverse --arch flat --fold 1 --seeds 1 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_replay_rev_f2	--arms A3 --order reverse --arch flat --fold 2 --seeds 2 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_replay_rev_f3	--arms A3 --order reverse --arch flat --fold 3 --seeds 3 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_replay_rev_f4	--arms A3 --order reverse --arch flat --fold 4 --seeds 4 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_replay_rev_f5	--arms A3 --order reverse --arch flat --fold 5 --seeds 5 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_replay_rev_f6	--arms A3 --order reverse --arch flat --fold 6 --seeds 6 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_replay_rev_f7	--arms A3 --order reverse --arch flat --fold 7 --seeds 7 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_replay_rev_f8	--arms A3 --order reverse --arch flat --fold 8 --seeds 8 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_replay_rev_f9	--arms A3 --order reverse --arch flat --fold 9 --seeds 9 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_replay_rev_f10	--arms A3 --order reverse --arch flat --fold 10 --seeds 10 --mem-capacity 256 --tag m256_replay_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f1	--arms A5 --order reverse --arch flat --fold 1 --seeds 1 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f2	--arms A5 --order reverse --arch flat --fold 2 --seeds 2 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f3	--arms A5 --order reverse --arch flat --fold 3 --seeds 3 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f4	--arms A5 --order reverse --arch flat --fold 4 --seeds 4 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f5	--arms A5 --order reverse --arch flat --fold 5 --seeds 5 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f6	--arms A5 --order reverse --arch flat --fold 6 --seeds 6 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f7	--arms A5 --order reverse --arch flat --fold 7 --seeds 7 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f8	--arms A5 --order reverse --arch flat --fold 8 --seeds 8 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f9	--arms A5 --order reverse --arch flat --fold 9 --seeds 9 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_distutil_rev_f10	--arms A5 --order reverse --arch flat --fold 10 --seeds 10 --mem-capacity 256 --uold current --tag m256_distutil_rev --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f1	--arms A3 --order main --arch flat --fold 1 --seeds 1 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f2	--arms A3 --order main --arch flat --fold 2 --seeds 2 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f3	--arms A3 --order main --arch flat --fold 3 --seeds 3 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f4	--arms A3 --order main --arch flat --fold 4 --seeds 4 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f5	--arms A3 --order main --arch flat --fold 5 --seeds 5 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f6	--arms A3 --order main --arch flat --fold 6 --seeds 6 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f7	--arms A3 --order main --arch flat --fold 7 --seeds 7 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f8	--arms A3 --order main --arch flat --fold 8 --seeds 8 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f9	--arms A3 --order main --arch flat --fold 9 --seeds 9 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_replay_fwd_f10	--arms A3 --order main --arch flat --fold 10 --seeds 10 --mem-capacity 256 --tag m256_replay_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f1	--arms A5 --order main --arch flat --fold 1 --seeds 1 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f2	--arms A5 --order main --arch flat --fold 2 --seeds 2 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f3	--arms A5 --order main --arch flat --fold 3 --seeds 3 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f4	--arms A5 --order main --arch flat --fold 4 --seeds 4 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f5	--arms A5 --order main --arch flat --fold 5 --seeds 5 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f6	--arms A5 --order main --arch flat --fold 6 --seeds 6 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f7	--arms A5 --order main --arch flat --fold 7 --seeds 7 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f8	--arms A5 --order main --arch flat --fold 8 --seeds 8 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f9	--arms A5 --order main --arch flat --fold 9 --seeds 9 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
+m256_distutil_fwd_f10	--arms A5 --order main --arch flat --fold 10 --seeds 10 --mem-capacity 256 --uold current --tag m256_distutil_fwd --head accumulating --out-root outputs/exp5
