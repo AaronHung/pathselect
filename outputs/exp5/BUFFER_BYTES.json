@@ -1,0 +1,198 @@
+{
+ "train_files": 2273,
+ "train_total_bytes": 14981030027,
+ "train_total_GiB": 13.952171455137432,
+ "note": "\u7559\u5728\u8a18\u61b6\u5eab\u7684 |M| \u7b46\u6240\u5c0d\u61c9\u7684\u5b8c\u6574\u7279\u5fb5\u6a94\u5927\u5c0f\u7e3d\u548c\u3002replay \u91cd\u65b0\u8f09\u5165\u6574\u5f35\u5207\u7247\u7684\u7279\u5fb5\uff0c\u4e0d\u662f\u53ea\u8b80\u5019\u9078\u3002",
+ "entries": [
+  {
+   "capacity": 16,
+   "order": "reverse",
+   "fold": 1,
+   "retained": 16,
+   "found": 16,
+   "total_bytes": 95637168,
+   "total_MiB": 91.20671081542969,
+   "pct_of_train": 0.6383884674660896,
+   "by_task": {
+    "tcga_brca": 8,
+    "tcga_lung": 6,
+    "tcga_rcc": 2
+   }
+  },
+  {
+   "capacity": 16,
+   "order": "main",
+   "fold": 1,
+   "retained": 16,
+   "found": 16,
+   "total_bytes": 98334384,
+   "total_MiB": 93.77897644042969,
+   "pct_of_train": 0.656392676757032,
+   "by_task": {
+    "tcga_brca": 7,
+    "tcga_esca": 2,
+    "tcga_lung": 3,
+    "tcga_rcc": 4
+   }
+  },
+  {
+   "capacity": 32,
+   "order": "reverse",
+   "fold": 1,
+   "retained": 32,
+   "found": 32,
+   "total_bytes": 193629536,
+   "total_MiB": 184.65951538085938,
+   "pct_of_train": 1.2924981503342927,
+   "by_task": {
+    "tcga_brca": 14,
+    "tcga_lung": 11,
+    "tcga_rcc": 7
+   }
+  },
+  {
+   "capacity": 32,
+   "order": "main",
+   "fold": 1,
+   "retained": 32,
+   "found": 32,
+   "total_bytes": 206804320,
+   "total_MiB": 197.22396850585938,
+   "pct_of_train": 1.3804412622315079,
+   "by_task": {
+    "tcga_brca": 13,
+    "tcga_esca": 4,
+    "tcga_lung": 8,
+    "tcga_rcc": 7
+   }
+  },
+  {
+   "capacity": 64,
+   "order": "reverse",
+   "fold": 1,
+   "retained": 64,
+   "found": 64,
+   "total_bytes": 430037696,
+   "total_MiB": 410.11590576171875,
+   "pct_of_train": 2.870548254859325,
+   "by_task": {
+    "tcga_brca": 20,
+    "tcga_esca": 1,
+    "tcga_lung": 29,
+    "tcga_rcc": 14
+   }
+  },
+  {
+   "capacity": 64,
+   "order": "main",
+   "fold": 1,
+   "retained": 64,
+   "found": 64,
+   "total_bytes": 406293184,
+   "total_MiB": 387.47137451171875,
+   "pct_of_train": 2.7120510623618417,
+   "by_task": {
+    "tcga_brca": 22,
+    "tcga_esca": 4,
+    "tcga_lung": 15,
+    "tcga_rcc": 23
+   }
+  },
+  {
+   "capacity": 128,
+   "order": "reverse",
+   "fold": 1,
+   "retained": 128,
+   "found": 128,
+   "total_bytes": 861150592,
+   "total_MiB": 821.2572021484375,
+   "pct_of_train": 5.748273586315268,
+   "by_task": {
+    "tcga_brca": 48,
+    "tcga_esca": 4,
+    "tcga_lung": 49,
+    "tcga_rcc": 27
+   }
+  },
+  {
+   "capacity": 128,
+   "order": "main",
+   "fold": 1,
+   "retained": 128,
+   "found": 128,
+   "total_bytes": 889361792,
+   "total_MiB": 848.1614990234375,
+   "pct_of_train": 5.936586405588412,
+   "by_task": {
+    "tcga_brca": 47,
+    "tcga_esca": 4,
+    "tcga_lung": 33,
+    "tcga_rcc": 44
+   }
+  },
+  {
+   "capacity": 256,
+   "order": "reverse",
+   "fold": 1,
+   "retained": 256,
+   "found": 256,
+   "total_bytes": 1677646592,
+   "total_MiB": 1599.928466796875,
+   "pct_of_train": 11.19847292860646,
+   "by_task": {
+    "tcga_brca": 94,
+    "tcga_esca": 10,
+    "tcga_lung": 88,
+    "tcga_rcc": 64
+   }
+  },
+  {
+   "capacity": 256,
+   "order": "main",
+   "fold": 1,
+   "retained": 256,
+   "found": 256,
+   "total_bytes": 1783360256,
+   "total_MiB": 1700.744873046875,
+   "pct_of_train": 11.904123099585854,
+   "by_task": {
+    "tcga_brca": 92,
+    "tcga_esca": 11,
+    "tcga_lung": 78,
+    "tcga_rcc": 75
+   }
+  },
+  {
+   "capacity": 512,
+   "order": "reverse",
+   "fold": 1,
+   "retained": 512,
+   "found": 512,
+   "total_bytes": 3313980928,
+   "total_MiB": 3160.45849609375,
+   "pct_of_train": 22.121182068437758,
+   "by_task": {
+    "tcga_brca": 179,
+    "tcga_esca": 22,
+    "tcga_lung": 173,
+    "tcga_rcc": 138
+   }
+  },
+  {
+   "capacity": 512,
+   "order": "main",
+   "fold": 1,
+   "retained": 512,
+   "found": 512,
+   "total_bytes": 3395941888,
+   "total_MiB": 3238.62255859375,
+   "pct_of_train": 22.66828036443131,
+   "by_task": {
+    "tcga_brca": 180,
+    "tcga_esca": 33,
+    "tcga_lung": 167,
+    "tcga_rcc": 132
+   }
+  }
+ ]
+}
