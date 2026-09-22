@@ -134,6 +134,44 @@ def main(argv=None) -> int:
           "⚠️ **不做三級 win-count 判讀** —— 那個規則是為 model seed 校準的，未對 fold 層級的變異來源"
           "重新校準（PI 裁示，docs/SOTA_TABLE.md）。這裡只列勝負折數。", ""]
 
+    # ── 科學判讀（由數字算出，不手寫）──
+    ZS = 0.812                      # class-text top-8，對 |M| 免疫，Table 2 第 5 列
+    L += ["## 科學判讀（由本批數字算出）", ""]
+    findings = []
+    for o in ("reverse", "main"):
+        full = D["m64_full"][o]
+        if len(full) != EXPECT:
+            continue
+        acc = statistics.mean([m["acc"] for m in full.values()])
+        sd = statistics.stdev([m["acc"] for m in full.values()])
+        # (1) 與零樣本參照的關係
+        gap = acc - ZS
+        findings.append(
+            f"* **{ORDER_LABEL[o]}：本方法 ACC {acc:.4f} ± {sd:.4f}，"
+            f"零樣本 class-text top-8 是 {ZS:.3f} → 相差 {gap:+.4f}**"
+            + ("。本方法**低於**那個完全不用學的參照。" if gap < 0 else "。本方法高於該參照。"))
+        # (2) 元件鏈：本方法 vs 只有 replay
+        r = paired(full, D["m64_replay"][o], "acc")
+        rf = paired(full, D["m64_replay"][o], "forgetting")
+        if r:
+            flat = abs(r["mean"]) < sd / 2
+            findings.append(
+                f"* **{ORDER_LABEL[o]}：本方法 − 只有 replay 的 ΔACC = {r['mean']:+.4f}"
+                f"（{r['better']}/{r['n']} 折較佳）**"
+                + ("，差值的絕對值小於折間 sd 的一半 → **元件鏈在這個記憶體大小下攤平**，"
+                   "「每加一個保存元件就多一點」的敘事沒有階梯。" if flat
+                   else "。"))
+            if rf:
+                findings.append(
+                    f"    * 同一組配對的 ΔForgetting = {rf['mean']:+.4f}"
+                    f"（{rf['better']}/{rf['n']} 折較佳）—— 遺忘是唯一還有方向的指標。")
+    L += findings or ["（資料不足，無法判讀。）"]
+    L += ["",
+          "以上都是**本批內部**的同機同批配對，可以相減。與稿件現用的 |M| = 512 數字的任何比較",
+          "都不是配對統計（不同批次），本報告不做相減；但兩組並列時，落差的量級遠大於折間 sd，",
+          "而協定核對已證明本機與產生 exp3 的機器逐位元等價 —— 判讀時請把這一點納入考慮。", "",
+          "**這些是觀察，不是出版建議。** 要不要用、怎麼改敘事，由 PI 決定。", ""]
+
     # ── buffer ──
     bj = src / "BUFFER_BYTES.json"
     if bj.is_file():
