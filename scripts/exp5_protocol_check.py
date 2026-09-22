@@ -50,7 +50,9 @@ def main(argv=None) -> int:
         L += [f"⚠️ 記錄集合不同：本批多 {len(set(N)-set(R))}、基準多 {len(set(R)-set(N))}", ""]
 
     stages = sorted({k[0] for k in shared})
-    L += ["| stage | task | n | 本批 class-IL | 基準 class-IL | selected_idx 不同 | pred 不同 |",
+    L += ["每個 stage 的 n 是**該時點評估的所有任務**加總（學完 t 個任務就評估 t 個），",
+          "class-IL 也是同一個口徑。", "",
+          "| stage | 評估的任務 | n | 本批 class-IL | 基準 class-IL | selected_idx 不同 | pred 不同 |",
           "|---|---|---|---|---|---|---|"]
     per_stage = {}
     for s in stages:
@@ -59,7 +61,9 @@ def main(argv=None) -> int:
         d_idx = sum(N[k]["selected_idx"] != R[k]["selected_idx"] for k in ks)
         d_prd = sum(N[k]["pred_class_il"] != R[k]["pred_class_il"] for k in ks)
         per_stage[s] = (len(ks), d_idx, d_prd)
-        L.append(f"| {s} | {ks[0][1]} | {len(ks)} | {acc(nn,'pred_class_il'):.8f} | "
+        tl = ", ".join(t.replace("tcga_", "") for t in
+                       sorted({k[1] for k in ks}, key=lambda x: [k[1] for k in ks].index(x)))
+        L.append(f"| {s} | {tl} | {len(ks)} | {acc(nn,'pred_class_il'):.8f} | "
                  f"{acc(rr,'pred_class_il'):.8f} | {d_idx} | {d_prd} |")
 
     s0 = per_stage.get(0)
