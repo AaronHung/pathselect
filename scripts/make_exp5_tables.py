@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""從 outputs/exp5 產生可直接放進論文的 LaTeX 表格。
+"""從 outputs/exp5 產生 LaTeX 表格片段，供撰稿者取用。
 
 格式照 paper/main.tex 現有表格，**只換數字**（欄位、caption 結構、\\cmidrule 位置都保留）。
 Table 1 依 PI 指示加一欄 Buffer (WSIs)。
 
 ⚠️ 所有數字都從輸出檔讀，不從對話抄。
-⚠️ 不修改 paper/main.tex —— 輸出到 paper/numbers_m64_5090/。
+⚠️ **不寫進 paper/ 底下任何位置**（PI 2026-09-23 指示：論文由撰稿者統一改）。
+輸出到 outputs/exp5/latex/。caption 是我產生的草稿，不是稿件內容。
 """
 from __future__ import annotations
 
@@ -75,7 +76,7 @@ def row(label: str, cite: str, buf, rev, fwd) -> str:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--src", default=str(ROOT / "outputs" / "exp5"))
-    ap.add_argument("--out", default=str(ROOT / "paper" / "numbers_m64_5090"))
+    ap.add_argument("--out", default=str(ROOT / "outputs" / "exp5" / "latex"))
     ap.add_argument("--buffer-json", default=None)
     a = ap.parse_args(argv)
     src, out = Path(a.src), Path(a.out)
