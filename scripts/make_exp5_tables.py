@@ -100,8 +100,6 @@ def main(argv=None) -> int:
          "\\caption{\\textbf{Comparison on the four-task TCGA continual WSI benchmark} "
          "(ten-fold CV; ACC mean$_{\\pm\\text{sd}}$, forgetting F.\\ and masked ACC Mask.\\ as means). "
          "Buffer is the number of WSIs each method keeps; $0$ denotes no rehearsal buffer. "
-         "Buffer contents are not comparable across methods: the rehearsal baselines store WSI bags, "
-         "whereas PathSelect stores selector snapshots and reloads the corresponding training features. "
          f"Rows above the rule are quoted from {MAIN_METHOD} \\cite{{{CITE_KEY}}}; "
          "$^\\ddagger$our rerun of its released code.}",
          "\\label{tab:sota}",
