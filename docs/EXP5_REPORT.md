@@ -11,7 +11,7 @@ P1 buffer sweep（M ∈ {16,32,128,256,512}，50 run）、P2 Table 3 重跑（25
 P3 B sweep（40 run）。佇列檔已保留：`logs/exp5/queue_full_p0p2.tsv`、`logs/exp5/queue_p3.tsv`，
 直接重跑 `scripts/exp5_queue.sh` 即可續跑（已完成的 run 會自動跳過）。
 
-⚠️ **兩套數字絕不混用。** H200 那套若在 9/23 16:00（台灣時間）前完整完成，論文全部用 H200；否則整套改用本批。兩套都完成時不比較數字高低，依此規則選（DR-057）。
+⚠️ **兩套數字絕不混用。** H200 那套若在 **9/24（週四）20:00（台灣時間）**前完整完成，論文全部用 H200；否則整套改用本批。兩套都完成時不比較數字高低，依此規則選（DR-057）。
 
 ⚠️ **本批與 exp3／exp4／H200 的數字不得相減或補位。** 本批內部的所有配對都在同一台、同一批完成。
 
@@ -24,8 +24,8 @@ P3 B sweep（40 run）。佇列檔已保留：`logs/exp5/queue_full_p0p2.tsv`、
 | ＋group 層預算＝**本方法**（A5 hier, uold=current） | **Table 1 的 PathSelect 列 ＋ Table 2 第 4 列** | 10/10 | 10/10 | `outputs/exp5/m64_full_rev`、`m64_full_fwd` |
 | 協定核對（M=512, fold 1） | — | ✅ 通過 | — | `outputs/exp5/chk_m512_f1` |
 
-實測單 run wall-clock：平均 **34.6 分鐘**（最短 32.4、最長 42.4），10 路平行。
-成功 61、失敗 0。
+實測單 run wall-clock：平均 **34.7 分鐘**（最短 32.4、最長 42.4），10 路平行。
+成功 64、失敗 0。
 
 ## Table 1 的 PathSelect 列與 Table 2（|M| = 64，十折，seed = fold）
 
@@ -139,7 +139,7 @@ A1 連 LoRA 都沒有，A2 有 LoRA 但完全沒有保存機制，兩者都不�
 
 ## 出處與可重現資訊
 
-* 分支 `exp/m64-5090-backup`，報告產生於 commit `75ec632`
+* 分支 `exp/m64-5090-backup`，報告產生於 commit `df5c829`
 * 實驗基準 commit `081bdcd`（與 `main`／`origin/main` 相同）
 * 機器與環境：`outputs/exp5/MACHINE.md`
 * 預註冊：`docs/ledger/DR-057.md`（在看到本批任何結果之前提交）
@@ -150,52 +150,3 @@ A1 連 LoRA 都沒有，A2 有 LoRA 但完全沒有保存機制，兩者都不�
 **估算與實測的區分**：本報告中標「實測」的數字都從輸出檔讀取；
 任何估算值都會明確寫成「估」。單 run wall-clock 為實測。
 
-
----
-
-## 附錄：git 配置與交接資訊
-
-### 兩個 worktree 的絕對路徑
-
-| 路徑 | 分支 | 起始 commit | 用途 |
-|---|---|---|---|
-| `/Users/aaron/research/pathselect-exp5` | `exp/m64-5090-backup` | `081bdcd` | 本批實驗（已 push origin） |
-| `/Users/aaron/research/pathselect-paper` | `paper/v1.0-m64` | `081bdcd` | PI 改論文用，**今晚未做任何改動** |
-| `/Users/aaron/research/02_pathselect` | `cockpit` | — | 原資料夾，**完全未動** |
-
-### 第 0.1 步的檢查結果
-
-* 原資料夾當時在 **`cockpit`** 分支，已追蹤檔案**沒有任何未提交變更**。
-* 未追蹤檔案四項：`logs/pod/chain.stdout`、`logs/pod/chain_B7.stdout`、
-  `logs/pod/heartbeat.stdout`（皆為零位元組）、`paper/figures/archive/`（三個 Fig.1 舊版圖檔）。
-  這些在本批開始前就存在，**未被納入任何 commit**。
-* `paper/` 下**沒有已追蹤檔案的未提交修改**。
-* **`paper/main.tex` 在 `main`、`cockpit`、工作目錄三處是同一個 blob**
-  （`f9fc05f37bbfca61e24ed1abfcdf0da1e6ce915f`），diffstat 為空。
-
-### 要不要把 main.tex 搬進 pathselect-paper？
-
-**不需要。** 三處完全相同，而 `pathselect-paper` 是從同一個 commit 開出來的，
-裡面的 `paper/main.tex` 已經是同一份。
-
-若日後原資料夾的 `paper/main.tex` 被改動而需要搬過去，指令是（**我不會自己執行**）：
-
-```bash
-cd /Users/aaron/research/pathselect-paper
-cp /Users/aaron/research/02_pathselect/paper/main.tex paper/main.tex
-git -C /Users/aaron/research/pathselect-paper diff --stat -- paper/main.tex   # 先看差異
-```
-
-### 基準的選定（第 0.2 步）
-
-`main` 與 `origin/main` 指向同一個 commit `081bdcd`，無分岔，兩者相差 0 個 commit。
-基準取 `081bdcd`。**`main` 本身未被修改。**
-
-### 交接
-
-* 本批分支已 push：`origin/exp/m64-5090-backup`。
-* `paper/v1.0-m64` **尚未 push**（今晚沒有內容變更）。PI 把 Fable 寫好的 `main.tex`
-  放進 `pathselect-paper/paper/` 之後，由我 commit 並 push 該分支（等 PI 通知）。
-* pod **保持運轉**，未關機。tmux session `exp5` 已結束（佇列跑完）。
-* 要續跑 P1／P2：`bash scripts/exp5_queue.sh logs/exp5/queue_full_p0p2.tsv 10`
-  （已完成的 61 個 run 會自動跳過）。P3：`... logs/exp5/queue_p3.tsv 10`。
