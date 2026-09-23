@@ -158,3 +158,70 @@ def test_invalid_mode_rejected_and_cli_default():
     r = subprocess.run([sys.executable, "scripts/run_exp2.py", "--help"], capture_output=True,
                        text=True, cwd=REPO_ROOT)
     assert "--uold {snapshot,current}" in r.stdout
+
+
+def test_uold_is_a_no_op_for_arms_without_the_hinge():
+    """沒有 hinge 的臂（eq=False）在兩種 --uold 下逐位元相同。
+
+    這支撐一個影響論文的判斷：現行 Table 3 混用了 snapshot 與 current 兩種口徑
+    （第 1/2/4/5 列 snapshot、第 3/6 列 current），但無 hinge 的那幾列在兩種口徑下
+    結果相同，所以那張表**內部一致、可以直接沿用**，不必為了統一口徑重跑。
+
+    程式面的理由：`u_old_mode` 在 `continual_terms` 裡的每一處使用都在 `if use_eq:`
+    區塊內，區塊外零出現。本測試是那個事實的行為層佐證 —— 讀碼會漏看，跑過才算數。
+    """
+    import torch.nn.functional as F
+    from selector import train as T
+    from selector.grouping import NUM_GROUPS, assign_groups
+    from selector.memory import make_entry
+    from selector.model import GroupSelector, PatchSelector
+    from selector.rounds import run_rounds
+
+    torch.manual_seed(0)
+    g = torch.Generator().manual_seed(3)
+    Z = torch.randn(400, 512, generator=g)
+    f_txt = F.normalize(torch.randn(8, 512, generator=g), dim=-1)
+    tissue = F.normalize(torch.randn(NUM_GROUPS, 512, generator=g), dim=-1)
+    f_g, f_p = GroupSelector(), PatchSelector()
+    grp = assign_groups(Z, tissue)
+    spec = dict(use_query=False, use_state=False, hierarchy=False)
+    with torch.no_grad():
+        res = run_rounds(Z, grp, torch.zeros(512), f_g, f_p, budget=8, chunk=1, **spec)
+    last = res.records[-1]
+    entry = make_entry("tcga_rcc", "sid", res.state, last.r, last.cand_idx,
+                       last.s.detach(), torch.randn(last.cand_idx.numel()),
+                       class_mask_old=torch.ones(8, dtype=torch.bool))
+
+    orig = T.reload_features
+    T.reload_features = lambda e, cfg: (Z, Z.index_select(0, e.cand_idx), 3)
+    try:
+        cm = torch.ones(8, dtype=torch.bool)
+        no_hinge = [("B1", dict(use_kd=True, use_eq=False, use_replay=False)),
+                    ("A3", dict(use_kd=False, use_eq=False, use_replay=True)),
+                    ("A4", dict(use_kd=True, use_eq=False, use_replay=True))]
+        for arm, flags in no_hinge:
+            outs = []
+            for mode in ("snapshot", "current"):
+                torch.manual_seed(0)
+                t = T.continual_terms(entry, {}, (f_g, f_p), f_txt, 56.0, tissue,
+                                      budget=8, chunk=1, spec=spec, class_mask=cm,
+                                      u_old_mode=mode, **flags)
+                outs.append(tuple(None if x is None else x.detach().clone() for x in t))
+            for a, b in zip(*outs):
+                if a is None:
+                    assert b is None, f"{arm}: 一邊 None 一邊不是"
+                else:
+                    assert torch.equal(a, b), f"{arm}: --uold 改變了結果，但它沒有 hinge"
+
+        # 反向對照：有 hinge 的臂**必須**不同，否則這個測試沒有鑑別力
+        outs = []
+        for mode in ("snapshot", "current"):
+            torch.manual_seed(0)
+            t = T.continual_terms(entry, {}, (f_g, f_p), f_txt, 56.0, tissue,
+                                  budget=8, chunk=1, spec=spec, class_mask=cm,
+                                  u_old_mode=mode, use_kd=True, use_eq=True, use_replay=True)
+            outs.append(t[1].detach().clone())
+        assert not torch.equal(outs[0], outs[1]), \
+            "有 hinge 的臂在兩種 --uold 下相同 —— 這個測試失去鑑別力了"
+    finally:
+        T.reload_features = orig
