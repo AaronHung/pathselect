@@ -20,34 +20,41 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from report_exp5 import load_tag                               # noqa: E402
 
-NEW = ROOT / "outputs/exp5/m512_full_rev/per_slide"
 REF = ROOT / "outputs/exp3/sota_ucur/per_slide"
 
+#: order 的兩種寫法：程式旗標是 reverse / main，檔名也用這兩個字。
+#: ⚠️ forward 在檔名裡是 `main`，寫成 forward 會比對到不存在的檔案。
+ORDER_KEY = {"reverse": "reverse", "main": "main"}
 
-def ref_file(fold: int) -> Path:
+
+def ref_file(fold: int, order: str) -> Path:
     """exp3 的命名：fold 1 不加後綴，其餘加 _f{fold}。"""
     s = "" if fold == 1 else f"_f{fold}"
-    return REF / f"A5_reverse_seed{fold}{s}_hier_acc_ucur.json"
+    return REF / f"A5_{ORDER_KEY[order]}_seed{fold}{s}_hier_acc_ucur.json"
 
 
-def new_file(fold: int) -> Path:
+def new_file(fold: int, order: str, new_dir: Path) -> Path:
     s = "" if fold == 1 else f"_f{fold}"
-    return NEW / f"A5_reverse_seed{fold}_M512{s}_hier_acc_ucur.json"
+    return new_dir / f"A5_{ORDER_KEY[order]}_seed{fold}_M512{s}_hier_acc_ucur.json"
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--order", default="reverse", choices=["reverse", "main"])
     ap.add_argument("--out", default=None)
     a = ap.parse_args(argv)
+    sfx = "rev" if a.order == "reverse" else "fwd"
+    new_dir = ROOT / f"outputs/exp5/m512_full_{sfx}/per_slide"
+    olab = "reverse" if a.order == "reverse" else "forward"
 
-    L = ["# exp5：M = 512 reverse 十折與 exp3 的逐折比對", "",
+    L = [f"# exp5：M = 512 {olab} 十折與 exp3 的逐折比對", "",
          "論文即將退回 M = 512，整張 Table 1／2／3 都建立在 `outputs/exp3/sota_ucur` 上。",
-         "P0 的協定核對只對過 fold 1，本檔補上其餘九折。**比對到逐筆，不只看均值。**", "",
+         "**比對到逐筆，不只看均值** —— 均值接近不代表計算路徑相同。", "",
          "| fold | n | 本批 class-IL | exp3 class-IL | selected_idx 不同 | 預測不同 | 判定 |",
          "|---|---|---|---|---|---|---|"]
     identical, differing, missing = [], [], []
     for fold in range(1, 11):
-        nf, rf = new_file(fold), ref_file(fold)
+        nf, rf = new_file(fold, a.order, new_dir), ref_file(fold, a.order)
         if not nf.is_file() or not rf.is_file():
             missing.append(fold)
             L.append(f"| {fold} | — | {'缺本批' if not nf.is_file() else ''}"
@@ -66,7 +73,7 @@ def main(argv=None) -> int:
                  f"{'✅ 逐位元相同' if same else '❌ 有差異'} |")
 
     # 十折彙總
-    per = load_tag(NEW, "reverse")
+    per = load_tag(new_dir, a.order)
     L += [""]
     if per:
         acc = [per[k]["acc"] for k in sorted(per)]
@@ -76,7 +83,9 @@ def main(argv=None) -> int:
               "| 來源 | n | ACC | Forgetting | Masked ACC |", "|---|---|---|---|---|",
               f"| 本批（5090 pod） | {len(per)} | {statistics.mean(acc):.4f} ± "
               f"{statistics.stdev(acc):.4f} | {statistics.mean(fo):.4f} | {statistics.mean(mk):.4f} |",
-              "| 稿件現用（exp3） | 10 | 0.834 ± 0.031 | 0.101 | 0.914 |", ""]
+              ("| 稿件現用（exp3） | 10 | 0.834 ± 0.031 | 0.101 | 0.914 |"
+               if a.order == "reverse" else
+               "| 稿件現用（exp3） | 10 | 0.837 ± 0.027 | 0.059 | 0.916 |"), ""]
 
     L += ["## 判定", ""]
     if missing:
